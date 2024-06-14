@@ -1,0 +1,63 @@
+
+
+<div class="mt-5 ">
+  <h3 class="category-title ms-3 ms-md-5 " style="cursor: pointer;">
+    Products <a href="/admin/add-product" class="add-category px-3 rounded-3" style="text-decoration: none; margin-left: 7px; color: rgb(38, 185, 38); border: 0.1px solid rgb(0, 0, 0);">+</a>
+    </h3>
+</div>
+
+<div class="container table-responsive shadow-lg rounded">
+  <table class="table mt-3 ">
+    <thead class="table-dark">
+      <tr>
+        <th scope="col">NO</th>
+        <th scope="col">Name</th>
+        <th scope="col">Description</th>
+        <th scope="col">Category</th>
+        <th scope="col">Size</th>
+        <th scope="col">Price</th>
+        <th scope="col">Flavour</th>
+        <th scope="col">Rating</th>
+        <th scope="col">Quantities</th>
+        <th scope="col">Sales Price</th>
+        <th scope="col">Edit</th>
+        <th scope="col">Delete</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each categories}}
+     <tr>
+      <th scope="row">1</th>
+      <td> {{this.name}} </td>
+      <td> {{this.description}} </td>
+      <td>
+            {{#if this.isActive}}
+            <label class="switch">
+              <input type="checkbox" checked/>
+              <span class="slider round"></span>
+            </label>
+              {{else}}
+            <label class="switch">
+              <input type="checkbox" />
+              <span class="slider round"></span>
+            </label>
+            {{/if}}
+          </td>
+      <td>
+        <a href="/admin/edit-category/{{this._id}}">
+            <i  class="fa-solid fa-pen" style="cursor: pointer; color: rgb(15, 223, 15);">
+            </i>
+        </a>
+      </td>
+      <td><a href="/admin/delete-category/{{this._id}}" >
+      <i class="fa-solid fa-trash mx-auto px-3" style="cursor: pointer; color: red;"></i>
+      </a></td>
+    </tr>
+    {{/each}}
+    </tbody>
+  </table>
+
+</div>
+
+
+

@@ -1,0 +1,179 @@
+<div class="mt-5">
+  <h3 class="ms-3 ms-md-5">Add Product</h3>
+</div>
+
+<div class="container shadow-lg p-3 mb-5 mt-4 rounded">
+  <form
+    action="/admin/add-category"
+    class="row g-3 needs-validation"
+    method="post"
+    enctype="multipart/form-data"
+    novalidate
+  >
+    <div class="col-md-6">
+      <label for="categoryName" class="form-label">Product Name</label>
+      <input
+        type="text"
+        class="form-control"
+        name="name"
+        id="categoryName"
+        required
+      />
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <label for="categoryDescription" class="form-label">Category Name</label>
+      <input
+        type="text"
+        class="form-control"
+        name="description"
+        id="categoryDescription"
+        required
+      />
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+
+    <div class="col-md-12">
+      <label for="categoryDescription" class="form-label">Description</label>
+      <input
+        type="text"
+        class="form-control"
+        name="description"
+        id="categoryDescription"
+        required
+      />
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <label for="categoryDescription" class="form-label">Price</label>
+      <input
+        type="number"
+        class="form-control"
+        name="description"
+        id="categoryDescription"
+        min="0"
+        required
+      />
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <label for="categoryDescription" class="form-label">Sale Price</label>
+      <input
+        type="number"
+        class="form-control"
+        name="description"
+        id="categoryDescription"
+        min="0"
+        required
+      />
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <label for="categoryDescription" class="form-label">Flavour</label>
+      <input
+        type="text"
+        class="form-control"
+        name="description"
+        id="categoryDescription"
+        required
+      />
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <label for="categoryDescription" class="form-label">Size</label>
+      <input
+        type="number"
+        class="form-control"
+        name="description"
+        id="categoryDescription"
+        min="0"
+        required
+      />
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <label for="categoryDescription" class="form-label">Rating</label>
+      <input
+        type="number"
+        class="form-control"
+        name="description"
+        id="categoryDescription"
+        min="1"
+        max="5"
+        required
+      />
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <label for="categoryDescription" class="form-label">Quantities</label>
+      <input
+        type="number"
+        class="form-control"
+        name="description"
+        id="categoryDescription"
+        min="1"
+        required
+      />
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+
+    <div class="col-md-12 d-flex">
+      <img
+        class="image-display rounded-3 w-25 image-fluid mx-auto mt-3"
+        style="height: auto;"
+      />
+    </div>
+
+    <div class="col-md-12">
+      <label for="categoryImage" class="form-label">Category Image</label>
+      <input
+        type="file"
+        name="file"
+        class="form-control category-img"
+        aria-label="file example"
+        id="categoryImage"
+        required
+      />
+      <div class="invalid-feedback">Please Upload the Category Image</div>
+    </div>
+
+    <div class="col-12 d-flex">
+      <button class="btn btn-success mx-auto" type="submit">Add</button>
+    </div>
+  </form>
+</div>
+
+{{! <script>
+    // Image Checking While Uploading
+  const image = document.querySelector('.image-display')
+  const categoryImage = document.querySelector('.category-img')
+  
+  categoryImage.addEventListener('change', (e) => {
+    image.src = URL.createObjectURL(e.target.files[0])
+  })
+</script> }}

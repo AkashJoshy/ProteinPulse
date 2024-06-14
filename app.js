@@ -1,6 +1,8 @@
 const express = require('express')
 const path = require('path')
 const {engine} = require('express-handlebars')
+const {createMongoConnection} = require('./config/connection')
+const fileUpload = require('express-fileupload')
 
 const userRouter = require('./routes/user')
 const adminRouter = require('./routes/admin')
@@ -23,12 +25,21 @@ app.set('views', __dirname + '/views')
 // parsing middleware
 app.use(express.urlencoded({extended: true}))
 app.use(express.json())
+
+// file upload
+app.use(fileUpload());
+
 // handling static files
-app.use(express.static('public'))
+app.use(express.static(path.join(__dirname, 'public')))
 
 // request handling
 app.use('/', userRouter)
 app.use('/admin', adminRouter)
+
+// mongoDB connection
+createMongoConnection()
+.then(() => console.log(`Connection is Success`))
+.catch(err => console.error(err))
 
 
 // port number

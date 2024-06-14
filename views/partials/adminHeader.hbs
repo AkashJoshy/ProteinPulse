@@ -1,0 +1,185 @@
+{{!-- Main NavBar --}}
+<nav style="background-color: black;" class="navbar navbar-expand-lg">
+  <div class="container-fluid">
+    <button
+      class="navbar-toggler bg-light ms-auto d-none"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNavDropdown"
+      aria-controls="navbarNavDropdown"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class=" navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav ms-auto" style="margin-right: 60px;">
+        <li class="nav-item mx-auto">
+          <a
+            class="nav-link active text-light"
+            aria-current="page"
+            href="#"
+          >CONTACT</a>
+        </li>
+        <li class="nav-item mt-2 mx-lg-2 mx-auto">
+          <a href="">
+            <i class="fa-solid fa-bell text-light"></i>
+          </a>
+        </li>
+        <li class="nav-item mt-lg-2 mx-lg-2 mx-auto d-none d-md-block ">
+          <a href="" style="text-decoration: none; color: black;">
+            <i class="fa-solid fa-user text-light">
+            </i>
+            <span class="mx-1 text-light">
+              DUMBY
+            </span>
+          </a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+{{!-- //Main NavBar --}}
+
+{{!-- Side NavBar --}}
+<nav class="navbar navbar-dark fixed-top">
+  <div class="container-fluid">
+    
+    <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="offcanvas offcanvas-start " tabindex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasDarkNavbarLabel">
+      <div class="offcanvas-header">
+        <h5 class="side-navbar-heading offcanvas-title border border-2 p-2 w-100" style="color: #F46F36; background-color: black;" id="offcanvasDarkNavbarLabel"></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body" >
+        <ul class="side-navbar-headings navbar-nav justify-content-end flex-grow-1 pe-3">
+          <li class="nav-item border border-2 rounded mb-2 ">
+            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="#">Dashboard</a>
+          </li>
+          <li class="nav-item border border-2 rounded mb-2">
+            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="/admin/customers">Customers</a>
+          </li>
+          <li class="nav-item border border-2 rounded mb-2">
+            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="/admin/products">Products</a>
+          </li>
+          <li class="nav-item border border-2 rounded mb-2">
+            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="#">Orders</a>
+          </li>
+          <li class="nav-item border border-2 rounded mb-2">
+            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="#">Banner Management</a>
+          </li>
+          <li class="nav-item border border-2 rounded mb-2">
+            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="#">Coupon Management</a>
+          </li>
+          <li class="nav-item border border-2 rounded mb-2">
+            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="#">Sales Report</a>
+          </li>
+          <li class="nav-item border border-2 rounded mb-2">
+            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="/admin/category">Category</a>
+          </li>
+          <li class="nav-item border border-2 rounded mb-2">
+            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="#">Offer Management</a>
+          </li>
+          <li class="nav-item border border-2 rounded mb-2">
+            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="#">Carousal Management</a>
+          </li>
+          
+
+        <hr class="mt-5">
+
+          <li class="nav-item border border-2 rounded mb-2">
+            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="#">Settings</a>
+          </li>
+          <li class="nav-item border border-2 rounded mb-2">
+            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="#">Logout</a>
+          </li>
+          
+        </ul>
+        
+      </div>
+    </div>
+  </div>
+</nav>
+{{!-- //Side NavBar --}}
+
+{{!-- proteinpulse plaza logo --}}
+<img
+  src="/picture/logo/logo.png"
+  class="rounded float-start"
+  style="position: absolute; top: 0%; left: 3%; width: 85px; height: 85px;"
+  alt="admin-page-logo"
+/>
+{{!-- //proteinpulse plaza logo --}}
+
+
+<script>
+let sideNavbarHeading = document.querySelector('.side-navbar-heading');
+let sideNavbarHeadings = document.querySelectorAll('.side-navbar-headings li');
+
+sideNavbarHeading.textContent = "PROTEINPLUSE PLAZA";
+//
+window.addEventListener('DOMContentLoaded', (e) => {
+  //console.log(e)
+  let target = e.target.URL
+  let newUrl = new URL(target)
+  if(newUrl.pathname) {
+  //console.log(newUrl.pathname)
+  let splitedPathname = newUrl.pathname.split("/")
+  for(let x of splitedPathname) {
+    if(x.length === 24) {
+      splitedPathname = splitedPathname[splitedPathname.length - 2]
+      splitedPathname = splitedPathname.split("-")
+      let subNavPathname;
+      let sub = "";
+      for(let path of splitedPathname) {
+      subNavPathname = path[0].charAt(0).toUpperCase() + path.slice(1)
+      //console.log(splitedPathname)
+      //console.log(subNavPathname)
+      sub += " " + subNavPathname
+      }
+      sideNavbarHeading.textContent = sub
+      return 
+    }
+  }
+
+  //console.log(newUrl.pathname.split("/"))
+  splitedPathname = splitedPathname[splitedPathname.length - 1]
+  splitedPathname = splitedPathname.split("-")
+    let sub = "";
+      for(let path of splitedPathname) {
+      subNavPathname = path[0].charAt(0).toUpperCase() + path.slice(1)
+      sub += " " + subNavPathname
+      }
+      sideNavbarHeading.textContent = sub
+  //let navPathname = splitedPathname.charAt(0).toUpperCase() + splitedPathname.slice(1)
+  //sideNavbarHeading.textContent = navPathname
+  }
+})
+
+
+//looping the array of list 
+//sideNavbarHeadings.forEach( li => {
+ // li.addEventListener('click', (e) => {
+   // let target = e.target
+   // let href = target.href
+
+    //let newUrl = new URL(href)
+
+    //if(newUrl.pathname ) { 
+     // console.log(newUrl.pathname)
+      
+    //}
+    //sideNavbarHeading.textContent = li.textContent;
+
+    //sideNavbarHeadings.forEach(list => {
+    //  list.classList.remove('active-navbar-li');
+    //});
+
+    //li.classList.add('active-navbar-li');
+  //});
+//});
+
+</script>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Presence Toggle</title>
+<style>
+  /* Some basic styling for demonstration */
+  body {
+    font-family: Arial, sans-serif;
+  }
+  .status {
+    font-weight: bold;
+    color: green;
+  }
+  .not-present {
+    color: red;
+  }
+</style>
+</head>
+<body>
+
+<h1>User Presence Status</h1>
+<div id="status" class="status">User is present</div>
+<button id="presenceToggle">Toggle Presence</button>
+
+<script>
+  const statusElement = document.getElementById('status');
+  const presenceToggle = document.getElementById('presenceToggle');
+  let isPresent = true;
+
+  // Function to handle presence toggle
+  function togglePresence() {
+    isPresent = !isPresent;
+    if (isPresent) {
+      statusElement.textContent = 'User is present';
+      statusElement.classList.remove('not-present');
+    } else {
+      statusElement.textContent = 'User is not present';
+      statusElement.classList.add('not-present');
+    }
+  }
+
+  // Add event listener to the toggle button
+  presenceToggle.addEventListener('click', togglePresence);
+</script>
+
+</body>
+</html>

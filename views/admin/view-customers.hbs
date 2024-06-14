@@ -1,0 +1,62 @@
+
+<div class="mt-5">
+  <h3 class="ms-3 ms-md-5">All Customers</h3>
+</div>
+
+<div class="container table-responsive">
+  <table class="table mt-3">
+    <thead class="table-dark">
+      <tr>
+        <th scope="col">NO</th>
+        <th scope="col">FirstName</th>
+        <th scope="col">LastName</th>
+        <th scope="col">Email</th>
+        <th scope="col">Mobile</th>
+        <th scope="col">Status</th>
+        <th scope="col">Edit</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each users}}
+        <tr>
+          <th scope="row">1</th>
+          <td>{{this.firstName}}</td>
+          <td>{{this.lastName}}</td>
+          <td>{{this.email}}</td>
+          <td>{{this.mobileNumber}}</td>
+          <td>
+            {{#if this.isBlocked}}
+            <label class="switch">
+              <input type="checkbox" />
+              <span class="slider round"></span>
+            </label>
+              {{else}}
+            <label class="switch">
+              <input type="checkbox" checked />
+              <span class="slider round"></span>
+            </label>
+            {{/if}}
+          </td>
+          <td>
+            <a
+              href="/admin/edit-customer/{{this._id}}"
+              class="btn btn-success btn-sm"
+            >UPDATE</a>
+            {{#if this.isBlocked}}
+            <a
+              href="/admin/delete-customer/{{this._id}}"
+              class="btn btn-secondary btn-sm mt-1 mt-md-0"
+            >RESTORE</a>
+              {{else}}
+            <a
+              href="/admin/delete-customer/{{this._id}}"
+              class="btn btn-danger btn-sm mt-1 mt-md-0"
+            >DELETE</a>
+            {{/if}}
+          </td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+</div>

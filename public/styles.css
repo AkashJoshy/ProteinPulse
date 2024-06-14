@@ -1,0 +1,109 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+* {
+    padding: 0;
+    margin: 0;
+    font-family: "Roboto Condensed", sans-serif;
+}
+
+/* login page */
+
+   .loginContainer {
+    background-color: transparent;
+  }
+  
+  .formColumn {
+    height: 100%;
+  }
+  
+  .formColumn form {
+    width: 100%;
+  }
+  
+  .img-fluid {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  @media (max-width: 768px) {
+    .row.align-items-stretch > div {
+      height: auto !important;
+    }
+  }
+  
+
+  /* side NavBar */
+
+  .nav-link-nav {
+  color: black;
+  background-color: white;
+  border-radius: 5px;
+}
+
+.active-navbar-li .nav-link-nav {
+  color: white !important; 
+  background-color: black !important;
+}
+
+.nav-link-nav:hover {
+  color: #F46F36;
+  background-color: initial;
+}
+
+/* Home Page */
+
+.banner-img {
+  /*
+  object-fit: fill;
+   */
+   object-fit: cover;
+   height: 300px; 
+   width: 100%;
+   border: 4px solid black;
+}
+
+.carousel-indicators {
+position: absolute;
+top: 90%;
+}
+
+.product-image {
+width: 150px;
+}
+
+.checked {
+  color: orange;
+}
+
+.fa-arrow-left,
+.fa-arrow-right {
+  cursor: pointer;
+}
+
+.categories {
+  cursor: pointer;
+}
+
+.categories-title {
+  color: rgb(255, 255, 255);
+  background: rgb(0,0,0);
+background: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(113,57,13,1) 47%, rgba(244,111,54,1) 77%);
+}
+
+
+/* status toggler on/off btn */
+.switch { position: relative; display: inline-block; width: 47px; height:
+  20px; } .switch input { opacity: 0; width: 0; height: 0; } .slider { position:
+  absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc; -webkit-transition: .4s; transition: .4s; }
+  .slider:before { position: absolute; content: ""; height: 16px; width: 16px;
+  left: 3px; bottom: 2px; background-color: white; -webkit-transition: .4s;
+  transition: .4s; } input:checked + .slider { background-color: #1bed0f; }
+  input:focus + .slider { box-shadow: 0 0 1px #1bed0f; } input:checked +
+  .slider:before { -webkit-transform: translateX(26px); -ms-transform:
+  translateX(26px); transform: translateX(26px); } /* Rounded sliders */
+  .slider.round { border-radius: 34px; } .slider.round:before { border-radius:
+  50%; }
+/*  */
