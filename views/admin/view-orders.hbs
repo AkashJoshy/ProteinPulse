@@ -1,0 +1,149 @@
+<div class="mt-5">
+    <h3 class="ms-3 ms-md-5">All Orders</h3>
+</div>
+
+<div class="container table-responsive shadow-lg rounded">
+    <table class="table mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">NO</th>
+                <th scope="col">Order No</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Payment</th>
+                <th scope="col">Order Status</th>
+                <th scope="col">Payment Status</th>
+                <th scope="col">Date</th>
+            </tr>
+        </thead>
+        <tbody id="orderTable">
+            {{#if orders}}
+            {{#each orders}}
+            <tr>
+                <th scope="row">{{increment @index}}</th>
+                <td>{{this.orderNumber}}</td>
+                <td><span>₹</span>{{this.totalSalePrice}} </td>
+                <td>{{this.paymentMethod}}</td>
+                <td>
+                    <select class="p-1 order-status" style="border-radius: 5px; color: grey ;padding-left: 5px;"
+                        aria-label="Default select example" data-order-ID="{{this._id}}">
+                        <option selected>{{this.status}}</option>
+
+                        {{#if (isorderStatusPending this.status)}}
+                        <option value="Processing">Processing</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Out for Delivery">Out for Delivery</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Returned">Returned</option>
+                        <option value="Refunded">Refunded</option>
+                        {{else}}
+                        {{#if (isorderStatusProcessing this.status)}}
+                        <option value="Shipped">Shipped</option>
+                        <option value="Out for Delivery">Out for Delivery</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Returned">Returned</option>
+                        <option value="Refunded">Refunded</option>
+                        {{else}}
+                        {{#if (isorderStatusShipped this.status)}}
+                        <option value="Out for Delivery">Out for Delivery</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Returned">Returned</option>
+                        <option value="Refunded">Refunded</option>
+                        {{else}}
+                        {{#if (isorderStatusOutForDelivery this.status)}}
+                        <option value="Delivered">Delivered</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Returned">Returned</option>
+                        <option value="Refunded">Refunded</option>
+                        {{else}}
+                        {{#if (isorderStatusDelivery this.status)}}
+                        <option value="Returned">Returned</option>
+                        <option value="Refunded">Refunded</option>
+                        {{else}}
+                        {{#if (isorderStatusCancelled this.status)}}
+                        {{!-- <option value="Returned">Returned</option --}} {{else}} {{#if (isorderStatusReturned
+                            this.status)}} <option value="Refunded">Refunded</option>
+                        {{!-- {{else}}
+                        <option value="Refunded">Refunded</option> --}}
+                        {{/if}}
+                        {{/if}}
+                        {{/if}}
+                        {{/if}}
+                        {{/if}}
+                        {{/if}}
+                        {{/if}}
+                    </select>
+                </td>
+                <td>{{this.paymentStatus}}</td>
+                <td>{{this.createdAt}}</td>
+            </tr>
+            {{/each}}
+            {{else}}
+            <h3 class="text-center">No Orders Till Now...</h3>
+            {{/if}}
+        </tbody>
+    </table>
+
+    <nav aria-label="Page navigation example" class="d-flex fixed-bottom" style="z-index: 2;">
+
+        <ul class="pagination mx-auto py-3 admin-pagination">
+            {{#if pagination.previousPage}}
+            <li class="page-item">
+                <a class="page-link bg-dark prev-next-number"
+                    href="/admin/orders?page={{paginationManipulation pagination.currentPage -1}}">Previous
+                </a>
+            </li>
+            {{/if}}
+            {{#each (paginationNumbers 1 pagination.totalPages) as |pageNumber| }}
+            <li class="page-item"><a class="page-link page-number " href="/admin/orders?page={{pageNumber}}">
+                    {{pageNumber}} </a></li>
+            {{/each}}
+            {{#if pagination.nextPage}}
+            <li class="page-item">
+                <a class="page-link bg-dark prev-next-number"
+                    href="/admin/orders/page={{paginationManipulation pagination.currentPage 1}}">Next
+                </a>
+            </li>
+            {{/if}}
+    </nav>
+
+</div>
+
+<script>
+
+    //Function to change Order Status
+    function changeOrderStatus(event) {
+        const element = event.target
+        const elementValue = element.value
+        console.log(elementValue)
+        const orderID = element.getAttribute('data-order-id')
+        console.log(orderID)
+        // PUT Request for changing order status
+        $.ajax({
+            url: "/admin/orders/update-status",
+            method: 'PUT',
+            data: {
+                orderID,
+                orderStatus: elementValue
+            },
+            success: response => {
+                if (response.status) {
+                    Swal.fire(`Status Updated`)
+                        .then(() => {
+                            window.location.href = response.redirected
+                        })
+                } else {
+                    window.location.href = response.redirected
+                }
+            }
+        })
+    }
+
+    document.querySelectorAll('.order-status').forEach(select => {
+        select.addEventListener('change', changeOrderStatus)
+    })
+
+
+</script>

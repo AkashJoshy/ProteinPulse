@@ -3,45 +3,130 @@
   <div class="card-body p-5">
     <h5 class="card-title text-center">ENTER YOUR OTP HERE</h5>
     <h6 class="card-subtitle mb-2 text-body-secondary mt-4">OTP</h6>
-    <form action="/">
-    <input type="text" class="form-control" placeholder="Enter the otp">
-    <h6 class="otp-message"></h6>
+    <form action="/verify-otp" method="post">
+    <input type="tel" maxlength="4" class="form-control" name="userOtp"  placeholder="Enter the otp">
+    {{#if token}}
+    <input type="text" class="form-control d-none uniqueID" name="uniqueID" value="{{token}}"  placeholder="Enter the otp">
+    {{else}}
+    <input class="form-control d-none uniqueID" name="uniqueID" value="{{userID}}"  placeholder="Enter the otp">
+    {{/if}}
+    <h6 class="otp-message mt-2 text-success"></h6>
     <div class="d-flex pt-2">
-        <h6>0:50</h6>
-        <div class="btn resend-btn btn-outline-light p-1 ms-auto">RESEND</div>
+        <h6 class="otpResentCount"></h6>
+        {{!-- <a href="" style="text-decoration: none;"> --}}
+        <div class="btn resend-btn btn-light p-1 ms-auto">RESEND</div>
+        {{!-- </a> --}}
         </div>
-            <button class="btn mt-4 d-flex mx-auto" style="color: #F46F36; background-color: black;" type="submit">CONFIRM</button>
+            <button 
+            class="btn mt-4 d-flex mx-auto" 
+            style="color: #F46F36; background-color: black;" 
+            type="submit">CONFIRM
+            </button>
     </form>
     </div>
 
   </div>
+
+  {{#if errMessage}}
+    <div class="err-message d-none">{{errMessage}}</div>
+{{/if}}
 </div>
 </div>
 
 
 
 <script>
-    // resend button 
-    const resendBtn = document.querySelector('.resend-btn')
-    const otpMessage = document.querySelector('.otp-message')
-    let btnClicked = false
+window.addEventListener('DOMContentLoaded', () => {
+    // Resend button and OTP elements
+    const resendBtn = document.querySelector('.resend-btn');
+    const otpMessage = document.querySelector('.otp-message');
+    const uniqueVal = document.querySelector('.uniqueID');
+    const countDown = document.querySelector('.otpResentCount');
 
-    const otpMessageView = () => {
-        otpMessage.innerHTML = `OTP resent succesfully`
+    if (!resendBtn || !otpMessage || !uniqueVal || !countDown) {
+        console.error('One or more required elements are missing from the DOM.');
+        return;
     }
 
-    resendBtn.addEventListener('click', ()=> {
-    if(!btnClicked) {
-        btnClicked = true
-        resendBtn.disabled = true
-        otpMessageView()
-        setTimeout(()=> {
-            otpMessage.innerHTML = " "
-        }, 1000)
-        setTimeout(()=>{
-            btnClicked = false
-            resendBtn.disabled = false
-        },10000)
+    let btnClicked = false;
+    const uniqueID = uniqueVal.value;
+    const startingMinute = 1;
+    let time = startingMinute * 60;
+    let counterInterval;
+
+    // Function to update OTP countdown
+    function updateCountDown() {
+        if (time <= 0) {
+            clearInterval(counterInterval);
+            countDown.innerHTML = `00:00`;
+            resendBtn.disabled = false;
+            btnClicked = false;
+            time = startingMinute * 60; // Reset time for next countdown
+        } else {
+            const minute = Math.floor(time / 60);
+            let seconds = time % 60;
+            seconds = seconds < 10 ? `0${seconds}` : seconds;
+            countDown.innerHTML = `${minute}:${seconds}`;
+            time--;
+        }
     }
-    })
+
+    // Function to show OTP resend message
+    function otpMessageView() {
+        otpMessage.innerHTML = `OTP resent successfully`;
+        otpMessage.style.display = "block"; 
+        setTimeout(() => {
+            otpMessage.style.display = "none";
+        }, 4000);
+    }
+
+    // Initialize countdown display
+    function initializeCountdown() {
+        updateCountDown(); 
+        if (counterInterval) {
+            clearInterval(counterInterval); 
+        }
+    }
+
+    initializeCountdown(); 
+
+    // Handle resend button click
+    resendBtn.addEventListener('click', () => {
+        if (!btnClicked) {
+            console.log(`Button clicked, starting countdown`);
+
+            // AJAX request to resend OTP using GET
+            fetch(`/verify-email?uniqueID=${encodeURIComponent(uniqueID)}&otp=0`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) { // Check for success response
+                    btnClicked = true;
+                    resendBtn.disabled = true;
+                    otpMessageView();
+                    initializeCountdown();
+                    counterInterval = setInterval(updateCountDown, 1000); // Start countdown
+                } else {
+                    console.error('Error resending OTP:', data.message);
+                    // Handle error response (optional)
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Handle network errors (optional)
+            });
+        }
+    });
+
+    // Display error message if exists
+    const errMessage = document.querySelector('.err-message');
+    if (errMessage) {
+        Swal.fire(errMessage.innerHTML);
+    }
+});
 </script>

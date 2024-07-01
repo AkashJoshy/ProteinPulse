@@ -1,0 +1,165 @@
+<style>
+    .invalid-feedback {
+        display: none;
+    }
+
+    #confirmPassword,
+    #newPassword {
+        position: relative;
+        top: -15%;
+    }
+
+    .new-password-msg,
+    .confirm-password-msg {
+        margin-top: -10px;
+    }
+
+    /* Default state */
+.pagination li a {
+    color: black;
+}
+
+/* Hovered state */
+.pagination li a:hover {
+    color: #F46F36;
+}
+
+/* Active state */
+.pagination li a.active {
+    color: #F46F36;
+    background-color: #f4f0ec;
+    border-color: #c9c9c9;
+}
+
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-3 mt-5">
+            {{> dashboard}}
+        </div>
+
+        <div class="col-md-9 mt-5">
+            {{!-- Wallet Money Crediting --}}
+            <div class="border border-3">
+                <div class="d-flex p-3 border border-3  justify-content-between">
+                    {{!-- Wallet total Amount --}}
+                    <div class="d-flex align-items-center">
+                        {{!-- Wallet icon --}}
+                        <div>
+                            <i class="fa-solid fa-wallet" style="font-size: 3.5rem;">
+                            </i>
+                        </div>
+                        {{!-- Wallet Amount --}}
+                        <div class="px-3 mt-2">
+                            <h3>₹ 500</h3>
+                            <p style="color: grey; font-size: .8rem;">My Wallet Balance</p>
+                        </div>
+                    </div>
+
+                    {{!-- Money Crediting and add btn --}}
+                    <div class="d-flex align-items-center ">
+
+                        {{!-- Amount Crediting --}}
+                        <div class="input-group d-flex me-2">
+                            <span class="input-group-text">₹</span>
+                            <input type="text" style="background-color: rgba(231, 231, 231, 0.806);"
+                                class="form-control" id="validationCustom01" required>
+                            <span class="input-group-text">.00</span>
+                        </div>
+                        {{!-- Add Money Btn --}}
+                        <div class="w-75">
+                            <div class="btn btn-dark ">ADD CASH</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            {{!-- // Wallet Money Crediting --}}
+
+            <div class="mt-3 border border-3">
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <h6 class="p-2 px-3 mt-1 text-uppercase">Transaction Details</h6>
+                        <thead class="table-dark">
+                            <tr>
+                                <th scope="col" class="px-4">TRANSACTION ID</th>
+                                <th scope="col">DESCRIPTION</th>
+                                <th scope="col">DATE</th>
+                                <th scope="col">DEPOSIT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row" class="px-4">#96459761</th>
+                                <td>You Added</td>
+                                <td>July 23, 2023</td>
+                                <td>₹ 500</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                   
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination wallet-pagination justify-content-center" >
+                            <li class="page-item">
+                                <a class="page-link " href="#"><i class="fa-solid fa-arrow-left"></i></a>
+                            </li>
+                            <li class="page-item"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#"><i class="fa-solid fa-arrow-right"></i></a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script src="/javaScript/editUserDetails.js"></script>
+<script>
+
+    const toggleIcons = document.querySelectorAll('.toggle-icon')
+    const passwordValues = document.querySelectorAll('.password-value')
+
+    document.addEventListener('DOMContentLoaded', () => {
+        let clicked = false;
+
+        toggleIcons.forEach((icon, index) => {
+            icon.style.color = "grey"
+            icon.addEventListener('click', () => {
+                if (clicked) {
+                    passwordValues[index].type = "password"
+                    clicked = false
+                    icon.style.color = "grey"
+                } else {
+                    passwordValues[index].type = "text"
+                    clicked = true
+                    icon.style.color = "black"
+                }
+            })
+        })
+
+    })
+
+    const paginations = document.querySelectorAll('.pagination li a')
+
+    paginations.forEach((pagination, index) => {
+        pagination.addEventListener('click', (e) => {
+            console.log(e)
+            paginations.forEach(number => {
+           // Add Remove Class
+                number.classList.remove('active')
+            })
+           // Add Active Class
+           pagination.classList.add('active')
+        })
+        })
+
+
+</script>

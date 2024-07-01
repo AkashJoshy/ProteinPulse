@@ -30,9 +30,11 @@
           <a href="" style="text-decoration: none; color: black;">
             <i class="fa-solid fa-user text-light">
             </i>
-            <span class="mx-1 text-light">
-              DUMBY
+            {{#if admin1}}
+            <span class="mx-1 fw-bold text-uppercase text-light">
+              {{admin1.firstName}}
             </span>
+            {{/if}}
           </a>
         </li>
 
@@ -45,16 +47,17 @@
 {{!-- Side NavBar --}}
 <nav class="navbar navbar-dark fixed-top">
   <div class="container-fluid">
-    
+    {{#if admin1}}
     <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="offcanvas offcanvas-start " tabindex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasDarkNavbarLabel">
+    {{/if}}
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasDarkNavbarLabel">
       <div class="offcanvas-header">
         <h5 class="side-navbar-heading offcanvas-title border border-2 p-2 w-100" style="color: #F46F36; background-color: black;" id="offcanvasDarkNavbarLabel"></h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
       </div>
-      <div class="offcanvas-body" >
+      <div class="offcanvas-body table-responsive" >
         <ul class="side-navbar-headings navbar-nav justify-content-end flex-grow-1 pe-3">
           <li class="nav-item border border-2 rounded mb-2 ">
             <a class="nav-link nav-link-nav ps-4" aria-current="page" href="#">Dashboard</a>
@@ -66,7 +69,7 @@
             <a class="nav-link nav-link-nav ps-4" aria-current="page" href="/admin/products">Products</a>
           </li>
           <li class="nav-item border border-2 rounded mb-2">
-            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="#">Orders</a>
+            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="/admin/orders">Orders</a>
           </li>
           <li class="nav-item border border-2 rounded mb-2">
             <a class="nav-link nav-link-nav ps-4" aria-current="page" href="#">Banner Management</a>
@@ -91,10 +94,10 @@
         <hr class="mt-5">
 
           <li class="nav-item border border-2 rounded mb-2">
-            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="#">Settings</a>
+            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="/admin/settings">Settings</a>
           </li>
           <li class="nav-item border border-2 rounded mb-2">
-            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="#">Logout</a>
+            <a class="nav-link nav-link-nav ps-4" aria-current="page" href="/admin/logout/{{admin1._id}}">Logout</a>
           </li>
           
         </ul>

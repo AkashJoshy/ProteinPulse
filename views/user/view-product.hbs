@@ -1,0 +1,544 @@
+<style>
+    .table-responsive {
+        cursor: pointer;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background-color: #7e7e7e;
+        border-radius: 2px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background-color: #000;
+        /* Color of the scroll thumb on hover */
+    }
+
+    /* Add this to your existing CSS */
+
+
+
+.tabs {
+    display: flex;
+    cursor: pointer;
+}
+
+.tab-button {
+    background-color: #777;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 16px;
+    flex: 1;
+    transition: background-color 0.3s;
+}
+
+.tab-button.active, .tab-button:hover {
+    background-color: #555;
+}
+
+.tab-content {
+    display: none;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-top: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+   
+</style>
+
+<div class="container">
+    {{!-- Product --}}
+    {{!-- <div class="single-product"> --}}
+        {{!-- pages breadcrump --}}
+        <nav aria-label="breadcrumb" class="mt-5">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a style="color: #F46F36" href="/">Home</a></li>
+                <li class="breadcrumb-item"><a style="color: #F46F36"
+                        href="/user-categories/{{product.categoryName}}">{{product.categoryName}}</a></li>
+                <li class="breadcrumb-item"><a style="color: grey; text-decoration: none;" href="#">{{product.name}}</a>
+                </li>
+            </ol>
+        </nav>
+        {{!-- // pages breadcrump --}}
+        <div class="row g-4 mt-3">
+            <div class="col-12 p-3 col-md-2 d-flex d-md-block table-responsive mx-md-4 mx-lg-0" style="gap:10px;">
+                {{#if product}}
+                {{!-- Other pics for the products --}}
+                {{#each product.imageUrl}}
+                <img src="/uploads/{{this}}" class="img-thumbnail mb-2 images"
+                    style="height: 120px; width: 120px; border-color: #5653539f;" id="product-image-{{@index}}"
+                    alt="Images">
+                {{/each }}
+                {{!-- // Other pics for the products --}}
+            </div>
+
+            <div class="col-md-7 col-lg-5 p-1 mt-3 ">
+                <form action="">
+                    <div class="d-flex rounded-1 border border-2 shadow-lg"
+            id="imageZoom"
+            style="background-color: rgba(255, 254, 254, 0.461);">
+            
+            <!-- Wrap the image in the zoom container -->
+            <div class="image-zoom-container">
+                <img class="img-fluid mx-auto main-image rounded-3 p-2"
+                    id="zoom_01"
+                    src="/uploads/{{product.imageUrl.[0]}}"
+                    alt="main-image">
+            </div>
+        </div>
+
+
+                    {{#if (isStock product.quantities)}}
+                    <div class="mt-3 d-flex ">
+                        {{!-- stock out --}}
+                        <div class="mx-auto ">
+                            <div class="py-1">
+                                <div>
+                                    {{#if (isStock product.quantities)}}
+                                    <h2 class="fw-bold">
+                                        Sold Out
+                                    </h2>
+                                    {{/if}}
+                                </div>
+                            </div>
+                            <div class="px-1 mt-2">
+                                <a class="btn" style="background-color: #F46F36; color: #f1f1f1;" href="">
+                                    Notify Me
+                                </a>
+                            </div>
+
+                        </div>
+                        {{!-- stock out --}}
+                    </div>
+                    {{else}}
+                    <div class="mt-3 d-flex ">
+                        {{!-- add to cart btn --}}
+                        <div class="mx-auto">
+                            <div class="border border-dark-subtle py-1 rounded-3" style="cursor: pointer;">
+                                <i onclick="manageProductCount(`1`)" class="fa-solid fa-plus px-2">
+                                </i>
+                                <span class="px-3 product-count"></span>
+                                <i onclick="manageProductCount(`-1`)" class="fa-solid fa-minus px-1">
+                                </i>
+                            </div>
+                            <div class="px-1 mt-2">
+                                <a onclick="addToCart(`{{product._id}}`)" class="btn"
+                                    style="background-color: #F46F36;">
+                                    Add to Cart
+                                </a>
+                            </div>
+
+                        </div>
+                        {{!-- add to cart btn --}}
+                    </div>
+                    {{/if}}
+            </div>
+
+            <div class="col-12 col-sm-8 col-md-12 col-lg-5 p-3">
+                <h3>
+                    {{product.name}}
+                </h3>
+                <div class="mt-3 d-flex">
+                    <div class="ms-auto">
+                        <span class="fa fa-star checked"></span>
+                        <span class="fa fa-star checked"></span>
+                        <span class="fa fa-star checked"></span>
+                        <span class="fa fa-star checked"></span>
+                        <span class="fa fa-star checked"></span>
+                    </div>
+                    <h5 class="px-2">
+                        <span>{{product.rating}}</span>/5
+                    </h5>
+                </div>
+
+
+                <div>
+                    <h3>₹{{product.salePrice}}
+                        <span class="px-2" style="color: grey; text-decoration: line-through;">
+                            ₹{{product.price}}
+                        </span>
+                        {{#if (isStock product.quantities)}}
+                        {{!-- Sold Out --}}
+                        {{else}}
+                    </h3 {{#if (stockWarning product.quantities )}} <h5>Only {{product.quantities}} stocks left</h5>
+                    {{/if}}
+                    {{/if}}
+                </div>
+
+                <hr>
+                <div class="d-flex">
+                    <p>Country of Orgin: {{product.origin}}</p>
+                    <p class="ms-auto">Best Before:{{product.bestBefore}}</p>
+                </div>
+
+                <div>Flavour</div>
+                <div class="d-flex">
+                    <div>
+                        <select class="form-select " aria-label="Default select example">
+                            {{#each similarProducts}}
+                            <option value="{{this.flavour}}">{{this.flavour}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+
+                    <div class="ms-4 py-1">
+                        <i class="fa-regular fs-3 fa-heart"></i>
+                    </div>
+                </div>
+
+                <hr>
+                <div>Size</div>
+                <div class="mt-2">
+                    {{#each similarProducts}}
+                    <input type="radio" class="btn-check size-check" name="{{this.size}}" id="size-{{@index}}"
+                        autocomplete="off">
+                    <label class="btn btn-outline-dark" for="size-{{@index}}">{{this.size}}</label>
+                    {{/each}}
+
+                    {{!-- <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off">
+                    <label class="btn btn-outline-dark" for="btnradio3">Radio 3</label> --}}
+
+                </div>
+
+                <hr>
+
+                <div class="d-flex">
+                    <p class="fw-bold text-secondary">Highlights</p>
+                    <ul class="px-5 highlights">
+                        {{#each product.highlights}}
+                        <li>{{this}}</li>
+                        {{/each}}
+                    </ul>
+                </div>
+
+                </form>
+                {{/if}}
+            </div>
+
+        </div>
+        {{!--
+    </div> --}}
+    {{!-- // Product --}}
+
+    {{!-- product details & reviews --}}
+    <div class="product-review mt-4">
+            <div class="tab-container">
+    <div class="tabs">
+        <button class="tab-button active" onclick="openTab('tab1')">Products Details</button>
+        <button class="tab-button" onclick="openTab('tab2')">Rating & Reviews</button>
+        <button class="tab-button" onclick="openTab('tab3')">FAQ</button>
+    </div>
+
+    <div id="tab1" class="tab-content active">
+    </div>
+    <div id="tab2" class="tab-content">
+        <div class="d-flex mt-3">
+            <h5>All Review</h5>
+            <div class="ms-auto">
+                <div class="btn" style="background-color: #c5c4c4;">Latest
+                    <i class="fa-solid fa-caret-down"></i>
+                </div>
+                <div class="btn btn-dark" type="button" data-bs-toggle="modal" data-bs-target="#publishreview">
+                    Write a Review</div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card  mb-3">
+                    <div class="card-body p-4">
+                        <h5 class="card-title">Peter Parker</h5>
+                        <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
+                        <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic product
+                            !!
+                            satisfied</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card  mb-3">
+                    <div class="card-body p-4">
+                        <h5 class="card-title">Peter Parker</h5>
+                        <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
+                        <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic product
+                            !!
+                            satisfied</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card  mb-3">
+                    <div class="card-body p-4">
+                        <h5 class="card-title">Peter Parker</h5>
+                        <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
+                        <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic product
+                            !!
+                            satisfied</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card  mb-3">
+                    <div class="card-body p-4">
+                        <h5 class="card-title">Peter Parker</h5>
+                        <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
+                        <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic product
+                            !!
+                            satisfied</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card  mb-3">
+                    <div class="card-body p-4">
+                        <h5 class="card-title">Peter Parker</h5>
+                        <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
+                        <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic product
+                            !!
+                            satisfied</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card  mb-3">
+                    <div class="card-body p-4">
+                        <h5 class="card-title">Peter Parker</h5>
+                        <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
+                        <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic product
+                            !!
+                            satisfied</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="tab3" class="tab-content">
+        <p>This is the content for Tab 3.</p>
+    </div>
+</div>
+
+
+    </div>
+    {{!-- // product details & reviews --}}
+   
+
+
+    {{!-- Related Products --}}
+    <div class="mt-5">
+        <h2>Related Products</h2>
+        <div class="row">
+            {{#each realtedProducts}}
+            <div class="col-sm-6 col-md-6 col-lg-4 col-xl-3 mt-3 products-container">
+                <a href="/product/{{this._id}}" style="text-decoration: none;">
+                    <div class="card mx-auto shadow-lg" style="width: 18rem;cursor: pointer;">
+                        <div class="offer-section px-2 text-center">
+                            OFFER {{this.offer}}%
+                        </div>
+                        <img style="height: 8rem; width: 10.5rem;" src="/uploads/{{this.imageUrl.[0]}}"
+                            class="card-img-top mt-4 mx-auto product-image pt-2" alt="..." />
+                        <div class="card-body rounded-3">
+                            <h6 class="card-title text-center text-black">
+                                {{this.name}}
+                            </h6>
+                            <h5 class="card-text text-black">₹{{this.salePrice}}
+                                <span class="px-2 text-decoration-line-through text-secondary">₹{{this.price}}</span>
+                            </h5>
+                            <span class="fa fa-star checked"></span>
+                            <span class="fa fa-star checked"></span>
+                            <span class="fa fa-star checked"></span>
+                            <span class="fa fa-star checked"></span>
+                            <span class="fa fa-star checked"></span>
+                            <div>
+                                <a href="#" class="btn mt-3" style="background-color: #F46F36; color: white;">ADD TO
+                                    CART</a>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+    {{!-- // Related Products --}}
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="publishreview" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel"> Write a Review </h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/product/review" method="post" class="needs-validation" novalidate>
+                <div class="modal-body">
+                    <div>
+                        <div class="review-star">
+                            <span class="fa fa-star star-btn"></span>
+                            <span class="fa fa-star star-btn"></span>
+                            <span class="fa fa-star star-btn"></span>
+                            <span class="fa fa-star star-btn"></span>
+                            <span class="fa fa-star star-btn"></span>
+                        </div>
+                        <div style="display: none;">
+                            <input class="form-control" type="text" name="productID" value="{{product._id}}">
+                        </div>
+                        <div style="display: none;">
+                            <input class="form-control starCount" type="number" name="productRating">
+                        </div>
+                        <p class="text-secondary" style="font-size: .8rem;">If you dont rate it will be 0</p>
+                        <p>Feedback</p>
+                        <textarea class="form-control" name="productFeedback" aria-label="With textarea"
+                            required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" id="productReview" class="btn btn-dark">Public Review</button>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+<!-- // Modal -->
+
+<script src="/javaScript/reviewProduct.js"></script>
+
+<script>
+
+    const reviewStar = document.querySelector('.review-star')
+    console.log(reviewStar)
+
+    const productContainer = document.querySelector('.user-product-main')
+
+    // Size selection
+    const sizeCheck = document.querySelectorAll('.size-check')
+    sizeCheck.forEach(size => {
+        size.addEventListener('click', (e) => {
+            if (e.target) {
+
+                console.log(e.target.name)
+
+            }
+
+            console.log(`Clicked`)
+        })
+    })
+
+    // Image selection
+    const images = document.querySelectorAll('.images')
+    const mainImage = document.querySelector('.main-image')
+    images.forEach((img, index) => {
+        img.addEventListener('click', (e) => {
+            mainImage.src = e.target.src
+        })
+    })
+
+    images.forEach((img, index) => {
+        img.addEventListener('mouseover', () => {
+            img.style.transform = `scale(1.1)`
+            img.style.transition = `transform 0.1s ease-in-out`;
+        })
+        img.addEventListener('mouseleave', () => {
+            img.style.transform = 'scale(1, 1)'
+        })
+    })
+
+    // Zoom
+
+
+    // Review Star
+    const starBtns = document.querySelectorAll('.star-btn')
+    const starValue = document.querySelector('.starCount')
+
+    document.addEventListener('DOMContentLoaded', () => {
+        starBtns.forEach((starBtn, index) => {
+            starBtn.addEventListener('click', () => {
+                let starLength = index + 1
+                starValue.value = starLength
+                console.log(`Clicked Btn index`)
+                //    console.log(starLength)
+                console.log(`Clicked`)
+
+                function getStarLength() {
+                    return starLength
+                }
+
+                starBtns.forEach((btn, i) => {
+                    if (i <= index) {
+                        btn.classList.add('checked')
+                    } else {
+                        btn.classList.remove('checked')
+                    }
+
+                })
+            })
+        })
+    })
+
+    console.log(starBtns)
+
+    // Manage Product Count
+
+
+    const productCount = document.querySelector('.product-count')
+
+    productCount.innerHTML = 1
+
+    function manageProductCount(count) {
+        count = Number(count)
+        let value = Number(productCount.innerHTML)
+        if (productCount.innerHTML <= 1 && count == -1) {
+        } else {
+            productCount.innerHTML = value + count
+        }
+    }
+
+    // Add To Cart
+    function addToCart(productID) {
+        let count = Number(productCount.innerHTML)
+        $.ajax({
+            url: `/product/add-to-cart/${productID}/${count}`,
+            method: 'GET',
+            success: response => {
+                if (response.status) {
+                    Swal.fire(response.message).then(() => productCount.innerHTML = 1)
+                } else {
+                    Swal.fire(response.message).then(() => window.location.href = response.redirected)
+                }
+            }
+        })
+
+    }
+
+
+    function openTab(tabId) {
+    // Get all tab content and buttons
+    var tabContents = document.getElementsByClassName("tab-content");
+    var tabButtons = document.getElementsByClassName("tab-button");
+
+    // Hide all tab content and remove active class from all buttons
+    for (var i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.remove("active");
+        tabButtons[i].classList.remove("active");
+    }
+
+    // Show the clicked tab content and add active class to the clicked button
+    document.getElementById(tabId).classList.add("active");
+    document.querySelector(`.tab-button[onclick="openTab('${tabId}')"]`).classList.add("active");
+}
+    
+
+</script>

@@ -1,0 +1,47 @@
+<div class="container">
+    <div class="row">
+
+        <div class="col-md-3 mt-5">
+            {{>dashboard}}
+        </div>
+
+        <div class="col-md-9 mt-4 p-2">
+
+            <h4 class="shadow-lg p-2 bg-secondary text-light">Order History</h4>
+            <div class="table-responsive shadow-lg">
+            <table class="table rounded-4 table-borderless">
+                <thead class="table-dark border border-2">
+                    <tr>
+                        <th scope="col">Order No</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Total</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#if orders}}
+                    {{#each orders}}
+                    <tr>
+                        <th scope="row" class="px-3 fs-bw">{{this.orderNumber}}</th>
+                        <td>{{this.status}}</td>
+                        <td>{{this.createdAt}}</td>
+                        <td><span>₹ </span>{{this.totalPrice}}</td>
+                        <td>
+                            <a href="/dashboard/orders/edit-orders/{{this._id}}" style="text-decoration: none;">
+                            View Details <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {{/each}}
+                 {{else}}
+                        <h4 class="text-danger text-center"> {{orderMessage}} </h4>
+                    {{/if}}
+                </tbody>
+            </table>
+            </div>
+            
+        </div>
+
+    </div>
+</div>

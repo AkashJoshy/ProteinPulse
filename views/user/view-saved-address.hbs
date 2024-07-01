@@ -1,0 +1,95 @@
+<div class="container">
+    <div class="row">
+
+        <div class="col-md-3 mt-5">
+            {{>dashboard}}
+        </div>
+
+        <div class="col-md-9 mt-5 ">
+            <a href="/dashboard/address/add-address" class="text-light" style="text-decoration: none;">
+                <div class="btn text-light" style="background-color: rgb(37, 203, 56);">Add Address 
+                    <i class="px-2 fa-solid fa-plus text-light"></i>
+                </div>
+            </a>
+
+            {{#if billingAddress}}
+            {{#each billingAddress}}
+            <div class="border border-2 mt-3 p-3 rounded-3">
+                <div class="d-flex justify-content-between">
+                    <h6>{{this.address}}</h6>
+                    <div>
+                        <a href="/address/edit-address/billingAddress/{{this._id}}" style="text-decoration: none;">
+                        <div class="btn text-success">Edit</div>
+                        </a>
+                        <div onclick="deleteAddress(`{{this._id}}`, `Billing Address`, `billingAddress`)" class="btn text-danger">Delete</div>
+                    </div>
+                </div>
+                <div><span> {{this.city}} </span>, <span> {{this.state}} </span></div>
+                <div> {{this.zipcode}} </div>
+                <div>+91 <span> {{this.mobile}} </span></div>
+            </div>
+            {{/each}}
+            {{/if}}
+
+            {{#if shippingAddress}}
+            {{#each shippingAddress}}
+            <div class="border border-2 mt-3 p-3 rounded-3">
+                <div class="d-flex justify-content-between">
+                    <h6>{{this.address}}</h6>
+                    <div>
+                        <a href="/address/edit-address/shippingAddress/{{this._id}}" style="text-decoration: none;">
+                        <div class="btn text-success">Edit</div>
+                        </a>
+                        <div onclick="deleteAddress(`{{this._id}}`, `Shipping Address`, `shippingAddress`)"
+                        class="btn text-danger" data-address-id="{{this._id}}">Delete</div>
+                    </div>
+                </div>
+                <div><span> {{this.city}} </span>, <span> {{this.state}} </span></div>
+                <div> {{this.zipcode}} </div>
+                <div>+91 <span> {{this.mobile}} </span></div>
+            </div>
+            {{/each}}
+            {{/if}}
+
+    </div>
+</div>
+</div>
+
+<script>
+
+    function deleteAddress(addressID, addressType, addressField) {
+            Swal.fire({
+            title: 'Are you sure?',
+            text: `Do you want to delete your ${addressType} ?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, cancel!',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/address/delete-address',
+                    method: "PUT",
+                    data: {
+                        _id: addressID,
+                        addressField
+                    },
+                    success: response => {
+                        if(response.status) {
+                            Swal.fire(response.message)
+                            .then(() => {
+                               window.location.href = response.redirected
+                        })
+                        } else {
+                            window.location.href  = response.redirected
+                        }
+                    }
+                })
+            }
+        });
+
+    } 
+
+
+
+</script>

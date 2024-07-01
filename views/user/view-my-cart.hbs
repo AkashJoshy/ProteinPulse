@@ -1,0 +1,158 @@
+<div class="container">
+    <div class="row">
+        <nav aria-label="breadcrumb" class="mt-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a style="text-decoration: none; color: black;" href="/">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Cart</li>
+            </ol>
+        </nav>
+        <h4>Your Cart</h4>
+        <div class="col-md-8 mt-3">
+        {{#if cart}}
+            <form action="/order-pre-checkout" method="post">
+            {{!-- Cart Products --}}
+            <div class="border border-2 border-light rounded p-3">
+                <input type="text" class="d-none" name="cartID" value="{{cart.[0]._id}}">
+                {{#each userCart}}
+                <div class="card mb-3 shadow" style="border: none;">
+                    <div class="row g-0 ">
+                        <div class="col-md-3">
+                            <img  src="/uploads/{{this.image}}"
+                            style="height: 8.5rem; width: 10.5rem;"
+                            class="img-fluid rounded-start ms-3 ms-lg-4 mt-3" alt="cart-product-image">
+                        </div>
+                        <div class="col-md-9">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                <h5 class="card-title">
+                                    <span>{{this.productName}}</span>
+                                </h5>
+                                <a onclick="deleteCartProduct(`{{this._id}}`, `{{this.productID}}`, `{{this.productName}}`)"><i style="color: red;" class="fa-solid fa-trash"></i></a>
+                                </div>
+                                <p class="card-text lh-sm">Size: 
+                                    <span>
+                                        {{this.size}}
+                                    </span>
+                                    </p>
+                                <p class="card-text lh-1">Flavour: 
+                                    <span>
+                                        {{this.flavour}}
+                                    </span>
+                                </p>
+                                <div class="d-flex justify-content-between">
+                                <h5 class="">₹ {{this.salePrice}}</h5>
+                                <div style=" color: #F46F36; cursor: pointer;"
+                                class="shadow-lg py-1 rounded-2 p-2 bg-dark">
+                                  <i onclick="manageCartProductQuantity(`{{this.quantity}}`, 1, `{{this.productID}}`, `{{this._id}}`)" class="fa-solid fa-plus px-2">
+                                  </i>
+                                <span class="px-3 quantity-count">{{this.quantity}}</span>
+                                  <i onclick="manageCartProductQuantity(`{{this.quantity}}`, -1, `{{this.productID}}`, `{{this._id}}`)" class="fa-solid fa-minus px-1">
+                                </i>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+        {{else}}
+            <div class="rounded rounded-4 bg-secondary mx-auto" style="width: 10px; height: 10px;"></div>
+            <div class="rounded rounded-4 bg-secondary mx-auto left-cart-line" style="width: 3.2px; height: 50px;"></div>
+            <h2 class="text-secondary w-25  border rounded-3 border-2 border-dark p-2 px-3 mx-auto">Cart is Empty</h2>
+        {{/if}}
+        </div>
+
+        {{!-- Cart Order Summary --}}
+        <div class="col-md-4">
+            <div class="shadow-lg">
+                <div class="py-3 px-3">
+                <h6 class="bg-dark text-light p-2" style="font-size: 1em;">Order Summary
+                </h6>
+                <div class="d-flex">
+                <h6 class="text-secondary" style="margin-top: 1.5em;">Subtotal</h6>
+                <h6 class="ms-auto" style="margin-top: 1.5em;">
+                    ₹ 
+                    <span class="subtotal">
+                    {{totalSaleAmount}}
+                    </span>
+                    </h6>
+                </div>
+                <div class="d-flex">
+                <h6 class="text-secondary py-2 ">
+                    Discount(
+                    <span class="discount-percentage">{{discountPercentage}}</span>%)
+                    </h6>
+                <h6 class="text-danger ms-auto py-2">
+                    ₹ 
+                    <span class="discount-amount">
+                    {{savedprice}}
+                    </span>
+                    </h6>
+                </div>
+                <div class="d-flex">
+                <h6 class="text-secondary">Delivery Fee</h6>
+                <h6 class="ms-auto">₹ <span class="delivery-charge">{{deliveryCharge}}</span></h6>
+                </div>
+                <hr>
+                <div class="d-flex">
+                <h6>Total</h6>
+                <h6 class="ms-auto">
+                    ₹
+                    <span class="total-amount">
+                     {{totalAmount}}
+                    </span>
+                     </h6>
+                </div>
+                </div>
+                <div class="d-flex justify-content-center">
+                     <div class="input-group w-75">
+                            <input type="text" style="background-color: rgba(231, 231, 231, 0.806);"
+                            placeholder="Add coupon code"
+                            class="form-control me-1" id="validationCustom01">
+                        </div>
+                        <div>
+                            <div class="btn rounded-2" style="background-color:#F46F36;">Apply</div>
+                        </div>
+                </div>
+                <div class="p-3 mt-3">
+                    <button type="submit" class="btn d-flex w-100 bg-dark text-light" >Go To Checkout
+                        <div  class="ms-auto">
+                            <i class="fa-solid fa-right-long justify-content-between"></i>
+                            </div>
+                    </button>
+
+                </div>
+            </div>
+        </div>
+
+        </form>
+
+{{#if loginErr}}
+    <div class="err-message d-none">{{loginErr}}</div>
+{{/if}}
+    </div>
+</div>
+
+<script src="/javaScript/userCart.js"></script>
+
+<script>
+
+    const deleteIcons = document.querySelectorAll('.fa-trash')
+
+    deleteIcons.forEach(deleteIcon => {
+        deleteIcon.addEventListener('mouseover', () => {
+            deleteIcon.style.transform = "scale(1.2,1.3)"
+        })
+        deleteIcon.addEventListener('mouseout', () => {
+            deleteIcon.style.transform = "scale(1,1)"
+        })
+    })
+
+    const errMessage = document.querySelector('.err-message')
+    console.log(errMessage)
+    if(errMessage) {
+        Swal.fire(errMessage.innerHTML)
+    }
+
+</script>

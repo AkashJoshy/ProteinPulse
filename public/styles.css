@@ -27,12 +27,6 @@
     object-fit: cover;
   }
   
-  @media (max-width: 768px) {
-    .row.align-items-stretch > div {
-      height: auto !important;
-    }
-  }
-  
 
   /* side NavBar */
 
@@ -77,6 +71,14 @@ width: 150px;
   color: orange;
 }
 
+/* .unchecked {
+  border: white;
+} */
+
+.star-btn:hover {
+  cursor: pointer;
+}
+
 .fa-arrow-left,
 .fa-arrow-right {
   cursor: pointer;
@@ -107,3 +109,275 @@ background: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(113,57,13,1) 47%, rgba
   .slider.round { border-radius: 34px; } .slider.round:before { border-radius:
   50%; }
 /*  */
+
+/* Category page - all products */
+@keyframes offerSlide {
+    0% {
+      width: 40%; 
+      transform: translateX(0px);
+    }
+    5% {
+      width: 40%; 
+      transform: translateX(10px);
+    }
+    50% {
+      width: 40%;
+      transform: translateX(200px);
+    }
+    100% {
+      width: 40%;
+      transform: translateX(350px);
+    }
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+}
+
+.products-container {
+  position: relative;
+}
+
+.offer-section {
+  width: 15%; 
+  height: 25px;
+  border-radius: 10px 10px 10px 10px;
+  color: #F46F36;
+  background-color: #000000;
+  overflow-x: hidden; 
+  position: absolute;
+  top: 1.5%;
+  animation: offerSlide 1.8s ease-in infinite;
+}
+/* // Category page - all products */
+
+/* Table Scrollbar styling for all table scrollbar */
+.table-responsive {
+  cursor: pointer;
+}
+
+.table-responsive::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background-color: #7e7e7e; 
+  border-radius: 2px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background-color: #000; /* Color of the scroll thumb on hover */
+}
+
+
+/* Product viewing page */
+  
+.user-product-main:hover {
+  cursor: crosshair;
+} 
+
+.highlights li::marker {
+  color: #7e7e7e;
+}
+
+/* // Product viewing page */
+
+/*  Admin pagination  */
+.page-number {
+  background-color: #F46F36; 
+  color: black; 
+  border-color: rgb(0, 0, 0);
+}
+
+.prev-next-number {
+  color: #F46F36;
+}
+
+.admin-pagination a:hover{
+  color: #F46F36;
+  background-color: #000;
+}
+
+/*  // Admin pagination  */
+
+/* User Dashboard */
+  .user-dashboard-ul {
+    list-style-type: none;
+    padding: 0;
+    /* border: 2px solid black */
+  }
+
+  .user-dashboard-ul li {
+    border: 0.1px solid rgba(242, 240, 240, 0.578);
+    padding: .6rem;
+  }
+
+  .user-dashboard-ul a {
+    text-decoration: none;
+    color: black;
+  }
+/* // User Dashboard */
+
+/* Password (Account Setting) */
+.toggle-password {
+  position: relative;
+  z-index: 1;
+  top: 24%;
+  cursor: pointer;
+  /* color: #ccc; */
+}
+
+/* // Password */
+
+/* Wallet  */
+
+.wallet-pagination li a{
+  color: #000000;
+}
+
+/* // Wallet  */
+
+
+/* Styling upto 480px */
+@media (max-width: 425px) {
+  .user-product-main {
+    height: 400px;
+    margin-left: 0px;
+  }
+  
+  .main-image {
+    height: 400px;
+  }
+
+  .user-dashboard-ul {
+    width: 100%;
+    display: flex;
+  }
+
+  .dashboard-edits {
+    display: block;
+  }
+
+  .user-sub-header {
+    margin-left: -40px;
+  }
+
+  .profile-pic-selector {
+    border: none;
+    font-size: .8rem;
+    border-radius: 5px;
+    color: #000000;
+  }
+
+  .profile-pic-btn {
+    margin-left: -50px;
+  }
+
+  .progress-names {
+    font-size: .7rem;
+  }
+
+  .font-sm {
+    font-size: .9rem;
+  }
+
+  .order-details-total-amount {
+    /* margin-left: -.5rem; */
+    width: 120%;
+  }
+
+  .single-product {
+    height: 100px;
+  }
+  
+}
+
+/* Styling btw 481px to 768px */
+@media (min-width: 425px) and (max-width: 768px) {
+  .row.align-items-stretch > div {
+    height: auto !important;
+  }
+  
+  .user-product-main {
+    height: 400px;
+  }
+  
+  /* .main-image {
+    height: 400px;
+  }
+   */
+  .font-sm {
+    font-size: .9rem;
+  }
+  
+  .order-details-total-amount {
+    margin-left: .2rem;
+    width: 120%;
+  }
+
+
+
+}
+
+/* Styling for 769px to 1024px */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .user-product-main {
+    height: 400px;
+  }
+
+  .main-image { 
+    height: 400px;
+  }
+
+  .dashboard-edits {
+    display: flex;
+    flex-direction: row;
+  }
+
+  
+
+}
+
+/* Styles for screens between 1025px to 1200px wide (laptops and larger screens) */
+@media (min-width: 1025px) and (max-width: 1200px) {
+  .user-product-main {
+    height: 350px;
+    margin-left: -10px;
+  }
+  
+  .main-image {
+    height: 300px;
+  }
+
+  .dashboard-edits {
+    display: flex;
+    flex-direction: row;
+  }
+
+ 
+}
+
+/* Styles for screens wider than 1200px (large screens and desktops) */
+@media (min-width: 1201px) {
+  .user-product-main {
+    height: 550px;
+    margin-left: -50px;
+  }
+
+  .main-image {
+    height: 550px;
+  }
+
+  .dashboard-edits {
+    display: flex;
+    flex-direction: row;
+  }
+
+
+}

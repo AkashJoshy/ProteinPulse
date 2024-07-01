@@ -1,0 +1,9 @@
+<<<<<<< HEAD
+.env
+=======
+# Environment Variable
+.env
+
+# Node modules
+>>>>>>> 20deb46 (week2 completed)
+node_modules/

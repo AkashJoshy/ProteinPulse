@@ -3,7 +3,7 @@
   <h3 class="ms-3 ms-md-5">All Customers</h3>
 </div>
 
-<div class="container table-responsive">
+<div class="container table-responsive shadow-lg rounded">
   <table class="table mt-3">
     <thead class="table-dark">
       <tr>
@@ -19,7 +19,7 @@
     <tbody>
       {{#each users}}
         <tr>
-          <th scope="row">1</th>
+          <th scope="row">{{increment @index}}</th>
           <td>{{this.firstName}}</td>
           <td>{{this.lastName}}</td>
           <td>{{this.email}}</td>
@@ -38,19 +38,27 @@
             {{/if}}
           </td>
           <td>
-            <a
+            {{!-- <a
               href="/admin/edit-customer/{{this._id}}"
               class="btn btn-success btn-sm"
-            >UPDATE</a>
+            >UPDATE</a> --}}
             {{#if this.isBlocked}}
             <a
-              href="/admin/delete-customer/{{this._id}}"
-              class="btn btn-secondary btn-sm mt-1 mt-md-0"
+              onclick="confirmDeleteOrRestore(`{{this.firstName}}`,
+               `{{this.lastName}}`, 
+               `{{this._id}}`, 
+               `restore-customer`, 
+               `Restore`)"
+              class="btn btn-secondary btn-sm mt-1 mt-md-0 btn-customer-action"
             >RESTORE</a>
               {{else}}
             <a
-              href="/admin/delete-customer/{{this._id}}"
-              class="btn btn-danger btn-sm mt-1 mt-md-0"
+              onclick="confirmDeleteOrRestore(`{{this.firstName}}`,
+               `{{this.lastName}}`, 
+               `{{this._id}}`, 
+               `delete-customer`, 
+               `Delete`)"
+              class="btn btn-danger btn-customer-action btn-sm mt-1 mt-md-0"
             >DELETE</a>
             {{/if}}
           </td>
@@ -59,4 +67,68 @@
     </tbody>
   </table>
 
+<nav aria-label="Page navigation example" class="d-flex fixed-bottom" style="z-index: 2;" >
+
+  <ul class="pagination mx-auto py-3 admin-pagination" >
+    {{#if pagination.previousPage}}
+    <li class="page-item">
+    <a class="page-link bg-dark prev-next-number" 
+      href="/admin/customers?page={{paginationManipulation pagination.currentPage -1}}">Previous
+    </a>
+    </li>
+    {{/if}}
+    {{#each (paginationNumbers 1 pagination.totalPages) as |pageNumber| }}
+    <li class="page-item"><a class="page-link page-number " 
+    href="/admin/customers?page={{pageNumber}}"> {{pageNumber}} </a></li>
+    {{/each}}
+    {{#if pagination.nextPage}}
+    <li class="page-item">
+    <a class="page-link bg-dark prev-next-number" 
+      href="/admin/customers/page={{paginationManipulation pagination.currentPage 1}}">Next
+    </a>
+    </li>
+    {{/if}}
+  </ul>
+
+</nav>
+
 </div>
+
+
+
+<script>
+function confirmDeleteOrRestore(firstName, lastName, customerID, subRoute, adminAction) {
+
+  // Ajax method to delete or restore customers with sweetAlert 
+    Swal.fire({
+            title: 'Are you sure?',
+            text: `Do you want to ${adminAction} ${firstName} ${lastName} ?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: `Yes, ${adminAction} it!`,
+            cancelButtonText: 'No, cancel!',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Handle the delete/restore action
+                $.ajax({
+                  url: `/admin/${subRoute}`,
+                  method: "PUT",
+                  data: {
+                    userID: customerID
+                  },
+                  success: response => {
+                    if(response.status) {
+                      Swal.fire(`Successfully ${adminAction}d ${firstName} ${lastName}`)
+                      .then(() => window.location.href = response.redirected)
+                    }
+                  }
+                })
+            }
+        });
+}
+
+</script>
+
+
+
+
