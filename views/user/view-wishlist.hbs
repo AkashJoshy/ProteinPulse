@@ -1,0 +1,65 @@
+<div class="container">
+    <div class="row">
+
+        <div class="col-md-3 mt-5">
+            {{>dashboard}}
+        </div>
+
+        <div class="col-md-9 mt-4 p-2">
+
+            <h4 class="shadow-lg p-2 bg-secondary text-light">Wishlist</h4>
+            <div class="table-responsive shadow-lg">
+            <table class="table rounded-4 table-borderless">
+                <thead class="table-dark border border-2">
+                    <tr>
+                        <th scope="col">Products</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{!-- {{#if orders}} --}}
+                                    <tr>
+                                    <td>
+                                        <div class="d-flex">
+                                            <div>
+                                                <img style="height: 6rem; width: 8rem;"
+                                                    src="/uploads/file1-1719744855669.png"
+                                                    class="card-img-top mx-auto product-image pt-1" alt="..." />
+                                            </div>
+                                            <div class="pt-0 pt-md-3" 
+                                            style="color: rgb(4, 120, 244); width: 6.5rem; font-size: .95rem;">
+                                                Bigmuscles-crude-whey-1kg-rich-chocolate
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="mt-4">
+                                            ₹<span> 4500 </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="mt-4 px-3">
+                                            x<span> 1 </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="mt-4">
+                                        <div class="btn text-light" style="background-color: black;">
+                                            Add to Cart
+                                        </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                 {{!-- {{else}} --}}
+                        {{!-- <h4 class="text-danger text-center"> {{orderMessage}} </h4>
+                    {{/if}} --}}
+                </tbody>
+            </table>
+            </div>
+            
+        </div>
+
+    </div>
+</div>

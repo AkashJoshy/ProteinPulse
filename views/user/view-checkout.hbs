@@ -1,0 +1,281 @@
+<style>
+
+    .email:hover{
+        cursor: no-drop;
+    }
+
+    .multi-collapse:hover {
+        cursor: pointer;
+    }
+
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12 col-md-12 col-lg-8 mt-5">
+            <h5 class="py-4 mt-3">Billing Information</h5>
+            <form action="/order-checkout" method="post" class="row g-3 needs-validation p-2 me-lg-5" novalidate>
+                <div class="col-md-4 col-lg-4">
+                    <label for="firstName" class="form-label">FIRSTNAME</label>
+                    <input type="text" name="firstName" class="form-control order-form" id="firstName" value="{{user.firstName}}" required>
+                    <div class="valid-feedback">
+                        Looks good!
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-lg-4">
+                    <label for="lastName" class="form-label">LASTNAME</label>
+                    <input type="text" name="lastName" class="form-control order-form" id="lastName" value="{{user.lastName}}" required>
+                    <div class="valid-feedback">
+                        Looks good!
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-lg-4">
+                    <label for="companyName" class="form-label">COMPANY (Optional)</label>
+                    <input type="text" name="companyName" value="Nill" class="form-control order-form" placeholder="Nill" id="companyName">
+                </div>
+
+                <div class="col-md-12">
+                    <label for="address" class="form-label">ADDRESS</label>
+                    <div class="input-group has-validation">
+                        <input type="text" name="address" value="{{billingAddress.address}}" class="form-control order-form" id="address"
+                            aria-describedby="inputGroupPrepend" required>
+                        <div class="invalid-feedback">
+                            Address should be filled
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="validationCustom04" class="form-label">COUNTRY</label>
+                    <select class="form-select order-form" name="country" id="validationCustom04" required>
+                        <option selected disabled value="{{billingAddress.country}}" >{{billingAddress.country}}</option>
+                        <option value="INDIA">INDIA</option>
+                    </select>
+                    <div class="invalid-feedback">
+                        Please select a valid state.
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="validationCustom04" class="form-label">STATE</label>
+                    <select class="form-select order-form" name="state" id="validationCustom04" required>
+                        <option selected disabled value="{{billingAddress.state}}">{{billingAddress.state}}</option>
+                        <option value="KERALA">KERALA</option>
+                    </select>
+                    <div class="invalid-feedback">
+                        Please select a valid state.
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="validationCustom04" class="form-label">CITY</label>
+                    <select class="form-select order-form" name="city" id="validationCustom04" required>
+                        <option selected disabled value="{{billingAddress.city}}" >{{billingAddress.city}}</option>
+                        <option value="EKM">EKM</option>
+                    </select>
+                    <div class="invalid-feedback">
+                        Please select a valid state.
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-lg-3">
+                    <label for="zipcode" class="form-label">ZIP CODE</label>
+                    <input type="tel" name="zipcode" value="{{billingAddress.zipcode}}" class="form-control order-form" id="zipcode" minlength="6" maxlength="6" required>
+                    <div class="valid-feedback">
+                        Looks good!
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="email" class="form-label">EMAIL</label>
+                    <div class="input-group has-validation">
+                        <input type="email" name="email" value="{{user.email}}" disabled class="form-control email order-form rounded-2" id="email"
+                            aria-describedby="inputGroupPrepend" 
+                            required>
+                        <div class="valid-feedback">
+                            Email address is valid
+                        </div>
+                        <div class="invalid-feedback">
+                            Please enter a valid email address
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-md-6 col-lg-6">
+                    <label for="mobileNumber" class="form-label">MOBILE</label>
+                    <input type="tel" name="mobileNumber" value="{{billingAddress.mobile}}" class="form-control order-form" id="mobileNumber"
+                        minlength="10" maxlength="10" required>
+                    <div class="valid-feedback">
+                        Mobile number is valid
+                    </div>
+                    <div class="invalid-feedback">
+                        Please enter a valid 10-digit mobile number
+                    </div>
+                </div>
+
+                <p class="d-inline-flex gap-2 mt-4">
+                    <button class="btn border border-2 rounded" type="button" data-bs-toggle="collapse"
+                        data-bs-target=".multi-collapse" aria-expanded="false"
+                        aria-controls="multiCollapseExample1 multiCollapseExample2">
+                    </button> Ship into different address
+                </p>
+
+                <div class="row">
+                <div class="col">
+                <div class="collapse multi-collapse" id="multiCollapseExample2">
+                    {{#if shippingAddress}}
+                    {{#each shippingAddress}}
+                    <input class="form-check-input mt-3 order-form" type="radio" name="shippingAddressID" value="{{this._id}}">
+                    <div class="border border-2 mt-2 p-3 rounded-3 user-addresses">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="user-details-more">{{this.address}}</h6>
+                        </div>
+                        <div><span class="user-details-more"> {{this.city}} </span>, <span class="user-details-more" > {{this.state}} </span></div>
+                        <div class="user-details-more"> {{this.zipcode}} </div>
+                        <div>+91 <span class="user-details-more" > {{this.mobile}} </span></div>
+                    </div>
+                    {{/each}}
+                    {{else}}
+                    <a href="/dashboard/address/add-address" style="text-decoration: none;">
+                    <h5 class="ms-4 text-secondary"> Add New
+                        <i class="fa-regular fa-square-plus"></i>
+                    </h5>
+                    </a>
+                    {{/if}}
+                </div>
+                </div>
+                </div>
+{{!--  --}}
+                <div class="border border-1 rounded">
+                    <h5 class="mt-3 px-3">PAYMENT OPTION</h5>
+                        <hr class="lh-sm">
+                    <div class="d-md-flex justify-content-evenly mb-3">
+                        <div class="cash-on-delivery py-4" style="border-bottom-color: black;">
+                            <input class="form-check-input order-form" type="radio" name="paymentMethod" value="COD" id="flexRadioDefault1" required>
+                            <label class="form-check-label px-1 text-dark" for="flexRadioDefault1">
+                                COD
+                            </label>
+                        </div>
+                        <div class="rayorpay py-4">
+                            <input class="form-check-input order-form" type="radio" name="paymentMethod" value="Razorpay" id="flexRadioDefault1" required>
+                            <label class="form-check-label px-1 text-dark" for="flexRadioDefault1">
+                                RAZORPAY
+                            </label>
+                        </div>
+                        <div class="my-wallet py-4">
+                            <input class="form-check-input order-form" type="radio" name="paymentMethod" value="myWallet" id="flexRadioDefault1" required>
+                            <label class="form-check-label px-1 text-dark" for="flexRadioDefault1">
+                                MY WALLET
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 style="margin-top: 2rem;">ADDITIONAL INFORMATION</h6>
+                <p>Order Notes (Optional)</p>
+
+                <textarea 
+                placeholder="Notes about your order, e.g. special notes for delivery"
+                style="border: 1px solid rgb(196, 196, 196); height: 20vh; margin-top: -5px;"
+                name="orderNotes" class="rounded" id=""></textarea>
+
+        </div>
+
+        <div class="col-12 col-md-12 col-lg-4 mt-5">
+            <div class="shadow-lg rounded-2">
+                <div class="p-2">
+                    <div class="bg-dark text-light px-2 p-1">
+                    Order Summary
+                    </div>
+                {{#each products}}
+                <div class="d-flex">
+                    <img style="width: 150px; height: 100px;" src="/uploads/{{this.image}}" alt="">
+                    <div class="mt-3 px-2">
+                        <p>{{this.productName}}</p>
+                        <p class="lh-sm" style="margin-top: -12px;">
+                            <span>{{this.quantity}}</span> <span class="text-secondary px-1"> x </span><span style="color: #F46F36;">₹</span><span style="color: #F46F36;">{{this.salePrice}}</span></p>
+                    </div>
+                </div>
+                {{/each}}
+                <div class="product-amounts mt-2 p-2">
+
+                    <div class="d-flex justify-content-between ">
+                        <p class="text-secondary">Sub-total</p>
+                        <p>₹<span>{{totalSaleAmount}}</span></p>
+                    </div>
+                    <div class="d-flex justify-content-between ">
+                        <p class="text-secondary">Shipping</p>
+                        <p>₹<span>{{deliveryCharge}}</span></p>
+                    </div>
+                    <div class="d-flex justify-content-between ">
+                        <p class="text-secondary">Discount</p>
+                        <p>₹<span>{{savedprice}}</span></p>
+                    </div>
+                    <div class="d-flex justify-content-between ">
+                        <p class="text-secondary">Tax</p>
+                        <p>₹<span>{{tax}}</span></p>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between ">
+                        <p>Total</p>
+                        <p>₹<span>{{totalAmount}} </span>INR</p>
+                    </div>
+
+                    <div class="d-none">
+                        <input type="text" name="cartID" value="{{cart._id}}">
+                    </div>
+
+                    <div>
+                    <div class="col-12">
+                        <button class="btn w-100 text-center mt-lg-2 mt-xl-4"
+                            style="color: #F46F36; background-color: black;" type="submit">PLACE ORDER</button>
+                    </div>
+                </div>
+            </form>
+                </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/javaScript/checkout.js"></script>
+
+<script>
+    const inputs = document.querySelectorAll(".order-form");
+    const userDetailsMore = document.querySelectorAll(".user-details-more");
+    const userAddresses = document.querySelectorAll(".user-addresses");
+
+    inputs.forEach(input => {
+        input.addEventListener('input', () => {
+            if(input.value === " "){
+                console.log(`Hloo`)
+                input.value = input.value.trim()
+            }
+
+        })
+    })
+
+    let lastSelectedRadio = null;
+
+    document.querySelectorAll('input[name="shippingAddressID"]').forEach(radio => {
+        radio.addEventListener('click', (e) => {
+            const clickedRadio = e.target;
+
+            // If the clicked radio button is already selected
+            if (clickedRadio === lastSelectedRadio) {
+                clickedRadio.checked = false;
+                lastSelectedRadio = null;
+            } else {
+                document.querySelectorAll('input[name="shippingAddressID"]').forEach(r => r.checked = false);
+                clickedRadio.checked = true;
+                lastSelectedRadio = clickedRadio;
+            }
+        });
+    });
+
+</script>

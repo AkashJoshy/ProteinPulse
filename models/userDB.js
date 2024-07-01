@@ -18,11 +18,13 @@ const userSchema = new Schema({
     },
     password: {
         type: String,
-        required: true
     },
     mobileNumber: {
         type: Number,
-        required: true
+        unique: true,
+    },
+    profilePicture: {
+        type: String,
     },
     isAdmin: {
         type: Boolean,
@@ -36,10 +38,17 @@ const userSchema = new Schema({
         type: Boolean,
         default: false
     },
-    createdAt: {
-        type: Date,
-        default: Date.now
+    verificationToken: {
+        type: String
+    },
+    verificationTokenExpires: {
+        type: Date
     }
+    // address: [{type: Schema.Types.ObjectId, ref: 'address'}],
+    // wishlist: [{type: Schema.Types.ObjectId, ref: 'product'}],
+},
+{
+    timestamps: true
 })
 
 

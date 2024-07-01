@@ -1,8 +1,11 @@
-const {connect} = require('mongoose')
+const { connect } = require('mongoose')
+require('dotenv').config()
+
+const MONGODB = process.env.MONGO_DB
 
 const createMongoConnection = async () => {
    try {
-    await connect('mongodb://127.0.0.1/proteinpulse_plaza', {
+    await connect(MONGODB, {
         autoCreate: true
     })
     console.log('MongoDB Connected....')

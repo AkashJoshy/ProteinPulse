@@ -1,0 +1,310 @@
+<style>
+    .invalid-feedback {
+        display: none;
+    }
+
+    #confirmPassword,
+    #newPassword {
+        position: relative;
+        top: -15%;
+    }
+
+    .new-password-msg,
+    .confirm-password-msg {
+        margin-top: -10px;
+    }
+
+    .profile-pic:hover {
+        cursor: pointer;
+    }
+
+    input[type=file]::file-selector-button {
+        margin-right: 20px;
+        border: none;
+        background: #F46F36;
+        padding: 4px 25px;
+        border-radius: 5px;
+        color: #fff;
+        cursor: pointer;
+        transition: background .2s ease-in-out;
+    }
+
+    input[type=file]::file-selector-button:hover {
+        background: #000000;
+    }
+
+    .view-profile:hover {
+        cursor: pointer;
+    }
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-3 mt-5">
+            {{> dashboard}}
+        </div>
+
+        <div class="col-md-9 mt-3">
+
+            <div class="">
+                <h3 class="p-2">Account Details
+                    <hr>
+                </h3>
+                <div class="p-1 p-md-3">
+                    {{!-- User profile Pic --}}
+                    <div class="shadow-lg d-flex rounded-3">
+                        <div class="">
+                            <img style="width: 100px; height: 100px; object-fit: cover;"
+                                class="p-2 rounded-circle profile-pic" src="/uploads/{{user.profilePicture}}" alt="">
+                        </div>
+                        <div class="px-1 py-3" style="display: block;">
+                            <h3 class="" style="display: block;">
+                                {{user.firstName}} {{user.lastName}}
+                            </h3>
+                            <span class="text-secondary view-profile" style="display: block;">
+                                View Profile
+                            </span>
+                        </div>
+
+                        <div class="d-none d-md-flex align-items-center ms-auto me-5 p-md-0 p-3">
+                            <form class="needs-validation" enctype="multipart/form-data" novalidate>
+                                <input type="file" class="rounded-3 me-2 p-1 profile-pic-selector"
+                                    style="border: 1px solid rgba(232, 227, 227, 0.754);" accept="image/*" name="file"
+                                    required>
+                                <div class="invalid-feedback">
+                                    Please Upload it!
+                                </div>
+                                <button type="submit" id="changeProfilePic"
+                                    class="btn btn-sm btn-outline-dark mt-md-0 mt-2 profile-pic-btn">Upload</button>
+                            </form>
+                        </div>
+
+                    </div>
+
+
+                    <div class="mt-2 d-block d-md-none">
+                        <form class="needs-validation d-flex" enctype="multipart/form-data" novalidate>
+                            <input type="file" class="rounded-3 me-auto profile-pic-selector"
+                                style="border: 1px solid rgba(232, 227, 227, 0.754);" accept="image/*" name="file"
+                                required>
+                            <button type="submit" id="changeProfilePicSm"
+                                class="btn btn-sm btn-outline-dark mt-md-0 profile-pic-btn">Upload</button>
+                        </form>
+                    </div>
+
+
+
+                </div>
+                {{!-- User Details --}}
+                <div class="shadow-lg rounded-3" style="display: none;" id="profileDetailsSection">
+                    <a id="edit-btn" class="px-2">
+                        <button type="button" class="btn">
+                            <i class="fa-regular fa-pen-to-square" style="font-size: 1.2rem;"></i>
+                        </button>
+                    </a>
+                    <form class="row g-2 needs-validation p-4 me-lg-5 mt-md-3 mt-xl-0" novalidate>
+                        <div class="col-md-6 col-lg-6 ">
+                            <label for="firstName" class="form-label">FIRSTNAME</label>
+                            <input type="text" name="firstName" class="form-control user-details" id="firstName"
+                            style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
+                            pattern = "[A-Za-z]+"
+                            value="{{user.firstName}}" disabled required>
+                            <div class="invalid-feedback">
+                                Should not be Empty
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-6">
+                            <label for="lastName" class="form-label">LASTNAME</label>
+                            <input type="text" name="lastName" class="form-control user-details" id="lastName"
+                            style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
+                            pattern = "[A-Za-z]+"
+                            value="{{user.lastName}}" disabled required>
+                            <div class="invalid-feedback">
+                                Should not be Empty
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label for="email" class="form-label">EMAIL</label>
+                            <div class="input-group has-validation">
+                                <input type="email" name="email" class="form-control rounded-2" id="email"
+                                    style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
+                                    aria-describedby="inputGroupPrepend" value="{{user.email}}" disabled required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12 col-lg-12">
+                            <label for="mobileNumber" class="form-label">MOBILE</label>
+                            <input type="tel" name="mobileNumber" class="form-control user-details" id="mobileNumber" 
+                            style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
+                            pattern="[1-9]{1}[0-9]{9}" minlength="10" maxlength="10" value="{{user.mobileNumber}}" disabled required>
+                            <div class="invalid-feedback">
+                                Please enter a valid 10-digit mobile number
+                            </div>
+                        </div>
+                        <div>
+                            <div class="col-12 d-flex">
+                                <button id="updateUserDetails" class="btn mt-2 mt-lg-2 mt-xl-4 bg-dark"
+                                    style="color: #F46F36; display: none;" type="submit">Save Changes</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                {{!-- Change Password --}}
+                <div class="shadow-lg mt-4 rounded-3">
+                    <form class="row g-3 needs-validation p-4 me-lg-5 mt-md-3 mt-xl-0" novalidate>
+
+                        <div class="col-md-12 col-lg-12">
+                            <label for="currentPassword" class="form-label">CURRENT PASSWORD</label>
+                            <input type="password" name="password" class="form-control mt-1 passwords"
+                                id="currentPassword" minlength="8" placeholder="Enter Your Current Password" required>
+                            <div class="valid-feedback">
+                                Looks Ok
+                            </div>
+                            <div class="invalid-feedback">
+                                Please enter more than 8 letters
+                            </div>
+                        </div>
+                        <div class="col-md-12 col-lg-12 mt-4">
+                            <label for="newPassword" class="form-label">NEW PASSWORD</label>
+                            <div class="d-flex">
+                                <input type="password" name="newPassword" class="form-control passwords password-value"
+                                    id="newPassword" minlength="8" placeholder="Re-enter Your New Password" pattern = "[A-Za-z]+" required>
+                                <div class="toggle-password toggle-icon">
+                                    <i class="fa-solid fa-eye ms-3 mt-2"></i>
+                                </div>
+
+                            </div>
+                            <div class="valid-feedback new-password-msg">
+                                Looks Ok
+                            </div>
+                            <div class="invalid-feedback new-password-msg">
+                                Please enter more than 8 letters
+                            </div>
+                        </div>
+
+                        <div class="col-md-12 col-lg-12 mt-3">
+                            <label for="confirmPassword" class="form-label ">CONFIRM PASSWORD</label>
+                            <div class="d-flex">
+                                <input type="password" name="confirmPassword"
+                                    class="form-control passwords password-value" id="confirmPassword" minlength="8"
+                                    placeholder="Re-enter Your New Password" pattern = "[A-Za-z]+" required>
+                                <div class="toggle-password toggle-icon">
+                                    <i class="fa-solid fa-eye ms-3 mt-2"></i>
+                                </div>
+
+                            </div>
+                            <div class="valid-feedback confirm-password-msg">
+                                Looks Ok
+                            </div>
+                            <div class="invalid-feedback confirm-password-msg">
+                                Please enter more than 8 letters
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="col-12 d-flex">
+                                <button id="changePassword" class="btn mt-2 mt-lg-2 mt-xl-4 bg-dark"
+                                    style="color: #F46F36;" type="submit">Change Password</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script src="/javaScript/editUserDetails.js"></script>
+<script>
+
+    const toggleIcons = document.querySelectorAll('.toggle-icon')
+    const passwordValues = document.querySelectorAll('.password-value')
+    const passwords = document.querySelectorAll('.passwords')
+
+    document.addEventListener('DOMContentLoaded', () => {
+        let clicked = false;
+
+        // Password Input Toggle
+        toggleIcons.forEach((icon, index) => {
+            icon.style.color = "grey"
+            icon.addEventListener('click', () => {
+                if (clicked) {
+                    passwordValues[index].type = "password"
+                    clicked = false
+                    icon.style.color = "grey"
+                } else {
+                    passwordValues[index].type = "text"
+                    clicked = true
+                    icon.style.color = "black"
+                }
+            })
+        })
+    })
+
+    // Password spacing Validation
+    passwords.forEach(password => {
+        password.addEventListener('input', () => {
+            if (password.value == " " || password.value.includes(" ")) {
+                password.value = password.value.trim()
+            }
+        })
+    })
+
+    // Input spacing Validation
+
+
+    // Profile pic
+    const profilePic = document.querySelector('.profile-pic')
+    const profilePicSelector = document.querySelector('.profile-pic-selector')
+
+    profilePicSelector.addEventListener('change', (e) => {
+        profilePic.src = URL.createObjectURL(e.target.files[0])
+    })
+
+    // View Profile
+    const profile = document.querySelector('.view-profile')
+    const profileSection = document.querySelector('#profileDetailsSection')
+
+    let clicked = false
+
+    profile.addEventListener('click', () => {
+        if (clicked) {
+            profileSection.style.display = "none"
+            clicked = false
+        } else {
+            profileSection.style.display = "block"
+            clicked = true
+        }
+    })
+
+const userDetailsInputs = document.querySelectorAll('.user-details')
+const btn = document.querySelector('#updateUserDetails')
+const editBtn = document.querySelector('#edit-btn')
+
+editBtn.addEventListener('click', () => {
+    userDetailsInputs.forEach(input => {
+        if(input.disabled) {
+        input.disabled = false
+        input.style.backgroundColor = "white"
+        input.style.cursor = "text"
+        } else {
+        input.disabled = true
+        input.style.backgroundColor = "rgba(227, 223, 223, 0.587)"
+        input.style.cursor = "not-allowed"
+        }
+    })
+})
+
+userDetailsInputs.forEach(userDetailsInput => {
+    userDetailsInput.addEventListener('input', () => {
+        btn.style.display = "block"
+    })
+})
+
+
+
+</script>

@@ -1,9 +1,11 @@
 <div class="container mt-5">
   <h2 class="text-center" style="margin-bottom: 45px;">LOGIN</h2>
    <div class="d-flex ">
-        <div class="btn btn-outline-dark mx-auto rounded-circle"><a href="/login-social">
+        <div class="btn btn-outline-dark mx-auto rounded-circle">
+          <a href="/auth/google">
           <i class="fa-brands fa-google"></i>
-        </a></div>
+        </a>
+        </div>
       </div>
       <h5 class="text-center mt-3">OR</h5>
   <div
@@ -23,9 +25,9 @@
           <div class="mb-3">
             <label for="exampleInputEmail1" class="form-label">EMAIL</label>
             <div class="input-group has-validation">
-      <input type="email" name="email" class="form-control" id="email" aria-describedby="inputGroupPrepend" required>
+      <input type="email" name="email" value="joshyakash@gmail.com" class="form-control input-field" id="email" aria-describedby="inputGroupPrepend" required>
       <div class="invalid-feedback">
-        Please enter a valid email
+        Please enter your email
       </div>
     </div>
 
@@ -35,16 +37,23 @@
               for="exampleInputPassword1"
               class="form-label"
             >PASSWORD</label>
-            <input type="password" name="password" class="form-control" id="password"  required>
-    <div class="valid-feedback">
-      Looks good!
+            <input type="password" name="password" class="form-control input-field" id="password"  required>
+    <div class="invalid-feedback">
+      Please enter your password
     </div>
           </div>
-          {{#if userFailed}}
-
-            <h5 class="text-danger"> {{userFailed}} </h5>
-
+          {{!-- login Error messages --}}
+          {{#if loginErr}}
+            <p class="text-danger login-messages"> {{loginErr}} </p>
           {{/if}}
+          {{!-- // login Error messages --}}
+
+          {{!-- login Success messages --}}
+          {{#if loginSuccess}}
+            <p class="text-success login-messages"> {{loginSuccess}} </p>
+          {{/if}}
+          {{!-- // login Success messages --}}
+
            <div class="d-flex">
             <div class="me-auto">
             <a href="/signup" class="" style="text-decoration: none; color: black;">
@@ -85,4 +94,13 @@
     }, false)
   })
 })()
+
+const loginMessages = document.querySelectorAll('.login-messages')
+
+loginMessages.forEach(msg => {
+  setTimeout(()=> {
+    msg.style.display = "none" 
+  }, 4000)
+})
+
 </script>

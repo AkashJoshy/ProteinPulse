@@ -1,89 +1,102 @@
+<style>
+  .list-group-item.active {
+    background-color: #F46F36;
+    border-color: aliceblue;
+  }
+
+  .list-group-item {
+    border: 1px ridge rgba(228, 226, 226, 0.57)
+  }
+</style>
+
 <nav class="navbar navbar-expand-lg pt-4" style="background-color: #F46F36;">
   <div class="container-fluid">
-    <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+    <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo03"
+      aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse me-5" id="navbarTogglerDemo03">
       <ul class="navbar-nav ms-auto mb-2 mt-lg-0 mt-2">
-        <form class="d-flex d-lg-flex mt-lg-0 mt-5" role="search">
-        <input class="form-control me-2 me-lg-2" type="search" placeholder="Search" aria-label="Search">
-        {{!-- <button class="btn btn-outline-dark p-1" type="submit">Search</button> --}}
-      </form>
+
+        <input class="form-control me-2 me-lg-2" onclick="searchProduct()" id="searchBtn" placeholder="Search" aria-label="Search">
+
         <li class="nav-item">
+          {{#if user}}
+          <a class="nav-link fw-bold" aria-current="page" href="/logout">Logout</a>
+          {{else}}
           <a class="nav-link fw-bold" aria-current="page" href="/login">Login</a>
+          {{/if}}
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">
+          <a class="nav-link" href="/dashboard/my-cart">
             <i class="fa-solid fa-cart-shopping"></i>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">
+
+          <a class="nav-link" href="/dashboard">
             <i class="fa-solid fa-circle-user"></i>
           </a>
         </li>
       </ul>
-      
+
     </div>
   </div>
 </nav>
 
 
-<img
-  src="/picture/logo/logoUser.png"
-  class=" float-start"
-  style="position: absolute; top: 5%; left: 3%; width: 80px; height: 80px;"
-  alt="user-page-logo"
-/>
+<img src="/picture/logo/logoUser.png" class=" float-start"
+  style="position: absolute; top: 5%; left: 3%; width: 80px; height: 80px;" alt="user-page-logo" />
 
-{{!--  --}}
+{{!-- --}}
 <div style="background-color: #F06E6E;">
-  <ul class="d-flex me-auto ms-md-auto" style="list-style: none;">
-    <li style="margin-left: 120px;">
-      <a href="" style="text-decoration: none; color: black;">
-      Home
+  <ul class="d-flex user-sub-header" style="list-style: none;">
+    <li style="margin-left: 110px;">
+      <a href="/" style="text-decoration: none; color: black;">
+        Home
       </a>
-      </li>
-    <li style="margin-left: 30px;">
-      <a href="" style="text-decoration: none; color: black;">
-      New Arrivals
+    </li>
+    <li style="margin-left: 20px;">
+      <a href="/products" class="" style="text-decoration: none; color: black;">
+        Products
       </a>
-      </li>
-    <li style="margin-left: 30px;">
-      <a href="" style="text-decoration: none; color: black;">
-      Brands
+    </li>
+    <li style="margin-left: 20px;">
+      <a href="" class="" style="text-decoration: none; color: black;">
+        Brands
       </a>
-      </li>
-    
+    </li>
+
   </ul>
 </div>
 
 {{!-- Signup Model Banner --}}
-<div class="sign-up-banner fixed-top" style="background-color: #F06E6E; width: 100%; height: 25px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
+{{#if user}}
+{{else}}
+<div class="sign-up-banner fixed-top"
+  style="background-color: #F06E6E; width: 100%; height: 25px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
   <div class="mt-2 mt-md-0 d-none d-sm-block" style="flex-grow: 1; text-align: center;">
     Sign up and get 20% off to your first order.
-     <a href="/signup" style="color: black;">
-     Sign Up Now
-     </a>
-     </div>
-    <div class="d-block d-sm-none" style="flex-grow: 1; text-align: center;">
-      20% off on 1st order.
-      <a href="/signup" style="color: black;">
-     Sign Up
-     </a>
-    </div>
-  <button type="button" class="btn-close" aria-label="Close"></button>
+    <a href="/signup" style="color: black;">
+      Sign Up Now
+    </a>
+  </div>
+  <div class="d-block d-sm-none" style="flex-grow: 1; text-align: center;">
+    20% off on 1st order.
+    <a href="/signup" style="color: black;">
+      Sign Up
+    </a>
+  </div>
+  <button type="button" class="btn-close banner-close" aria-label="Close"></button>
 </div>
+{{/if}}
 
 
 <script>
-  // Sign up Banner for New Guest 
-  const closeBtn = document.querySelector('.btn-close')
+  
+  // Sign up Banner
+  const closeBtn = document.querySelector('.banner-close')
   const signUpBanner = document.querySelector('.sign-up-banner')
-  closeBtn.addEventListener('click', ()=> {
-    console.log(`Clicked`)
-    signUpBanner.style.display = 'none'
-  })
-
+  if(signUpBanner) closeBtn.addEventListener("click", ()=> signUpBanner.style.display = 'none')
   
 </script>

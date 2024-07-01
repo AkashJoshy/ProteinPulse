@@ -1,19 +1,43 @@
 const {Schema, model} = require('mongoose')
 
-const productSchema = new Schema({
+const ProductSchema = new Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        trim: true
+    },
+    categoryName: {
+        type: String,
+        required: true,
+        trim: true
     },
     description : {
         type: String,
+        required: true,
+        trim: true
+    },
+    brand : {
+        type: String,
         required: true
+    },
+    highlights : {
+        type: [String],
+        required: true,
+        trim: true
     },
     price: {
         type: Number,
-        required: true
+        required: true,
     },
     salePrice: {
+        type: Number,
+        required: true
+    },
+    offer: {
+        type: Number,
+        required: true
+    },
+    rating: {
         type: Number,
         required: true
     },
@@ -22,33 +46,36 @@ const productSchema = new Schema({
         required: true
     },
     size: {
-        type: Array,
-        required: true
-    },
-    rating: {
-        type: Number,
+        type: String,
         required: true
     },
     quantities: {
         type: Number,
         required: true
     },
-    categoryName: {
+    origin: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
-    images: {
-        type: Array,
-        required: true
-    },
-    createdAt: {
+    bestBefore: {
         type: Date,
         default: Date.now
-    }
+    },
+    imageUrl: {
+        type: [String],
+        required: true
+    },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+},{
+    timestamps: true
 })
 
 
-const ProductData = model('product', productSchema)
+const ProductData = model('product', ProductSchema)
 
 module.exports = {
     ProductData

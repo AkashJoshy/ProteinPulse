@@ -21,7 +21,7 @@
     <tbody>
       {{#each categories}}
      <tr>
-      <th scope="row">1</th>
+      <th scope="row"> {{increment @index}} </th>
       <td> {{this.name}} </td>
       <td> {{this.description}} </td>
       <td>
@@ -43,15 +43,77 @@
             </i>
         </a>
       </td>
-      <td><a href="/admin/delete-category/{{this._id}}" >
-      <i class="fa-solid fa-trash mx-auto px-3" style="cursor: pointer; color: red;"></i>
-      </a></td>
+      <td>
+        {{#if this.isActive}}
+        <a
+        onclick="confirmDeleteOrRestore(`{{this._id}}`, 
+        `{{this.name}}`, 
+        `delete-category`, 
+        `Delete`)"
+       class="btn-category-action"
+       >
+      <i class="fa-solid fa-trash mx-auto px-3" style="cursor: pointer; color: red;">
+      </i>
+      </a>
+      {{else}}
+      <a 
+      onclick="confirmDeleteOrRestore(`{{this._id}}`, 
+      `{{this.name}}`, 
+      `restore-category`, 
+      `Restore`)"
+      class="btn btn-sm btn-outline-dark btn-category-action">
+        RESTORE
+      </a>
+      {{/if}}
+      </td>
     </tr>
     {{/each}}
     </tbody>
   </table>
-
+<nav aria-label="Page navigation example" class="d-flex fixed-bottom " style="z-index: 2;" >
+  <ul class="pagination mx-auto py-3 admin-pagination">
+    <li class="page-item"><a class="page-link bg-dark prev-next-number" href="#">Previous</a></li>
+    <li class="page-item"><a class="page-link page-number" href="#">1</a></li>
+    <li class="page-item"><a class="page-link page-number" href="#">2</a></li>
+    <li class="page-item"><a class="page-link page-number" href="#">3</a></li>
+    <li class="page-item"><a class="page-link bg-dark prev-next-number" href="#">Next</a></li>
+  </ul>
+</nav>
 </div>
 
 
+<script>
 
+  const btnCategory = document.querySelectorAll('.btn-category-action')
+  function confirmDeleteOrRestore(categoryID, categoryName, categoryRoute, categoryAction) {
+  // function to delete restore categories
+  Swal.fire({
+            title: 'Are you sure?',
+            text: `Do you want to ${categoryAction} ${categoryName}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: `Yes, ${categoryAction} it!`,
+            cancelButtonText: 'No, cancel!',
+        }).then((result) => {
+          if(result.isConfirmed) {
+            $.ajax({
+                  url: `/admin/${categoryRoute}`,
+                  method: "PUT",
+                  data: {
+                    categoryID
+                  },
+                  success: response => {
+                    if(response.status) {
+                      Swal.fire(`Successfully ${categoryAction}d ${categoryName}`)
+                      .then(() => window.location.href = response.redirected)
+                    } else {
+                      window.location.href = response.redirected
+                    }
+                  }
+                })
+          }
+        })
+  
+  }
+
+</script>

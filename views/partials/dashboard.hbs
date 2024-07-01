@@ -1,0 +1,86 @@
+<style>
+  a:hover {
+    cursor: pointer;
+    color: rgb(79, 73, 73);
+  }
+
+  .active {
+    background-color: #F46F36;
+  }
+
+</style>
+
+<div class="div">
+  <ul id="dashboard-lists" class="user-dashboard-ul shadow-lg rounded-3 table-responsive">
+    <a href="/dashboard">
+      <li id="dashboard">
+        Dashboard
+      </li>
+    </a>
+    <a href="/dashboard/account-details">
+      <li id="account-details">
+        Account Details
+      </li>
+    </a>
+    <a href="/dashboard/orders">
+      <li id="orders">
+        Order History
+      </li>
+    </a>
+    <a href="#">
+      <li id="track-order">
+        Track Order
+      </li>
+    </a>
+    <a href="/dashboard/wishlist">
+      <li id="wishlist">
+        Wishlist
+      </li>
+    </a>
+    <a href="/dashboard/address">
+      <li id="address">
+        Address
+      </li>
+    </a>
+    <a href="/dashboard/wallet">
+      <li id="wallet">
+        Wallet
+      </li>
+    </a>
+    <a href="/logout">
+      <li id="logout">
+        Logout
+      </li>
+    </a>
+  </ul>
+</div>
+
+
+<script>
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const lists = document.querySelectorAll('.user-dashboard-ul li')
+
+    // retreving the localStorage date , here it's an ID
+    const activeItemId = localStorage.getItem('activeliID');
+
+  if (activeItemId) {
+    const activeItem = document.getElementById(activeItemId);
+    if (activeItem) {
+      activeItem.classList.add('active');
+    }
+  }
+
+    lists.forEach(list => {
+      list.addEventListener('click', (e) => {
+        lists.forEach(li => li.classList.remove('active'))
+        e.target.classList.add('active')
+
+        // Storing the active class ID to localStorage
+        localStorage.setItem('activeliID', e.target.id)
+      })
+    })
+
+  })
+
+</script>

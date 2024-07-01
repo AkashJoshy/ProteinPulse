@@ -9,21 +9,19 @@
     >
       <div class="col-12 col-sm-12 col-md-7" style="margin: 0;" >
         <img
-          src="/picture/auths/signup.jpg"
+          src="/picture/auths/signupUpdate.jpg"
           class="img-fluid"
           style="min-height: 595px"
-          alt="login-image"
+          alt="signup-image"
         />
 
       </div>
-
-     
 
     <div class="col-12 col-sm-12 col-md-5">
     <form action="/signup" method="post" class="row g-3 needs-validation p-4 me-lg-5 mt-md-3 mt-xl-0"  novalidate>
   <div class="col-md-6 col-lg-6 ">
     <label for="firstName" class="form-label">FIRSTNAME</label>
-    <input type="text" name="firstName" class="form-control" id="firstName" value="Mark" required>
+    <input type="text" name="firstName" class="form-control" id="firstName" required>
     <div class="valid-feedback">
       Looks good!
     </div>
@@ -31,7 +29,7 @@
 
   <div class="col-md-6 col-lg-6">
     <label for="lastName" class="form-label">LASTNAME</label>
-    <input type="text" name="lastName" class="form-control" id="lastName" value="Otto" required>
+    <input type="text" name="lastName" class="form-control" id="lastName" required>
     <div class="valid-feedback">
       Looks good!
     </div>
@@ -52,18 +50,18 @@
 
   <div class="col-md-12 col-lg-12">
     <label for="password" class="form-label">PASSWORD</label>
-    <input type="password" name="password" class="form-control" id="password" maxlength="12" minlength="8" required>
+    <input type="password" name="password" class="form-control" minlength="8" id="password" required>
     <div class="valid-feedback">
       Looks Ok
     </div>
     <div class="invalid-feedback">
-      Please Enter more than 6
+      please enter a strong password
     </div>
   </div>
   
   <div class="col-md-12 col-lg-12">
     <label for="mobileNumber" class="form-label">MOBILE</label>
-    <input type="tel" name="mobileNumber" class="form-control" id="mobileNumber" minlength="10"  required>
+    <input type="tel" name="mobileNumber" class="form-control" id="mobileNumber" pattern="[1-9]{1}[0-9]{9}" minlength="10" maxlength="10" required>
     <div class="valid-feedback">
       Mobile number is valid
     </div>
@@ -78,15 +76,16 @@
   <div class="col-12 d-flex">
     <button class="btn mt-2 mt-lg-2 mt-xl-4 mx-auto" style="color: #F46F36; background-color: black;" type="submit">SIGNUP</button>
   </div>
+  {{#if loginMessage}}
+  <p class="text-success py-2 text-center signup-message">
+    {{loginMessage}}
+  </p>
+  {{/if}}
   </div>
 </form>
       </div>
     </div>
   </div>
-</div>
-
-<div style="height: 300px;">
-  sefse
 </div>
 
 
@@ -102,7 +101,7 @@
   // Loop over them and prevent submission
   Array.from(forms).forEach(form => {
     form.addEventListener('submit', event => {
-      if (!form.checkValidity()) {
+      if (!form.checkValidity() || !validatePhoneNumber()) {
         event.preventDefault()
         event.stopPropagation()
       }
@@ -111,6 +110,16 @@
     }, false)
   })
 })()
+
+// Signup Messages
+const signupMsg = document.querySelector('.signup-message')
+
+
+  setTimeout(()=> {
+    signupMsg.style.display = "none" 
+  }, 5000)
+
+
 
 
 // Email validation
@@ -141,7 +150,13 @@ emailInp.addEventListener('input', () => {
   function isValidEmail(email) {
     return emailRegex.test(email)
   }
-
 })
+
+// Password - Space removing btw password
+  password.addEventListener('input', () => {
+    if(password.value.includes(' ')) {
+      password.value = password.value.trim()  
+    }
+  })
 
 </script>

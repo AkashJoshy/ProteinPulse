@@ -5,20 +5,20 @@
 <div class="container shadow-lg p-3 mb-5 mt-4 rounded">
     {{#if category}}
   <form action="/admin/edit-category" class="row g-3 needs-validation" method="post" enctype="multipart/form-data" novalidate>
-  <div class="col-md-12">
-    <label for="categoryName" class="form-label">Category Name</label>
-    <input type="text" class="form-control" value="{{category.name}}" name="name" id="categoryName" required>
-    <div class="valid-feedback">
-      Looks good!
-    </div>
-    <div class="invalid-feedback">
-      Please Enter a Name
-    </div>
-  </div>
+   <div class="form-group">
+        <label for="categoryName" class="form-label">Category Name</label>
+        <input type="text" class="form-control" value="{{category.name}}" id="categoryName" name="name"
+          pattern="[A-Za-z ]+" required>
+        <div class="invalid-feedback">
+          Please enter a valid name (letters only).
+        </div>
+      </div>
 
   <div class="col-md-12">
     <label for="categoryDescription" class="form-label">Description</label>
-    <input type="text" class="form-control des" value="{{category.description}}" name="description" id="categoryDescription" required>
+    <input type="text" class="form-control des" value="{{category.description}}" 
+    name="description" id="categoryDescription"
+    pattern="[A-Za-z ]+" required>
     <div class="valid-feedback">
       Looks good!
     </div>
@@ -33,7 +33,7 @@
 
   <div class="col-md-12">
     <label for="categoryImage" class="form-label">Category Image</label>
-    <input type="file" name="file" class="form-control category-img" aria-label="file example" id="categoryImage" >
+    <input type="file" accept="image/*" name="file" class="form-control category-img" aria-label="file example" id="categoryImage" >
   </div>
 
   <div class="col-md-12 d-none">
@@ -51,6 +51,7 @@
 {{/if}}
 </div>
 
+<script src="/javaScript/validation.js"></script>
 
 <script>
 
@@ -62,6 +63,5 @@
     image.src = URL.createObjectURL(e.target.files[0])
   })
 
-  
 
 </script>
