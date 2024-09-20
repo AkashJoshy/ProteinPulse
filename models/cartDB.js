@@ -3,7 +3,7 @@ const {Schema, model} = require('mongoose')
 const cartProductSchema = new Schema({
     productID: {
         type: Schema.Types.ObjectId,
-        ref: 'product',
+        ref: 'Product',
         required: true
     },
     productName: {
@@ -44,7 +44,7 @@ const CartSchema = new Schema({
     products: [cartProductSchema],
     userID: {
         type: Schema.Types.ObjectId,
-        ref: 'user'
+        ref: 'User'
     },
     createdAt: {
         type: Date,
@@ -53,7 +53,7 @@ const CartSchema = new Schema({
 })
 
 
-let CartData = model('cart', CartSchema)
+let CartData = model('Cart', CartSchema)
 
 module.exports = {
     CartData

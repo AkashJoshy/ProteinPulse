@@ -1,4 +1,5 @@
 <style>
+
     .invalid-feedback {
         display: none;
     }
@@ -15,21 +16,41 @@
     }
 
     /* Default state */
-.pagination li a {
-    color: black;
-}
+    .pagination li a {
+        color: black;
+    }
 
-/* Hovered state */
-.pagination li a:hover {
-    color: #F46F36;
-}
+    /* Hovered state */
+    .pagination li a:hover {
+        color: #F46F36;
+    }
 
-/* Active state */
-.pagination li a.active {
-    color: #F46F36;
-    background-color: #f4f0ec;
-    border-color: #c9c9c9;
-}
+    /* Active state */
+    .pagination li a.active {
+        color: #F46F36;
+        background-color: #f4f0ec;
+        border-color: #c9c9c9;
+    }
+
+    .form-control.is-valid, .was-validated .form-control:valid {
+    background-image: none;
+    }
+
+    .form-control:focus {
+    border-color: #dcdcdc;
+    box-shadow: none;
+    background-color: #f8f9fa;
+  }
+
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+    }
+
+    .form-control.is-invalid, .was-validated .form-control:invalid {
+        background-image: url(none);
+    }
 
 </style>
 
@@ -58,20 +79,23 @@
                     </div>
 
                     {{!-- Money Crediting and add btn --}}
-                    <div class="d-flex align-items-center ">
+                    <form class="needs-validation" novalidate>
+                    <div class="d-md-flex ">
 
                         {{!-- Amount Crediting --}}
-                        <div class="input-group d-flex me-2">
-                            <span class="input-group-text">₹</span>
-                            <input type="text" style="background-color: rgba(231, 231, 231, 0.806);"
-                                class="form-control" id="validationCustom01" required>
-                            <span class="input-group-text">.00</span>
+                        <div class="input-group w-75 me-2">
+                            {{!-- <span class="input-group-text">₹</span> --}}
+                            <input type="number" style="background-color: rgba(251, 249, 249, 0.806);"
+                                class="form-control" placeholder="Enter amount" minlength="1" maxlength="5"
+                                max="5" id="validationCustom01" required>
+                            {{!-- <span class="input-group-text">.00</span> --}}
                         </div>
                         {{!-- Add Money Btn --}}
-                        <div class="w-75">
-                            <div class="btn btn-dark ">ADD CASH</div>
+                        <div class="mt-2 mt-md-0 d-flex">
+                            <button class="btn btn-dark ms-auto me-5">ADD</button>
                         </div>
                     </div>
+                    </form>
 
                 </div>
             </div>
@@ -90,6 +114,30 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <tr>
+                                <th scope="row" class="px-4">#96459761</th>
+                                <td>You Added</td>
+                                <td>July 23, 2023</td>
+                                <td>₹ 500</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="px-4">#96459761</th>
+                                <td>You Added</td>
+                                <td>July 23, 2023</td>
+                                <td>₹ 500</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="px-4">#96459761</th>
+                                <td>You Added</td>
+                                <td>July 23, 2023</td>
+                                <td>₹ 500</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="px-4">#96459761</th>
+                                <td>You Added</td>
+                                <td>July 23, 2023</td>
+                                <td>₹ 500</td>
+                            </tr>
                             <tr>
                                 <th scope="row" class="px-4">#96459761</th>
                                 <td>You Added</td>

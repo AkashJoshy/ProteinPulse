@@ -16,10 +16,14 @@ const UserOrderActivitiesSchema = new Schema({
 const cartProductSchema = new Schema({
     productID: {
         type: Schema.Types.ObjectId,
-        ref: 'product',
+        ref: 'Product',
         required: true
     },
     productName: {
+        type: String,
+        required: true
+    },
+    status: {
         type: String,
         required: true
     },
@@ -55,17 +59,6 @@ const cartProductSchema = new Schema({
 })
 
 const addressSchema = new Schema({
-    firstName: {
-        type: String,
-        required: true,
-    },
-    lastName: {
-        type: String,
-        required: true,
-    },
-    companyName: {
-        type: String,
-    },
     address: {
         type: String,
         required: true,
@@ -92,14 +85,31 @@ const addressSchema = new Schema({
     }
 })
 
-const UserOrderSchema = new Schema({
-    orderNumber: {
+// Coupon Schema
+const couponsSchema = new Schema({
+    code: {
         type: String,
         required: true
     },
+    deductedPrice: {
+        type: Number,
+        required: true
+    }
+})
+
+const UserOrderSchema = new Schema({
+    orderNumber: {
+        type: String,
+        unique: true,
+        required: true,
+    },
     userID: {
         type: Schema.Types.ObjectId,
-        ref: 'user',
+        ref: 'User',
+        required: true
+    },
+    customer: {
+        type: String,
         required: true
     },
     address: addressSchema,
@@ -107,14 +117,15 @@ const UserOrderSchema = new Schema({
         type: String,
         required: true,
     },
-    totalSalePrice: {
-        type: Number,
-        required: true,
-    },
     totalPrice: {
         type: Number,
         required: true,
     },
+    totalSalePrice: {
+        type: Number,
+        required: true,
+    },
+    coupons: [ couponsSchema ],
     orderNote: {
         type: String
     },
@@ -122,7 +133,7 @@ const UserOrderSchema = new Schema({
         type: Number,
         required: true
     },
-    discount: {
+    discountPrice: {
         type: Number
     },
     orderActivity: [ UserOrderActivitiesSchema ],
@@ -145,7 +156,7 @@ const UserOrderSchema = new Schema({
     timestamps: true
 })
 
-const OrderData = model('myorder', UserOrderSchema)
+const OrderData = model('MyOrder', UserOrderSchema)
 
 module.exports = {
     OrderData

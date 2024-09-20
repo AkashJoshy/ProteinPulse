@@ -4,6 +4,7 @@ const {engine} = require('express-handlebars')
 const {createMongoConnection} = require('./config/connection')
 // const fileUpload = require('express-fileupload')
 const session = require('express-session')
+const cors = require('cors')
 const methodOverride = require('method-override')
 const passport = require('passport')
 const multer = require('multer')
@@ -22,6 +23,9 @@ const userRouter = require('./routes/user')
 const adminRouter = require('./routes/admin')
 
 const app = express()
+
+// Cors(Cross-Orgin Resource Sharing)
+app.use(cors())
 
 // morgan
 app.use(morgan('dev'))
@@ -84,6 +88,12 @@ app.engine('hbs', engine({
         isorderStatusOutForDelivery: value => value == 'Out for Delivery' ? true : false,
         isorderStatusDelivery: value => value == 'Delivered' ? true : false,
         isorderStatusReturned: value => value == 'Returned' ? true : false,
+        orderCount: products => products.reduce((acc, product) => {
+           if(product.status !== 'Cancelled'){
+            acc++
+           }
+           return acc
+        }, 0),
         orderProgress: value => value == 'Pending' ? 15 : (value == 'Processing' ? 34 : (value == 'Shipped' ? 50 : (value == 'Out for Delivery' ? 64 : (value == 'Delivered' ? 100 : 0) ) ) ),
         paginationNumbers: (start, end) => {
             let number = []

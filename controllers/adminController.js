@@ -1,6 +1,7 @@
 const { UserData } = require("../models/userDB");
 const { CategoryData } = require("../models/categoryDB");
 const { ProductData } = require("../models/productDB");
+const { CouponData } = require('../models/CouponDB')
 const asyncHandler = require('express-async-handler')
 const moment = require('moment')
 const bcrypt = require("bcrypt");
@@ -30,7 +31,7 @@ const doLogin = asyncHandler(async (req, res, next) => {
       const matchedPassword = await bcrypt.compare(password, admin.password);
       if (matchedPassword) {
         req.session.admin = admin;
-        res.redirect("/admin/home-page");
+        res.redirect("/admin/dashboard");
       } else {
         const error = new Error('Password is Incorrect')
         const redirectPath = '/admin/'
@@ -43,14 +44,18 @@ const doLogin = asyncHandler(async (req, res, next) => {
     }
 })
 
-// Admin Home Page
-const homePage = asyncHandler(async (req, res) => {
-  if (!req.session.admin) {
-    return res.redirect("/admin/");
+// Admin DashBoard
+const dashboard = asyncHandler(async(req, res, next) => {
+  if(!req.session.admin) {
+    return res.redirect('/admin/')
   }
-  console.log(req.session.admin);
-  res.render("admin/home-page", { admin: true, admin1: req.session.admin });
+
+  return res.render('admin/dashboard', {
+    admin: true, 
+    admin1: req.session.admin
+  })
 })
+
 
 // All Customers
 const getCustomers = asyncHandler(async (req, res) => {
@@ -145,14 +150,66 @@ const getCategories = asyncHandler(async (req, res) => {
     if (!req.session.admin) {
       return res.redirect("/admin/");
     }
-    let categories = await CategoryData.find().lean();
-    res.render("admin/view-categories", {
+    const page = Number(req.query.page) || 1
+
+    const limit = req.query.limit || 3
+    const search = req.query.search || ""
+    const skip = (page - 1) * limit
+
+    console.log(`Search: ${search}`);
+
+    // Define an Search Filter, cause countDocument expects object not array
+    const searchFilter = search !== "" ? { name: { $regex: search, $options: `i` } } : {}
+
+    const totalDoc = await CategoryData.countDocuments(searchFilter)
+    const totalPages =  Math.ceil(totalDoc/limit)
+
+    // Pagination
+    const pagination = {
+      isPrevious: page > 1,
+      currentPage: page,
+      isNext: page < totalPages,
+      totalPages
+    }
+    
+    let categories = await CategoryData.find(searchFilter).limit(limit).skip(skip).lean();
+    return res.render("admin/view-categories", {
       admin: true,
       categories,
       admin1: req.session.admin,
+      pagination
     });
-
 })
+
+// category queryies like search, filter, sort
+const categoryQuery = asyncHandler(async (req, res, next) => {
+    if(!req.session.admin) {
+      return res.json({ status: false, redirected: '/admin/' })
+    }
+    const search = req.query.search || ""
+    const page = Number(req.query.page) || 1
+    const limit = 3
+    const skip = (page - 1) * limit
+
+    // Define an Search Filter, cause countDocument expects object not array
+    const searchFilter = search !== "" ? { name: { $regex: search, $options: `i` } } : {}
+
+    // total Doc and total Pages
+    const totalDoc = await CategoryData.countDocuments(searchFilter)
+    const totalPages = Math.ceil( totalDoc / limit )
+    
+    // Pagination
+    const pagination = {
+      isPrevious: page > 1,
+      currentPage: page,
+      isNext: page < totalPages,
+      totalPages
+    }
+
+    let categories = await CategoryData.find(searchFilter).limit(limit).skip(skip).lean()
+  //  let categories = await CategoryData.find(searchFilter).lean()
+    return res.json({ status: true, categories, redirected:'/admin/category', pagination })
+  })
 
 // Add Category
 const addCategory = asyncHandler(async (req, res) => {
@@ -225,40 +282,20 @@ const saveEditCategory = asyncHandler(async (req, res) => {
   }
 })
 
-// softDeleteCategory
-const softDeleteCategory = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.admin) {
-      return res.json({status: false, redirected: '/admin/'})
-    }
-    const categoryID = req.body.categoryID;
-    console.log(categoryID);
-    await CategoryData.findOneAndUpdate(
-      { _id: categoryID },
-      { isActive: false }
-    );
-    return res.json({status: true, redirected: '/admin/category'})
-  } catch (error) {
-    console.error(error);
+
+// Delete Category
+const deleteCategory = asyncHandler(async (req, res, next) => {
+  if(!req.session.admin) {
+    return res.json({ status: false, redirected: '/admin/' })
   }
+  const categoryID = req.params.categoryID
+
+  // Deleting Category and storing details in a variable called category
+  const category = await CategoryData.findByIdAndDelete({ _id: categoryID }).lean()
+  
+  return res.json({ status: true, message: `${category.name} Deleted` })
 })
 
-// Restore Category
-const restoreCategory = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.admin) {
-      return res.json({status: false, redirected: '/admin/'})
-    }
-    const categoryID = req.body.categoryID;
-    await CategoryData.findByIdAndUpdate(
-      { _id: categoryID },
-      { isActive: true }
-    );
-    return res.json({status: true, redirected: '/admin/category'})
-  } catch (error) {
-    console.error(error);
-  }
-})
 
 // View all Products
 const getProducts = asyncHandler(async (req, res) => {
@@ -493,8 +530,8 @@ const updateProductStock = asyncHandler(async (req, res) => {
     if(!req.session.admin) {
       return res.redirect('/login')
     }
-    console.log(req.body);
     const productID = req.body.productID
+    console.log(productID)
     const stock = req.body.stock
 
     await ProductData.findByIdAndUpdate({ _id: productID }, 
@@ -587,7 +624,8 @@ const getOrders = asyncHandler(async(req, res) => {
     const totalPages = Math.ceil(totalOrders/limit)
     
     let orders = await OrderData.find({}).skip(skip).limit(limit).lean()
-
+    
+    
       // Pagination 
       const pagination = {
         currentPage: page,
@@ -601,6 +639,8 @@ const getOrders = asyncHandler(async(req, res) => {
       let formatedDate = moment(createdAt).format('MMMM Do YYYY HH:mm:ss')
       return { ...order, createdAt: formatedDate }
     })
+    console.log(orders)
+    
     return res.render('admin/view-orders', {
       admin: true,
       orders,
@@ -613,11 +653,32 @@ const getOrders = asyncHandler(async(req, res) => {
   }
 })
 
+// Get Single Order
+const viewOrder = asyncHandler(async(req, res, next) => {
+  if(!req.session.admin) {
+    return res.redirect('/admin/')
+  }
+
+  const orderID = req.params.orderID
+
+  // single Order Details
+  const order = await OrderData.findById({ _id: orderID }).lean()
+  order.createdAt = moment(order.createdAt).format('MMMM Do YYYY HH:mm:ss')
+
+//  console.log(order)
+
+  return res.render('admin/view-order', {
+    admin: true,
+    order,
+    admin1: req.session.admin,
+  })
+})
+
 // Change Order Status
 const updateOrderStatus = asyncHandler(async(req, res) => {
   try {
     if (!req.session.admin) {
-      return res.json({ status: false, redirected: '/admin/'})
+      return res.json({ status: false, redirected: '/admin/' })
     }
     let {
       orderID,
@@ -625,36 +686,52 @@ const updateOrderStatus = asyncHandler(async(req, res) => {
     } = req.body
     console.log(orderStatus);
 
-    // If Order Status is Delivered
-    if(orderStatus == 'Delivered') {
-      await OrderData.findByIdAndUpdate(
-        {_id: orderID},
-        {
-          $set: { status: orderStatus, paymentStatus: "Paid" },
-          $push: { orderActivity: { orderStatus: orderStatus, message: "Your order has been Delivered." } }
-        })
-      return res.json({ status: true, redirected: '/admin/orders' })
+    let status = {
+      message: '',
+      payment: ''
     }
+ 
+    status.message = orderStatus == 'Pending' ? `Your order is pending and will be processed soon`
+      : ( orderStatus == 'Processing' ? `Your order is currently being processed`
+        : ( orderStatus == 'Shipped' ? `Your order has been shipped` 
+          : ( orderStatus == 'Out for Delivery' ? `Your order is out for delivery and should arrive soon` 
+            : ( orderStatus == 'Delivered' ? `Your order has been delivered` 
+              : ( orderStatus == 'Cancelled' ? `Your order has been cancelled`
+                : ( orderStatus == 'Returned' ? `Your order has been returned`
+                  : ( orderStatus == 'Refunded' ? `Your order has been successfully refunded` 
+                    : `Your order is holding. Update soon` ) ) ) ) ) ) )
 
-    if(orderStatus == 'Refunded') {
-      await OrderData.findByIdAndUpdate(
-        {_id: orderID},
-        {
-          $set: { status: orderStatus, paymentStatus: "Refunded" },
-          $push: { orderActivity: { orderStatus: orderStatus, message: "Your order has been Delivered." } }
-        })
-      return res.json({ status: true, redirected: '/admin/orders' })
-    }
+    status.payment =  orderStatus == 'Pending' ? `Unpaid`
+    : ( orderStatus == 'Processing' ? `Unpaid`
+      : ( orderStatus == 'Shipped' ? `Unpaid` 
+        : ( orderStatus == 'Out for Delivery' ? `Unpaid` 
+          : ( orderStatus == 'Delivered' ? `Paid` 
+            : ( orderStatus == 'Cancelled' ? `cancelled`
+              : ( orderStatus == 'Returned' ? `Paid`
+                : ( orderStatus == 'Refunded' ? `Refund` 
+                  : `Your order is holding. Update soon` ) ) ) ) ) ) )
 
+  //  console.log(status)
 
-    // Rest Status updating
+    // Order Status updating
     const order = await OrderData.findByIdAndUpdate(
       {_id: orderID},
       {
-        $set: { status: orderStatus, paymentStatus: "Unpaid"},
-      $push: { orderActivity: { orderStatus: orderStatus, message: "Your order has been Delivered." }  }
+        $set: { status: orderStatus, paymentStatus: status.payment },
+      $push: { orderActivity: { orderStatus: orderStatus, message: status.message }  }
     })
-    console.log(order);
+
+    // And also change the product status too
+    // checks if any products in the order Collection
+    let orderProducts
+    if(order.products.length > 0) {
+      orderProducts = await Promise.all(order.products.map( async(product) =>{
+        await OrderData.findOneAndUpdate({ _id: orderID, 'products.productID': product.productID }, 
+          { $set: { 'products.$.status': orderStatus } }
+        )
+      }))
+    }
+
     return res.json({ status: true, redirected: '/admin/orders' })
   } catch (error) {
     console.error(error);
@@ -699,6 +776,148 @@ const orderSorting = asyncHandler(async (req, res) => {
   }
 })
 
+// Coupon Management
+const couponPage = asyncHandler(async (req, res, next) => {
+  if(!req.session.admin) {
+    return res.redirect('/admin/')
+  }
+
+  let coupons = await CouponData.find({}).lean()
+
+  coupons = coupons.map(coupon => {
+    let { expiryDate } = coupon
+    let formattedDate = moment(expiryDate).format('YYYY-MM-DD')
+    return { ...coupon, expiryDate: formattedDate }
+  })
+
+  res.render("admin/view-coupons", {
+    admin: true,
+    coupons,
+    admin1: req.session.admin,
+    successMsg: req.session.successMsg,
+    errMsg: req.session.errMessage,
+  })
+  req.session.successMsg = false
+  req.session.errMessage = false
+  return
+})
+
+// Add Coupon
+const addCoupon = asyncHandler(async (req, res, next) => {
+  if(!req.session.admin) {
+    return res.redirect('/admin/')
+  }
+
+  let {
+    code,
+    couponType,
+    description,
+    maxDiscount,
+    limit,
+    minOrderValue,
+    discount,
+    expiryDate
+  } = req.body
+
+  // Converting String's to Number
+  maxDiscount = Number(maxDiscount),
+  limit = Number(limit)
+  minOrderValue = Number(minOrderValue)
+  discount = Number(discount)
+
+  // Expiry Date
+//  expiryDate = moment(expiryDate)
+
+  // Check if the Coupon with same code already existed...
+  const coupon = await CouponData.findOne({code: code})
+
+  // If the Coupon code is new
+  if(!coupon) {
+    await CouponData.create({
+      code,
+      couponType,
+      description,
+      maxDiscount,
+      limit,
+      minOrderValue,
+      discount,
+      expiryDate
+    })
+    req.session.successMsg = "New Coupon Added"
+    return res.redirect('/admin/coupon-management')
+  }
+
+  // Avoid the duplication of Coupon Code
+  const error = new Error("Coupon already existed")
+  const redirectPath = "/admin/coupon-management"
+  return next({ error, redirectPath })
+})
+
+// Delete Coupon
+const deleteCoupon = asyncHandler(async (req, res, next) => {
+  if(!req.session.admin) {
+    return res.json({ status: false, redirected: '/admin/' })
+  }
+  const couponID = req.params.couponID
+  await CouponData.findByIdAndDelete({ _id: couponID })
+  console.log(couponID)
+  return res.json({ status: true, message: "Coupon Deleted" })
+})
+
+// Sales reports
+const salesReports = asyncHandler(async(req, res, next) => {
+  if(!req.session.admin) {
+    return res.redirect('/admin/')
+  }
+
+  return res.render('admin/view-sales-reports', {
+    admin: true,
+    admin1: req.session.admin,
+  })
+})
+
+
+// Get Sales reports
+const getSalesReports = asyncHandler(async(req, res, next) => {
+  if(!req.session.admin) {
+    return res.json({ status: false, redirected: '/admin/' })
+  }
+
+  let { startDate, endDate } = req.query
+  let orders = await OrderData.find({ createdAt: { $gte: startDate, $lte: endDate }, paymentStatus: 'Unpaid' }).lean()
+//  console.log(startDate, endDate)
+  console.log(orders)
+
+  return res.json({ status: true, orders })
+
+})
+
+
+// Carousal Management
+const getCarousels = asyncHandler(async(req, res, next) => {
+  if(!req.session.admin) {
+    return res.redirect('/admin/')
+  }
+
+  return res.render('admin/view-carousels', {
+    admin: true,
+    admin1: req.session.admin,
+  })
+})
+
+
+// View Add Carousel page
+const viewAddCarousel = asyncHandler(async (req, res, next) => {
+  if(!req.session.admin) {
+    return res.redirect('/admin/')
+  }
+  
+  return res.render('admin/add-carousel', {
+    admin: true,
+    admin1: req.session.admin,
+  })
+})
+
 
 // Settings
 const settings = asyncHandler(async (req, res) => {
@@ -714,6 +933,7 @@ const settings = asyncHandler(async (req, res) => {
       currentAdmin
     })
 })
+
 
 // Logout
 const logout = asyncHandler(async (req, res) => {
@@ -733,9 +953,10 @@ const logout = asyncHandler(async (req, res) => {
 module.exports = {
   login,
   doLogin,
-  homePage,
+  dashboard,
   getCustomers,
   getCategories,
+  categoryQuery,
   viewCustomer,
   editCustomer,
   softDeleteCustomer,
@@ -744,8 +965,7 @@ module.exports = {
   saveAddCategory,
   editCategory,
   saveEditCategory,
-  softDeleteCategory,
-  restoreCategory,
+  deleteCategory,
   getProducts,
   addProduct,
   saveProduct,
@@ -755,8 +975,16 @@ module.exports = {
   deleteProduct,
   sortProducts,
   getOrders,
+  viewOrder,
   updateOrderStatus,
   orderSorting,
+  couponPage,
+  addCoupon,
+  deleteCoupon,
+  salesReports,
+  getSalesReports,
+  getCarousels,
+  viewAddCarousel,
   settings,
   logout,
 };

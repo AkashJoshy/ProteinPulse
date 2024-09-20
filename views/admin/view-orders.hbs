@@ -10,9 +10,10 @@
                 <th scope="col">Order No</th>
                 <th scope="col">Amount</th>
                 <th scope="col">Payment</th>
-                <th scope="col">Order Status</th>
+                {{!-- <th scope="col">Order Status</th> --}}
                 <th scope="col">Payment Status</th>
                 <th scope="col">Date</th>
+                <th scope="col">View</th>
             </tr>
         </thead>
         <tbody id="orderTable">
@@ -21,9 +22,9 @@
             <tr>
                 <th scope="row">{{increment @index}}</th>
                 <td>{{this.orderNumber}}</td>
-                <td><span>₹</span>{{this.totalSalePrice}} </td>
+                <td><span>₹</span>{{this.totalSalePrice}} <span>.00</span> </td>
                 <td>{{this.paymentMethod}}</td>
-                <td>
+                {{!-- <td>
                     <select class="p-1 order-status" style="border-radius: 5px; color: grey ;padding-left: 5px;"
                         aria-label="Default select example" data-order-ID="{{this._id}}">
                         <option selected>{{this.status}}</option>
@@ -63,10 +64,8 @@
                         <option value="Refunded">Refunded</option>
                         {{else}}
                         {{#if (isorderStatusCancelled this.status)}}
-                        {{!-- <option value="Returned">Returned</option --}} {{else}} {{#if (isorderStatusReturned
+                        {{else}} {{#if (isorderStatusReturned
                             this.status)}} <option value="Refunded">Refunded</option>
-                        {{!-- {{else}}
-                        <option value="Refunded">Refunded</option> --}}
                         {{/if}}
                         {{/if}}
                         {{/if}}
@@ -75,9 +74,14 @@
                         {{/if}}
                         {{/if}}
                     </select>
-                </td>
+                </td> --}}
                 <td>{{this.paymentStatus}}</td>
                 <td>{{this.createdAt}}</td>
+                <td>
+                <a href="/admin/orders/view-details/{{this._id}}" style="text-decoration: none; color: #F46F36;">
+                        View Details   <i class="fa-solid fa-up-right-from-square ms-1"></i>
+                </a>
+                </td>
             </tr>
             {{/each}}
             {{else}}

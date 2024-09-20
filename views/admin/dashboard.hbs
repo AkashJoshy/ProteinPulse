@@ -1,0 +1,110 @@
+<style>
+  #salesChart {
+    background-color: #000000;
+    border-radius: 10px;
+  }
+</style>
+
+<div class="mt-5">
+    <h3 class="ms-3 ms-md-5">Dashboard</h3>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+        <div style="border-radius: 40%;">
+        <div class="d-flex">
+
+        <div class="bg-success text-center rounded-3 p-2 w-25">
+            <p>Total Sales</p>
+            <h3>55555</h3>
+        </div>
+        <div class="bg-primary text-center rounded-3 p-2 w-25">
+            <p>Total Orders</p>
+            <h3>55555</h3>
+        </div>
+        <div class="bg-warning text-center p-2 rounded-3 w-25">
+            <p>Total Users</p>
+            <h3>55555</h3>
+        </div>
+        <div class="bg-info text-center p-2 rounded-3 w-25">
+             <p>Total Products</p>
+            <h3>55555</h3>
+        </div>
+    </div>
+
+        </div>
+
+    </div>
+    </div>
+
+</div>
+
+<div>
+    <select name="" id="salesCharts">
+        <option value="month">month</option>
+        <option value="Year">Year</option>
+        <option value="day">day</option>
+    </select>
+</div>
+
+<div class="mt-4 mt-md-2 p-md-3">
+<canvas id="salesChart" width="600" height="150"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const ctx = document.getElementById('salesChart').getContext('2d');
+
+  // Initial data
+  const salesData = [0, 0, 0, 0, 2, 0, 0, 0, 3, 5, 10, 0];
+  
+  // Create the chart
+  const salesChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [{
+        label: 'Total Sales',
+        data: salesData,
+        fill: false,
+        backgroundColor: 'rgba(240, 110, 110, 1)',
+        borderColor: 'rgba(244, 111, 54, 1)',
+        tension: 0.4 // Set tension for smooth lines
+      }]
+    },
+    options: {
+      animations: {
+        tension: {
+          duration: 1000,
+          easing: 'linear',
+          from: 1,
+          to: 0,
+          loop: true
+        }
+      },
+      scales: {
+        y: {
+          grid: {
+            display: false,
+        //    color: 'rgba(240, 110, 110, 1)'
+          },
+          ticks: {
+            color: 'rgba(255, 255, 255, 1)' 
+          },
+          beginAtZero: true 
+        },
+        x: {
+          grid: {
+            display: true,
+            color: 'rgba(240, 110, 110, 1)'
+          },
+          ticks: {
+            color: 'rgba(255, 255, 255, 1)' // Change x-axis labels color to orange
+          }
+        }
+      }
+    }
+  });
+</script>
