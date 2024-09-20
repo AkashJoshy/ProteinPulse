@@ -26,16 +26,14 @@
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="px-0 px-md-3">
                                 <h5>{{order.orderNumber}}</h5>
-                                <p class="order-details"><span> {{order.products.length}} </span>
+                                <p class="order-details"><span> {{ orderCount order.products}} </span>
                                     <span>{{productCheck order.products.length}}.</span>
-                                    <span>Order Placed in 4 August, 2024 at 4:40pm</span>
+                                    <span>Order Placed on <span>{{order.createdAt}}</span></span>
                                 </p>
                             </div>
                             <div class="ms-auto px-0">
                                 <h4 class="order-details-total-amount">
-                                    ₹ <span>
-                                        {{order.totalSalePrice}}
-                                    </span>.00
+                                    ₹ <span id="total-price-{{order._id}}">{{order.totalPrice}}</span>.00
                                 </h4>
                             </div>
                         </div>
@@ -43,7 +41,7 @@
                     {{!-- Order Expect Date --}}
                     <div class="py-1">
                         <p class="px-3">
-                            Order expected arrival <span>28 May, 2024</span>
+                            Order expected arrival <span>{{order.expectedDate}}</span>
                         </p>
                     </div>
 
@@ -58,6 +56,11 @@
                                 --}}
 
                             </div>
+                            {{!-- order ID for Cancelling/.. --}}
+                            <div class="d-none">
+                                <h2 type="text" class="orderID">{{order._id}}</h2>
+                            </div>
+
                             <div class="d-flex justify-content-between mt-2">
                                 <div class="mt-2">
                                     <i style="font-size: 1.5rem; color: rgb(46, 201, 11);"
@@ -95,53 +98,58 @@
                 {{!-- --}}
                 <div class="border border-1">
                     <h5 class="p-3 px-3">Order Activity</h5>
-                    {{#each order.orderActivity}}
-                    <div class="d-flex">
+                    <div id="order-activities">
 
-                        {{#if (isorderStatusPending this.orderStatus)}}
-                        <div style="background-color: rgb(112, 246, 112);" class=" ms-3 mb-3 mb-md-2 rounded-1">
-                            <i style="font-size: 2rem; color: rgb(9, 145, 4);"
-                                class="fa-solid fa-clipboard-check mt-4 mt-md-3 px-4"></i>
+                        {{#each order.orderActivity}}
+                        <div class="d-flex">
+
+                            {{#if (isorderStatusPending this.orderStatus)}}
+                            <div style="background-color: rgb(112, 246, 112);" class=" ms-3 mb-3 mb-md-2 rounded-1">
+                                <i style="font-size: 2rem; color: rgb(9, 145, 4);"
+                                    class="fa-solid fa-clipboard-check mt-4 mt-md-3 px-4"></i>
+                            </div>
+                            {{else}}
+                            {{#if (isorderStatusProcessing this.orderStatus)}}
+                            <div style="background-color: rgb(87, 184, 248);" class=" ms-3 mb-3 mb-md-2 rounded-1">
+                                <i style="font-size: 2rem; color: rgb(211, 234, 250);"
+                                    class="fa-solid fa-hourglass-half mt-4 mt-md-3 px-4"></i>
+                            </div>
+                            {{else}}
+                            {{#if (isorderStatusShipped this.orderStatus)}}
+                            <div style="background-color: rgb(112, 246, 112);" class=" ms-3 mb-3 mb-md-2 rounded-1">
+                                <i style="font-size: 1.4rem; color: rgb(9, 145, 4);"
+                                    class="fa-solid fa-ship mt-4 px-4"></i>
+                            </div>
+                            {{else}}
+                            {{#if (isorderStatusOutForDelivery this.orderStatus)}}
+                            <div style="background-color: rgb(87, 184, 248);" class="ms-3 mb-3 mb-md-2 rounded-1">
+                                <i style="font-size: 1.3rem; color: rgb(211, 234, 250);"
+                                    class="fa-solid fa-truck-fast mt-4 px-4"></i>
+                            </div>
+                            {{else}}
+                            {{#if (isorderStatusDelivery this.orderStatus)}}
+                            <div style="background-color: rgb(112, 246, 112);" class="ms-3 mb-3 mb-md-2 rounded-1">
+                                <i style="font-size: 1.3rem;color: rgb(9, 145, 4); "
+                                    class="fa-solid fa-truck-ramp-box mt-4  px-4"></i>
+                            </div>
+                            {{else}}
+                            <div class="bg-danger ms-3 mb-3 mb-md-2 rounded-1">
+                                <i style="font-size: 1.3rem;" class="fa-solid fa-rotate-right mt-4 px-4"></i>
+                            </div>
+                            {{/if}}
+                            {{/if}}
+                            {{/if}}
+                            {{/if}}
+                            {{/if}}
+                            <div class="mt-2 px-2">
+                                <h6> {{this.message}} </h6>
+                                <p class="text-secondary">19 Jan, 2021 at 2:61 PM</p>
+                            </div>
+
                         </div>
-                        {{else}}
-                        {{#if (isorderStatusProcessing this.orderStatus)}}
-                        <div style="background-color: rgb(87, 184, 248);" class=" ms-3 mb-3 mb-md-2 rounded-1">
-                            <i style="font-size: 2rem; color: rgb(211, 234, 250);"
-                                class="fa-solid fa-clipboard-check mt-4 mt-md-3 px-4"></i>
-                        </div>
-                        {{else}}
-                        {{#if (isorderStatusShipped this.orderStatus)}}
-                        <div style="background-color: rgb(112, 246, 112);" class=" ms-3 mb-3 mb-md-2 rounded-1">
-                            <i style="font-size: 1.4rem; color: rgb(9, 145, 4);" class="fa-solid fa-ship mt-4 px-4"></i>
-                        </div>
-                        {{else}}
-                        {{#if (isorderStatusOutForDelivery this.orderStatus)}}
-                        <div style="background-color: rgb(87, 184, 248);" class="ms-3 mb-3 mb-md-2 rounded-1">
-                            <i style="font-size: 1.3rem; color: rgb(211, 234, 250);"
-                                class="fa-solid fa-truck-ramp-box mt-4 px-4"></i>
-                        </div>
-                        {{else}}
-                        {{#if (isorderStatusDelivery this.orderStatus)}}
-                        <div style="background-color: rgb(112, 246, 112);" class="ms-3 mb-3 mb-md-2 rounded-1">
-                            <i style="font-size: 1.8rem;color: rgb(9, 145, 4); "
-                                class="fa-solid fa-check-double mt-4 mt-md-3 px-4"></i>
-                        </div>
-                        {{else}}
-                        <div class="bg-danger ms-3 mb-3 mb-md-2 rounded-1">
-                            <i style="font-size: 1.3rem;" class="fa-solid fa-truck-ramp-box mt-4 px-4"></i>
-                        </div>
-                        {{/if}}
-                        {{/if}}
-                        {{/if}}
-                        {{/if}}
-                        {{/if}}
-                        <div class="mt-2 px-2">
-                            <h6> {{this.message}} </h6>
-                            <p class="text-secondary">19 Jan, 2021 at 2:61 PM</p>
-                        </div>
+                        {{/each}}
 
                     </div>
-                    {{/each}}
                 </div>
 
                 <div class="border border-1">
@@ -152,11 +160,14 @@
                                 <tr>
                                     <th class="text-dark font-sm" scope="col">PRODUCTS</th>
                                     <th class="text-dark font-sm" scope="col">PRICE</th>
+                                    <th class="text-dark font-sm" scope="col">STATUS</th>
                                     <th class="text-dark font-sm" scope="col">QUANTITY</th>
                                     <th class="text-dark font-sm" scope="col">SUB-TOTAL</th>
+                                    <th class="text-dark font-sm" scope="col"></th>
                                 </tr>
                             </thead>
                             <tbody>
+                                {{!-- Products --}}
                                 {{#each order.products}}
                                 <tr>
                                     <td>
@@ -176,6 +187,12 @@
                                         </div>
                                     </td>
                                     <td>
+                                        <div class="mt-5" id="status-{{this._id}}">
+                                            {{this.status}}
+                                        </div>
+
+                                    </td>
+                                    <td>
                                         <div class="mt-5 px-3">
                                             x<span> {{this.quantity}} </span>
                                         </div>
@@ -185,6 +202,14 @@
                                             ₹<span> {{productTotal this.quantity this.salePrice}} </span>
                                         </div>
                                     </td>
+                                    {{#if (isCancelled this.status)}}
+
+                                    {{else}}
+                                    <td>
+                                        <div onclick="cancelProduct(`{{this.productID}}`, `{{this._id}}`, `{{this.productName}}`, this)"
+                                            class="btn btn-danger btn-sm mt-5">REMOVE</div>
+                                    </td>
+                                    {{/if}}
                                 </tr>
                                 {{/each}}
                             </tbody>
@@ -272,6 +297,7 @@
         </div>
 
 
+        {{!-- <div id="order-management"> --}}
 
         {{#if (isCancelled order.status)}}
         <div class="col-md-1">
@@ -291,7 +317,7 @@
                     </div>
                     <div class="return">
                         <div class="btn text-light"
-                            style="background-color: rgb(35, 196, 35); border: 1px solid white;">Return</div>
+                           style="background-color: rgb(35, 196, 35); border: 1px solid white;">Return</div>
                     </div>
                 </div>
             </div>
@@ -309,14 +335,21 @@
         </div>
         {{/if}}
 
-        <div class="col-md-1">
+        {{!-- <div> --}}
+        <div class="col-md-1" id="order-cancel">
             <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
                 <div class="cancel" onclick="myOrderUpdate('{{order._id}}', 'Cancelled', 'cancel-order')">
                     <div class="btn text-light" style="background-color: black; border: 1px solid white;">Cancel</div>
                 </div>
             </div>
         </div>
+
+        {{!-- </div> --}}
+
+
         {{/if}}
+
+        {{!-- </div> --}}
 
 
     </div>
@@ -336,12 +369,14 @@
     // Cancel My order
     function myOrderUpdate(orderID, orderUpdate, urlEndpoint) {
         Swal.fire({
-            title: 'Are you sure?',
-            text: `Do you wanna cancel the order?`,
+            title: 'Are you sure you want to cancel this order?',
+            text: `Cancelling this order will prevent you from receiving the products and may not be reversible. Are you sure you want to proceed?`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'No, cancel!',
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#c82333',
+            confirmButtonText: 'Yes, cancel the order',
+            cancelButtonText: 'No, Keep the order',
         }).then(result => {
             if (result.isConfirmed) {
                 $.ajax({
@@ -360,4 +395,146 @@
             }
         })
     }
+
+
+    // single Product status changes to Cancelled
+    let orderID = document.querySelector('.orderID')
+    orderID = orderID.innerHTML
+    function cancelProduct(productID, orderProdID, productName, element) {
+        //    console.log(`Order ID: ${orderProdID}`)
+        Swal.fire({
+            title: `Do you want to remove ${productName} from your order?`,
+            text: 'Removing this product will update your order and adjust the total price. Do you want to proceed?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: `Yes, remove the product`,
+            cancelButtonText: 'No, keep the product',
+        }).then(result => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/dashboard/orders/cancel-product`,
+                    method: 'PUT',
+                    data: {
+                        orderID,
+                        productID
+                    },
+                    success: response => {
+                        if (response.status) {
+                            let orderActivity = response.orderActivity
+                            let html = ``
+                            let statusOption = ``
+
+                            orderActivity.forEach(activity => {
+                                if (activity.orderStatus === `Pending`) {
+                                    statusOption = `
+                            <div style="background-color: rgb(112, 246, 112);" class="ms-3 mb-3 mb-md-2 rounded-1">
+                            <i style="font-size: 2rem; color: rgb(9, 145, 4);" class="fa-solid fa-clipboard-check mt-4 mt-md-3 px-4"></i>
+                            </div>
+                            `
+                                } else if (activity.orderStatus === `Processing`) {
+                                    statusOption = `
+                            <div style="background-color: rgb(87, 184, 248);" class="ms-3 mb-3 mb-md-2 rounded-1">
+                            <i style="font-size: 2rem; color: rgb(211, 234, 250);" class="fa-solid fa-hourglass-half mt-4 mt-md-3 px-4"></i>
+                            </div
+                            `
+                                } else if (activity.orderStatus === `Shipped`) {
+                                    statusOption = `
+                            <div style="background-color: rgb(112, 246, 112);" class="ms-3 mb-3 mb-md-2 rounded-1">
+                            <i style="font-size: 1.4rem; color: rgb(9, 145, 4);" class="fa-solid fa-ship mt-4 px-4"></i>
+                            </div>
+                            `
+                                } else if (activity.orderStatus === `OutForDelivery`) {
+                                    statusOption = `
+                            <div style="background-color: rgb(87, 184, 248);" class="ms-3 mb-3 mb-md-2 rounded-1">
+                            <i style="font-size: 1.3rem; color: rgb(211, 234, 250);" class="fa-solid fa-truck-fast mt-4 px-4"></i>
+                            </div>
+                            `
+                                } else if (activity.orderStatus === `Delivered`) {
+                                    statusOption = `
+                            <div style="background-color: rgb(112, 246, 112);" class="ms-3 mb-3 mb-md-2 rounded-1">
+                            <i style="font-size: 1.3rem; color: rgb(9, 145, 4);" class="fa-solid fa-truck-ramp-box mt-4 px-4"></i>
+                            </div>
+                            `
+                                } else {
+                                    statusOption = `
+                            <div class="bg-danger ms-3 mb-3 mb-md-2 rounded-1">
+                            <i style="font-size: 1.3rem;" class="fa-solid fa-rotate-right mt-4 px-4"></i>
+                            </div>
+                            `
+                                }
+
+                            html += `
+                            <div class="d-flex">
+                            ${statusOption}
+                            <div class="mt-2 px-2">
+                            <h6>${activity.message}</h6>
+                            <p class="text-secondary">19 Jan, 2021 at 2:61 PM</p>
+                            </div>
+                            </div>
+                            `
+                            })
+
+                            document.querySelector('#order-activities').innerHTML = html
+                            
+                            // If the Order is Cancelled
+                            if(response.isOrderCancelled) {
+                            document.querySelector('#order-cancel').innerHTML = `
+                            <div class="col-md-1">
+                            <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
+                                <div class="invoice">
+                                    <div class="btn text-light" style="background-color: #F46F36; border: 1px solid white;">Invoice
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                            `
+                            }
+
+                            if(element) {
+                                $(element).remove()
+                            }
+
+                            // Show Oder Cancellation msg
+                            Toastify({
+                                text: `Product ${response.productStatus}`,
+                                duration: 3000,
+                                close: true,
+                                gravity: "bottom",
+                                position: "right",
+                                style: {
+                                    background: "black",
+                                    color: "white",
+                                    borderRadius: "10px"
+                                }
+                            }).showToast();
+                            document.querySelector(`#status-${orderProdID}`).innerHTML = response.productStatus
+                            document.querySelector(`#total-price-${orderID}`).innerHTML = response.totalPrice
+                        } else {
+                            if (response.redirected) {
+                                window.location.href = response.redirected
+                            } else {
+                                // Toastify
+                                Toastify({
+                                    text: response.message,
+                                    duration: 3000,
+                                    close: true,
+                                    gravity: "bottom",
+                                    position: "right",
+                                    style: {
+                                        background: "black",
+                                        color: "white",
+                                        borderRadius: "10px"
+                                    }
+                                }).showToast();
+                            }
+                        }
+                    }
+                })
+
+            }
+        })
+    }
+
 </script>

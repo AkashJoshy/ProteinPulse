@@ -19,44 +19,72 @@
 
     .table-responsive::-webkit-scrollbar-thumb:hover {
         background-color: #000;
-        /* Color of the scroll thumb on hover */
     }
 
-    /* Add this to your existing CSS */
+    .tabs {
+        display: flex;
+        cursor: pointer;
+    }
 
+    .tab-button {
+        background-color: #777;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        font-size: 16px;
+        flex: 1;
+        transition: background-color 0.3s;
+    }
 
+    .tab-button.active,
+    .tab-button:hover {
+        background-color: #555;
+    }
 
-.tabs {
-    display: flex;
-    cursor: pointer;
-}
+    .tab-content {
+        display: none;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-top: none;
+    }
 
-.tab-button {
-    background-color: #777;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    text-align: center;
-    font-size: 16px;
-    flex: 1;
-    transition: background-color 0.3s;
-}
+    .tab-content.active {
+        display: block;
+    }
 
-.tab-button.active, .tab-button:hover {
-    background-color: #555;
-}
+    .wishlist {
+        cursor: pointer;
+    }
 
-.tab-content {
-    display: none;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-top: none;
-}
+    @keyframes glowup {
+        0% {
+            transform: scale(1)
+        }
 
-.tab-content.active {
-    display: block;
-}
-   
+        50% {
+            transform: scale(1.2)
+        }
+
+        100% {
+            transform: scale(1)
+        }
+    }
+
+    .wishlist {
+        transition: color 0.3s ease, transform 0.3s ease;
+    }
+
+    .wishlist.animating {
+        animation: glowup 0.5s ease;
+    }
+
+/*    .custom-toast {
+        color: black;
+        border: 2px ridge white;
+    }
+*/
+
 </style>
 
 <div class="container">
@@ -76,6 +104,7 @@
         <div class="row g-4 mt-3">
             <div class="col-12 p-3 col-md-2 d-flex d-md-block table-responsive mx-md-4 mx-lg-0" style="gap:10px;">
                 {{#if product}}
+                <input type="text" class="d-none productID" value="{{product._id}}">
                 {{!-- Other pics for the products --}}
                 {{#each product.imageUrl}}
                 <img src="/uploads/{{this}}" class="img-thumbnail mb-2 images"
@@ -87,18 +116,15 @@
 
             <div class="col-md-7 col-lg-5 p-1 mt-3 ">
                 <form action="">
-                    <div class="d-flex rounded-1 border border-2 shadow-lg"
-            id="imageZoom"
-            style="background-color: rgba(255, 254, 254, 0.461);">
-            
-            <!-- Wrap the image in the zoom container -->
-            <div class="image-zoom-container">
-                <img class="img-fluid mx-auto main-image rounded-3 p-2"
-                    id="zoom_01"
-                    src="/uploads/{{product.imageUrl.[0]}}"
-                    alt="main-image">
-            </div>
-        </div>
+                    <div class="d-flex rounded-1 border border-2 shadow-lg" id="imageZoom"
+                        style="background-color: rgba(255, 254, 254, 0.461);">
+
+                        <!-- Wrap the image in the zoom container -->
+                        <div class="image-zoom-container">
+                            <img class="img-fluid mx-auto main-image rounded-3 p-2" id="zoom_01"
+                                src="/uploads/{{product.imageUrl.[0]}}" alt="main-image">
+                        </div>
+                    </div>
 
 
                     {{#if (isStock product.quantities)}}
@@ -195,7 +221,7 @@
                     </div>
 
                     <div class="ms-4 py-1">
-                        <i class="fa-regular fs-3 fa-heart"></i>
+                        <i class="fs-2 fa-heart wishlist" style=""></i>
                     </div>
                 </div>
 
@@ -235,104 +261,110 @@
 
     {{!-- product details & reviews --}}
     <div class="product-review mt-4">
-            <div class="tab-container">
-    <div class="tabs">
-        <button class="tab-button active" onclick="openTab('tab1')">Products Details</button>
-        <button class="tab-button" onclick="openTab('tab2')">Rating & Reviews</button>
-        <button class="tab-button" onclick="openTab('tab3')">FAQ</button>
-    </div>
+        <div class="tab-container">
+            <div class="tabs">
+                <button class="tab-button active" onclick="openTab('tab1')">Products Details</button>
+                <button class="tab-button" onclick="openTab('tab2')">Rating & Reviews</button>
+                <button class="tab-button" onclick="openTab('tab3')">FAQ</button>
+            </div>
 
-    <div id="tab1" class="tab-content active">
-    </div>
-    <div id="tab2" class="tab-content">
-        <div class="d-flex mt-3">
-            <h5>All Review</h5>
-            <div class="ms-auto">
-                <div class="btn" style="background-color: #c5c4c4;">Latest
-                    <i class="fa-solid fa-caret-down"></i>
+            <div id="tab1" class="tab-content active">
+            </div>
+            <div id="tab2" class="tab-content">
+                <div class="d-flex mt-3">
+                    <h5>All Review</h5>
+                    <div class="ms-auto">
+                        <div class="btn" style="background-color: #c5c4c4;">Latest
+                            <i class="fa-solid fa-caret-down"></i>
+                        </div>
+                        <div class="btn btn-dark" type="button" data-bs-toggle="modal" data-bs-target="#publishreview">
+                            Write a Review</div>
+                    </div>
                 </div>
-                <div class="btn btn-dark" type="button" data-bs-toggle="modal" data-bs-target="#publishreview">
-                    Write a Review</div>
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card  mb-3">
+                            <div class="card-body p-4">
+                                <h5 class="card-title">Peter Parker</h5>
+                                <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
+                                <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic
+                                    product
+                                    !!
+                                    satisfied</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card  mb-3">
+                            <div class="card-body p-4">
+                                <h5 class="card-title">Peter Parker</h5>
+                                <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
+                                <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic
+                                    product
+                                    !!
+                                    satisfied</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card  mb-3">
+                            <div class="card-body p-4">
+                                <h5 class="card-title">Peter Parker</h5>
+                                <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
+                                <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic
+                                    product
+                                    !!
+                                    satisfied</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card  mb-3">
+                            <div class="card-body p-4">
+                                <h5 class="card-title">Peter Parker</h5>
+                                <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
+                                <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic
+                                    product
+                                    !!
+                                    satisfied</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card  mb-3">
+                            <div class="card-body p-4">
+                                <h5 class="card-title">Peter Parker</h5>
+                                <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
+                                <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic
+                                    product
+                                    !!
+                                    satisfied</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card  mb-3">
+                            <div class="card-body p-4">
+                                <h5 class="card-title">Peter Parker</h5>
+                                <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
+                                <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic
+                                    product
+                                    !!
+                                    satisfied</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="tab3" class="tab-content">
+                <p>This is the content for Tab 3.</p>
             </div>
         </div>
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <div class="card  mb-3">
-                    <div class="card-body p-4">
-                        <h5 class="card-title">Peter Parker</h5>
-                        <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
-                        <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic product
-                            !!
-                            satisfied</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card  mb-3">
-                    <div class="card-body p-4">
-                        <h5 class="card-title">Peter Parker</h5>
-                        <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
-                        <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic product
-                            !!
-                            satisfied</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card  mb-3">
-                    <div class="card-body p-4">
-                        <h5 class="card-title">Peter Parker</h5>
-                        <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
-                        <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic product
-                            !!
-                            satisfied</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card  mb-3">
-                    <div class="card-body p-4">
-                        <h5 class="card-title">Peter Parker</h5>
-                        <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
-                        <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic product
-                            !!
-                            satisfied</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card  mb-3">
-                    <div class="card-body p-4">
-                        <h5 class="card-title">Peter Parker</h5>
-                        <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
-                        <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic product
-                            !!
-                            satisfied</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card  mb-3">
-                    <div class="card-body p-4">
-                        <h5 class="card-title">Peter Parker</h5>
-                        <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
-                        <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic product
-                            !!
-                            satisfied</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div id="tab3" class="tab-content">
-        <p>This is the content for Tab 3.</p>
-    </div>
-</div>
 
 
     </div>
     {{!-- // product details & reviews --}}
-   
+
 
 
     {{!-- Related Products --}}
@@ -523,22 +555,119 @@
 
     }
 
-
     function openTab(tabId) {
-    // Get all tab content and buttons
-    var tabContents = document.getElementsByClassName("tab-content");
-    var tabButtons = document.getElementsByClassName("tab-button");
+        // Get all tab content and buttons
+        var tabContents = document.getElementsByClassName("tab-content");
+        var tabButtons = document.getElementsByClassName("tab-button");
 
-    // Hide all tab content and remove active class from all buttons
-    for (var i = 0; i < tabContents.length; i++) {
-        tabContents[i].classList.remove("active");
-        tabButtons[i].classList.remove("active");
+        // Hide all tab content and remove active class from all buttons
+        for (var i = 0; i < tabContents.length; i++) {
+            tabContents[i].classList.remove("active");
+            tabButtons[i].classList.remove("active");
+        }
+
+        // Show the clicked tab content and add active class to the clicked button
+        document.getElementById(tabId).classList.add("active");
+        document.querySelector(`.tab-button[onclick="openTab('${tabId}')"]`).classList.add("active");
     }
 
-    // Show the clicked tab content and add active class to the clicked button
-    document.getElementById(tabId).classList.add("active");
-    document.querySelector(`.tab-button[onclick="openTab('${tabId}')"]`).classList.add("active");
-}
-    
+
+    // Wishlist
+    const wishlist = document.querySelector('.wishlist')
+    const productID = document.querySelector('.productID').value
+
+    async function getwishlist() {
+        try {
+            const response = await fetch(`/product/wishlist/${productID}`, {
+                method: 'PATCH'
+            })
+            const data = await response.json()
+            const { status, isFavourate, message } = data
+            console.log(data)
+
+            if (!status) {
+                Swal.fire(
+                    {
+                        text: message,
+                        icon: 'warning'
+                    }
+                ).then(() => window.location.href = data.redirected)
+                return data
+            }
+
+
+            if (!isFavourate) {
+            Toastify({
+                text: message,
+                duration: 3000,
+                close: true,
+                gravity: "bottom", 
+                position: "right",
+                style: {
+                    background: "linear-gradient(to right, #F46F36, #F36F8F)"
+                }
+            }).showToast();
+
+                return data;
+            }
+
+            Toastify({
+                text: message,
+                duration: 3000,
+                close: true,
+                gravity: "bottom", 
+                position: "right",
+                style: {
+                    background: "linear-gradient(to right, #F46F36, #F36F8F)"
+                }
+            //    className: "custom-toast"
+            }).showToast();
+
+            return data
+        } catch (error) {
+            console.error(`Error while fetching wishlist ...`)
+            return null
+        }
+    }
+
+
+    // Update wishlist Btn (Heart Icon)
+    function updateWishlistBtn(favourated) {
+        console.log(`Favourated status: ${favourated}`)
+        if (favourated) {
+            wishlist.classList.add('fa-solid')
+            wishlist.classList.remove('fa-regular')
+            wishlist.style.color = "red"
+            wishlist.style.transform = "scale(1)"
+            wishlist.classList.add('animating')
+            localStorage.setItem(`${productID}_wishlisted`, 'true')
+        } else {
+            wishlist.classList.add('fa-regular')
+            wishlist.classList.remove('fa-solid')
+            wishlist.style.color = "black"
+            wishlist.style.transform = "scale(.9)"
+            wishlist.classList.remove('animating')
+            localStorage.removeItem(`${productID}_wishlisted`)
+        }
+    }
+
+    wishlist.addEventListener('click', async () => {
+        let { status, isFavourate } = await getwishlist()
+        if (status) {
+            updateWishlistBtn(isFavourate)
+        }
+    })
+
+    // Initialize the wishlist Btn (whether its favourate or not) 
+    function wishlistBtninitailse() {
+        let favourate = localStorage.getItem(`${productID}_wishlisted`) || false
+        updateWishlistBtn(favourate)
+    }
+
+
+    window.addEventListener('DOMContentLoaded', () => {
+        wishlistBtninitailse()
+    })
+
 
 </script>

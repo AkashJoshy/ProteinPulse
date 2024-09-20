@@ -31,6 +31,7 @@ router.get("/products/search-results", userController.searchResults);
 router.get("/products/search", userController.searchProducts);
 router.get("/dashboard/my-cart", userController.myCart);
 router.get("/dashboard/wallet", userController.wallet);
+router.get("/order-checkout", userController.orderCheckout)
 router.get("/logout", userController.logout);
 
 router.get("/sample", userController.sample);
@@ -44,7 +45,8 @@ router.post("/dashboard/address/add-address", userController.saveAddress);
 router.post("/update-password", userController.recoveredPassword);
 router.post("/product/review", userController.productReview);
 router.post("/order-pre-checkout", userController.orderPreCheckout)
-router.post("/order-checkout", userController.orderCheckout)
+router.post("/place-order", userController.placeOrder)
+router.post("/verify-payment", userController.verifyPaymentRazorpay)
 router.post("/address/update-address", userController.updateAddress)
 
 // PUT REQUESTS
@@ -54,8 +56,16 @@ router.put("/dashboard/account-details/change-profile-picture", userController.u
 router.put("/dashboard/account-details/change-password", userController.changePassword);
 router.put("/address/delete-address", userController.deleteAddress)
 router.put("/dashboard/orders/cancel-order", userController.cancelOrder);
+router.put("/dashboard/orders/cancel-product", userController.cancelProduct);
 router.put("/delete-cart-product", userController.deleteCartProduct);
 router.put("/update-cart-product-quantity", userController.updateCartProductQuantity)
+
+// PATCH REQUESTS
+router.patch("/product/wishlist/:productID", userController.updateWishlist)
+router.patch("/product/wishlist/remove/:productID", userController.removeWishlistProduct)
+router.patch("/dashboard/cart/apply-coupon/:couponCode", userController.applyCoupon);
+router.patch("/dashboard/cart/remove-coupon/:couponCode/:cartID", userController.removeCoupon);
+
 
 // DELETE REQUESTS
 

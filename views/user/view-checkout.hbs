@@ -14,7 +14,7 @@
     <div class="row">
         <div class="col-12 col-md-12 col-lg-8 mt-5">
             <h5 class="py-4 mt-3">Billing Information</h5>
-            <form action="/order-checkout" method="post" class="row g-3 needs-validation p-2 me-lg-5" novalidate>
+            <form class="row g-3 needs-validation p-2 me-lg-5" novalidate>
                 <div class="col-md-4 col-lg-4">
                     <label for="firstName" class="form-label">FIRSTNAME</label>
                     <input type="text" name="firstName" class="form-control order-form" id="firstName" value="{{user.firstName}}" required>
@@ -48,9 +48,9 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label for="validationCustom04" class="form-label">COUNTRY</label>
-                    <select class="form-select order-form" name="country" id="validationCustom04" required>
-                        <option selected disabled value="{{billingAddress.country}}" >{{billingAddress.country}}</option>
+                    <label for="country" class="form-label">COUNTRY</label>
+                    <select class="form-select order-form" name="country" id="country" required>
+                        <option selected value="{{billingAddress.country}}" >{{billingAddress.country}}</option>
                         <option value="INDIA">INDIA</option>
                     </select>
                     <div class="invalid-feedback">
@@ -59,9 +59,9 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label for="validationCustom04" class="form-label">STATE</label>
-                    <select class="form-select order-form" name="state" id="validationCustom04" required>
-                        <option selected disabled value="{{billingAddress.state}}">{{billingAddress.state}}</option>
+                    <label for="state" class="form-label">STATE</label>
+                    <select class="form-select order-form" name="state" id="state" required>
+                        <option selected value="{{billingAddress.state}}">{{billingAddress.state}}</option>
                         <option value="KERALA">KERALA</option>
                     </select>
                     <div class="invalid-feedback">
@@ -70,9 +70,9 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label for="validationCustom04" class="form-label">CITY</label>
-                    <select class="form-select order-form" name="city" id="validationCustom04" required>
-                        <option selected disabled value="{{billingAddress.city}}" >{{billingAddress.city}}</option>
+                    <label for="city" class="form-label">CITY</label>
+                    <select class="form-select order-form" name="city" id="city" required>
+                        <option selected value="{{billingAddress.city}}" >{{billingAddress.city}}</option>
                         <option value="EKM">EKM</option>
                     </select>
                     <div class="invalid-feedback">
@@ -154,20 +154,20 @@
                         <hr class="lh-sm">
                     <div class="d-md-flex justify-content-evenly mb-3">
                         <div class="cash-on-delivery py-4" style="border-bottom-color: black;">
-                            <input class="form-check-input order-form" type="radio" name="paymentMethod" value="COD" id="flexRadioDefault1" required>
-                            <label class="form-check-label px-1 text-dark" for="flexRadioDefault1">
+                            <input class="form-check-input order-form" type="radio" name="paymentMethod" value="COD" id="cod" required>
+                            <label class="form-check-label px-1 text-dark" for="cod">
                                 COD
                             </label>
                         </div>
                         <div class="rayorpay py-4">
-                            <input class="form-check-input order-form" type="radio" name="paymentMethod" value="Razorpay" id="flexRadioDefault1" required>
-                            <label class="form-check-label px-1 text-dark" for="flexRadioDefault1">
+                            <input class="form-check-input order-form" type="radio" name="paymentMethod" value="Razorpay" id="razorpay" required>
+                            <label class="form-check-label px-1 text-dark" for="razorpay">
                                 RAZORPAY
                             </label>
                         </div>
                         <div class="my-wallet py-4">
-                            <input class="form-check-input order-form" type="radio" name="paymentMethod" value="myWallet" id="flexRadioDefault1" required>
-                            <label class="form-check-label px-1 text-dark" for="flexRadioDefault1">
+                            <input class="form-check-input order-form" type="radio" name="paymentMethod" value="myWallet" id="wallet" required>
+                            <label class="form-check-label px-1 text-dark" for="wallet">
                                 MY WALLET
                             </label>
                         </div>
@@ -204,24 +204,46 @@
 
                     <div class="d-flex justify-content-between ">
                         <p class="text-secondary">Sub-total</p>
-                        <p>₹<span>{{totalSaleAmount}}</span></p>
+                        <p>₹<span>{{originalPrice}}</span></p>
                     </div>
+                    <div class="d-flex justify-content-between ">
+                         <h6 class="text-secondary py-2 "></h6>
+                            Discount(
+                            <span class="discount-percentage text-success">{{discountPercentage}}</span>%)
+                        </h6>
+                        <h6 class="text-danger ms-auto py-2">
+                            ₹
+                            <span class="discount-price">
+                                {{discountPrice}}
+                            </span>
+                        </h6>
+                    </div>
+                    {{#if coupons}}
+                    <div class="d-flex justify-content-between ">
+                         <h6 class="text-secondary py-2 "></h6>
+                            Discount(
+                            <span class="discount-percentage text-success">{{couponDiscountPercentage}}</span>%)
+                        </h6>
+                        <h6 class="text-danger ms-auto py-2">
+                            ₹
+                            <span class="discount-price">
+                                {{couponPrice}}
+                            </span>
+                        </h6>
+                    </div>
+                    {{/if}}
                     <div class="d-flex justify-content-between ">
                         <p class="text-secondary">Shipping</p>
                         <p>₹<span>{{deliveryCharge}}</span></p>
                     </div>
                     <div class="d-flex justify-content-between ">
-                        <p class="text-secondary">Discount</p>
-                        <p>₹<span>{{savedprice}}</span></p>
-                    </div>
-                    <div class="d-flex justify-content-between ">
                         <p class="text-secondary">Tax</p>
-                        <p>₹<span>{{tax}}</span></p>
+                        <p>₹<span>{{taxPrice}}</span></p>
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between ">
                         <p>Total</p>
-                        <p>₹<span>{{totalAmount}} </span>INR</p>
+                        <p>₹<span>{{totalPrice}} </span>INR</p>
                     </div>
 
                     <div class="d-none">
@@ -231,7 +253,7 @@
                     <div>
                     <div class="col-12">
                         <button class="btn w-100 text-center mt-lg-2 mt-xl-4"
-                            style="color: #F46F36; background-color: black;" type="submit">PLACE ORDER</button>
+                            style="color: #F46F36; background-color: black;" id="place-order" type="submit">PLACE ORDER</button>
                     </div>
                 </div>
             </form>
@@ -242,6 +264,7 @@
         </div>
     </div>
 </div>
+
 
 <script src="/javaScript/checkout.js"></script>
 

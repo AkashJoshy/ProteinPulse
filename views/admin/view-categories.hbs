@@ -1,12 +1,65 @@
-
+<style>
+  .form-control:focus {
+    border-color: #c1c1c1;
+    box-shadow: none;
+    background-color: #f8f9fa;
+  }
+</style>
 
 <div class="mt-5 ">
-  <h3 class="category-title ms-3 ms-md-5 " style="cursor: pointer;">
-    Category<a href="/admin/add-category" class="add-category px-3 rounded-3" style="text-decoration: none; margin-left: 7px; color: rgb(38, 185, 38); border: 0.1px solid rgb(0, 0, 0);">+</a>
+  <div class="d-flex  ">
+    <h3 class="category-title ms-3 ms-md-5 " style="cursor: pointer;">
+      Category<a href="/admin/add-category" class="add-category px-3 rounded-3"
+        style="text-decoration: none; margin-left: 7px; color: rgb(38, 185, 38); border: 0.1px solid rgb(0, 0, 0);">+</a>
     </h3>
+    <div class="ms-auto">
+      <input type="search" style="color: rgb(17, 17, 17) ;padding-left: 5px; border: 2px solid rgb(98, 97, 97);"
+        placeholder="Search" id="search-bar" class="form-control">
+    </div>
+    {{!-- <div class="d-flex me-2 me-md-5">
+      <h6 class="ms-auto px-2 py-1">Sort</h6>
+      <select class="search-sort"
+        style="border-radius: 10px; color: rgb(17, 17, 17) ;padding-left: 5px; border: 2px solid black;"
+        aria-label="Default select example">
+        <option selected disabled value="no-filter" class="text-secondary"> No Filter </option>
+        <option value="lowToHigh">Low to High</option>
+        <option value="highToLow">High to Low</option>
+        <option value="ascending">Ascending</option>
+        <option value="descending">Descending</option>
+        <option value="averageRating">Average Rating</option>
+        <option value="newArrivals">New Arrivals</option>
+      </select>
+    </div> --}}
+
+
+    <div class="me-md-5 px-3 py-1 rounded-2 ms-1" style="border: 2px solid black;">
+      <i class="fa-solid fa-arrow-down-short-wide" data-bs-toggle="modal" data-bs-target="#filters"></i>
+    </div>
+
+  </div>
 </div>
 
-<div class="container table-responsive shadow-lg rounded">
+<!-- Modal -->
+<div class="modal fade ms-auto" id="filters" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="container table-responsive shadow-lg rounded mt-4">
   <table class="table mt-3 ">
     <thead class="table-dark">
       <tr>
@@ -20,100 +73,301 @@
     </thead>
     <tbody>
       {{#each categories}}
-     <tr>
-      <th scope="row"> {{increment @index}} </th>
-      <td> {{this.name}} </td>
-      <td> {{this.description}} </td>
-      <td>
-            {{#if this.isActive}}
-            <label class="switch">
-              <input type="checkbox" checked/>
-              <span class="slider round"></span>
-            </label>
-              {{else}}
-            <label class="switch">
-              <input type="checkbox" />
-              <span class="slider round"></span>
-            </label>
-            {{/if}}
-          </td>
-      <td>
-        <a href="/admin/edit-category/{{this._id}}">
-            <i  class="fa-solid fa-pen" style="cursor: pointer; color: rgb(15, 223, 15);">
+      <tr>
+        <th scope="row"> {{increment @index}} </th>
+        <td> {{this.name}} </td>
+        <td> {{this.description}} </td>
+        <td>
+          {{#if this.isActive}}
+          <label class="switch">
+            <input type="checkbox" checked />
+            <span class="slider round"></span>
+          </label>
+          {{else}}
+          <label class="switch">
+            <input type="checkbox" />
+            <span class="slider round"></span>
+          </label>
+          {{/if}}
+        </td>
+        <td>
+          <a href="/admin/edit-category/{{this._id}}">
+            <i class="fa-solid fa-pen" style="cursor: pointer; color: rgb(15, 223, 15);">
             </i>
-        </a>
-      </td>
-      <td>
-        {{#if this.isActive}}
-        <a
-        onclick="confirmDeleteOrRestore(`{{this._id}}`, 
-        `{{this.name}}`, 
-        `delete-category`, 
-        `Delete`)"
-       class="btn-category-action"
-       >
-      <i class="fa-solid fa-trash mx-auto px-3" style="cursor: pointer; color: red;">
-      </i>
-      </a>
-      {{else}}
-      <a 
-      onclick="confirmDeleteOrRestore(`{{this._id}}`, 
-      `{{this.name}}`, 
-      `restore-category`, 
-      `Restore`)"
-      class="btn btn-sm btn-outline-dark btn-category-action">
-        RESTORE
-      </a>
-      {{/if}}
-      </td>
-    </tr>
-    {{/each}}
+          </a>
+        </td>
+        <td>
+          <a onclick="deleteCategory(`{{this._id}}`, this.parentElement.parentElement)" class="btn-category-action">
+            <i class="fa-solid fa-trash mx-auto px-3" style="cursor: pointer; color: red;">
+            </i>
+          </a>
+        </td>
+      </tr>
+      {{/each}}
     </tbody>
   </table>
-<nav aria-label="Page navigation example" class="d-flex fixed-bottom " style="z-index: 2;" >
-  <ul class="pagination mx-auto py-3 admin-pagination">
-    <li class="page-item"><a class="page-link bg-dark prev-next-number" href="#">Previous</a></li>
-    <li class="page-item"><a class="page-link page-number" href="#">1</a></li>
-    <li class="page-item"><a class="page-link page-number" href="#">2</a></li>
-    <li class="page-item"><a class="page-link page-number" href="#">3</a></li>
-    <li class="page-item"><a class="page-link bg-dark prev-next-number" href="#">Next</a></li>
-  </ul>
-</nav>
+  <h3 style="display: none;" class="text-center fw-2 error-message"></h3>
+
+  {{#if pagination}}
+  <nav aria-label="Page navigation example" class="d-flex fixed-bottom " style="z-index: 2;">
+    <ul class="pagination mx-auto py-3 admin-pagination" id="pagination-body">
+      {{#if pagination.isPrevious}}
+      <li class="page-item"><a class="page-link bg-dark prev-next-number"
+          href="/admin/category?page={{paginationManipulation pagination.currentPage -1}}">Previous</a></li>
+      {{/if}}
+      {{#each (paginationNumbers 1 pagination.totalPages)}}
+      <li class="page-item">
+        <a class="page-link page-number" href="/admin/category?page={{this}}">{{this}}</a>
+      <li>
+        {{/each }}
+
+        {{#if pagination.isNext}}
+      <li class="page-item"><a class="page-link bg-dark prev-next-number"
+          href="/admin/category?page={{paginationManipulation pagination.currentPage 1}}">Next</a></li>
+      {{/if}}
+    </ul>
+  </nav>
+  {{/if}}
 </div>
 
 
 <script>
 
   const btnCategory = document.querySelectorAll('.btn-category-action')
-  function confirmDeleteOrRestore(categoryID, categoryName, categoryRoute, categoryAction) {
-  // function to delete restore categories
-  Swal.fire({
-            title: 'Are you sure?',
-            text: `Do you want to ${categoryAction} ${categoryName}?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: `Yes, ${categoryAction} it!`,
-            cancelButtonText: 'No, cancel!',
-        }).then((result) => {
-          if(result.isConfirmed) {
-            $.ajax({
-                  url: `/admin/${categoryRoute}`,
-                  method: "PUT",
-                  data: {
-                    categoryID
-                  },
-                  success: response => {
-                    if(response.status) {
-                      Swal.fire(`Successfully ${categoryAction}d ${categoryName}`)
-                      .then(() => window.location.href = response.redirected)
-                    } else {
-                      window.location.href = response.redirected
-                    }
-                  }
-                })
+  function deleteCategory(categoryID, element) {
+    // function to delete restore categories
+    Swal.fire({
+      title: 'Are you sure?',
+      text: `You won't be able to revert this!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: `/admin/delete-category/${categoryID}`,
+          method: "DELETE",
+          success: response => {
+            if (response.status) {
+              // Toastify message 
+              Toastify({
+                text: response.message,
+                duration: 3000,
+                close: true,
+                gravity: "bottom",
+                position: "right",
+                style: {
+                  background: "black",
+                  color: "white",
+                  borderRadius: "10px"
+                }
+              }).showToast();
+              // Removing the div element using jquery
+              if (element) {
+                $(element).remove()
+              }
+
+            } else {
+              window.location.href = response.redirected
+            }
           }
         })
-  
+      }
+    })
   }
 
+  let paginationBody = document.querySelector('#pagination-body')
+  // Update Pagination
+  function updatePagination(pagination, search) {
+    let html = ``
+
+    if (pagination.isPrevious) {
+      html += `
+    <li class="page-item">
+    <a class="page-link bg-dark prev-next-number" 
+      href="?search=${search}&page=${pagination.currentPage - 1}">Previous</a>
+    </li>
+    `
+    }
+
+  // Page numbers
+    if(pagination.totalPages) {
+      for(let i=1; i<=pagination.totalPages; i++) {
+    html += `
+    <li class="page-item">
+      <a class="page-link page-number" href="?search=${search}&page=${i}">${i}</a>
+    </li>
+   `
+      }
+    }
+
+    if (pagination.isNext) {
+      html += `
+    <li class="page-item">
+    <a class="page-link bg-dark prev-next-number"
+      href="?search=${search}&page=${pagination.currentPage + 1}" >Next</a>
+    </li>
+    `
+    }
+
+    paginationBody.innerHTML = html
+
+  }
+
+  const errorMsg = document.querySelector('.error-message')
+  const categoriesData = document.querySelector(`tbody`)
+  // Search 
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchBar = document.querySelector('#search-bar')
+
+    searchBar.addEventListener('input', async (e) => {
+      console.log(e.target.value)
+      const search = e.target.value
+      //  console.log(e.target.value.length)
+      $.ajax({
+        url: `/admin/category/query?search=${search}&page=1`,
+        method: 'GET',
+        success: response => {
+          if (response.status) {
+
+            let html = ``
+            let categories = response.categories
+            let pagination = response.pagination
+
+            categories.forEach((category, index) => {
+              html += `
+              <tr>
+                <th scope="row"> ${index + 1} </th>
+                <td> ${category.name} </td>
+                <td> ${category.description} </td>
+                <td>
+                  ${category.isActive ?
+                  `<label class="switch">
+                  <input type="checkbox" checked/>
+                  <span class="slider round"></span>
+                  </label>`
+                  :
+                  `<label class="switch">
+                  <input type="checkbox" />
+                  <span class="slider round"></span>
+                  </label>`
+                  }
+                </td>
+                <td>
+                  <a href=/admin/edit-category/${category._id}>
+                  <i class="fa-solid fa-pen" style="cursor: pointer; color: rgb(15, 223, 15);">
+                  </i>
+                  </a>
+                </td>
+                <td>
+                  <a
+                  onclick="deleteCategory(${category._id}, this.parentElement.parentElement)"
+                  class="btn-category-action">
+                  <i class="fa-solid fa-trash mx-auto px-3" style="cursor: pointer; color: red;">
+                  </i>
+                  </a>
+                </td>
+              </tr>
+              `
+            })
+
+            updatePagination(pagination, search)
+            if (!html) {
+              categoriesData.innerHTML = ""
+              errorMsg.style.display = "block"
+              errorMsg.innerHTML = `<h2 class="text-center"> No Categories found! </h2>`
+            } else {
+              errorMsg.style.display = "none"
+              categoriesData.innerHTML = html
+            }
+            //  window.location.href = response.redirected
+          } else {
+            window.location.href = response.redirected
+          }
+        }
+      })
+
+
+    })
+  })
+
+  // Pagination controlling
+  paginationBody.addEventListener('click', e => {
+    e.preventDefault()
+    console.log(`Clicked`)
+    const url = new URL(e.target.href)
+    const search = url.searchParams.get('search') || ''
+    const page = url.searchParams.get('page') || ''
+    console.log(search)
+    console.log(page)
+    // Ajax Req
+    $.ajax({
+      url: `/admin/category/query?search=${search}&page=${page}`,
+      method: 'GET',
+      success: response => {
+        if(response.status) {
+            if (response.status) {
+
+            let html = ``
+            let categories = response.categories
+            let pagination = response.pagination
+
+            categories.forEach((category, index) => {
+              html += `
+              <tr>
+                <th scope="row"> ${index + 1} </th>
+                <td> ${category.name} </td>
+                <td> ${category.description} </td>
+                <td>
+                  ${category.isActive ?
+                  `<label class="switch">
+                  <input type="checkbox" checked/>
+                  <span class="slider round"></span>
+                  </label>`
+                  :
+                  `<label class="switch">
+                  <input type="checkbox" />
+                  <span class="slider round"></span>
+                  </label>`
+                  }
+                </td>
+                <td>
+                  <a href=/admin/edit-category/${category._id}>
+                  <i class="fa-solid fa-pen" style="cursor: pointer; color: rgb(15, 223, 15);">
+                  </i>
+                  </a>
+                </td>
+                <td>
+                  <a
+                  onclick="deleteCategory(${category._id}, this.parentElement.parentElement)"
+                  class="btn-category-action">
+                  <i class="fa-solid fa-trash mx-auto px-3" style="cursor: pointer; color: red;">
+                  </i>
+                  </a>
+                </td>
+              </tr>
+              `
+            })
+
+            updatePagination(pagination, search)
+            if (!html) {
+              categoriesData.innerHTML = ""
+              errorMsg.style.display = "block"
+              errorMsg.innerHTML = `<h2 class="text-center"> No Categories found! </h2>`
+            } else {
+              errorMsg.style.display = "none"
+              categoriesData.innerHTML = html
+            }
+            //  window.location.href = response.redirected
+          } else {
+            window.location.href = response.redirected
+          }
+        }
+      }
+    })
+  })
+ 
 </script>

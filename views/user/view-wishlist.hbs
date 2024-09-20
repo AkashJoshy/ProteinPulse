@@ -19,24 +19,25 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {{!-- {{#if orders}} --}}
+                    {{#if wishlistProducts.length }}
+                                {{#each wishlistProducts}}
                                     <tr>
                                     <td>
                                         <div class="d-flex">
                                             <div>
                                                 <img style="height: 6rem; width: 8rem;"
-                                                    src="/uploads/file1-1719744855669.png"
+                                                    src="/uploads/{{this.thumbnail}}"
                                                     class="card-img-top mx-auto product-image pt-1" alt="..." />
                                             </div>
                                             <div class="pt-0 pt-md-3" 
                                             style="color: rgb(4, 120, 244); width: 6.5rem; font-size: .95rem;">
-                                                Bigmuscles-crude-whey-1kg-rich-chocolate
+                                                {{this.name}}
                                             </div>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mt-4">
-                                            ₹<span> 4500 </span>
+                                            ₹<span> {{this.price}} </span>
                                         </div>
                                     </td>
                                     <td>
@@ -44,17 +45,24 @@
                                             x<span> 1 </span>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td class="d-flex">
                                         <div class="mt-4">
-                                        <div class="btn text-light" style="background-color: black;">
+                                        <div class=" text-light">
+                                            <a onclick="addToCart(`{{this._id}}`)"
+                                               class="btn" style="background-color: black; color: white;">ADD TO CART</a>
                                             Add to Cart
                                         </div>
                                         </div>
+
+                                        <div class=" mt-4">
+                                            <i class="fa-solid fa-trash" onclick="removeProduct(`{{this._id}}`, `{{this.name}}`, this.parentElement.parentElement.parentElement)" style="color: red;"></i>
+                                        </div>
                                     </td>
                                 </tr>
-                 {{!-- {{else}} --}}
-                        {{!-- <h4 class="text-danger text-center"> {{orderMessage}} </h4>
-                    {{/if}} --}}
+                                {{/each}}
+                 {{else}}
+                        <h4 class="text-danger text-center"> No products in Wishlist </h4>
+                    {{/if}} 
                 </tbody>
             </table>
             </div>
@@ -63,3 +71,85 @@
 
     </div>
 </div>
+
+<script>
+
+// Add To Cart
+  function addToCart(productID) {
+    console.log(productID)
+    let count = 1
+    console.log(`Clicked`)
+    $.ajax({
+      url: `/product/add-to-cart`,
+      method: 'PUT',
+      data: {
+        productID,
+        count
+      },
+      success: response => {
+        if (response.status) {
+            // Product Added to cart Message
+            Toastify({
+                      text: response.message,
+                      duration: 3000,
+                      close: true,
+                      gravity: "bottom", 
+                      position: "right",
+                      style: {
+                          background: "black",
+                          color: "white",
+                          borderRadius: "10px"
+                      }
+                  }).showToast();
+        } else {
+          window.location.href = response.redirected
+        }
+      }
+    })
+  }
+
+
+   // Delete Wishlisted Product
+    function removeProduct(productID, productName, element) {
+    //    console.log(element)
+        Swal.fire({
+        title: 'Are you sure?',
+        text: `Do you want to remove ${productName} from Wishlist ?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: `Yes, Delete it!`,
+        cancelButtonText: 'No, cancel!',
+    }).then(result => {
+        if(result.isConfirmed) {
+        $.ajax({
+            url: `/product/wishlist/remove/${productID}`,
+            method: 'PATCH',
+            success: response => {
+                if(response.status) {
+                      Toastify({
+                      text: response.message,
+                      duration: 3000,
+                      close: true,
+                      gravity: "bottom", 
+                      position: "right",
+                      style: {
+                          background: "black",
+                          color: "white",
+                          borderRadius: "10px"
+                      }
+                  }).showToast();
+                    if(element) {
+                        $(element).remove()
+                    }
+                } else {
+                    window.location.href = response.redirected
+                }
+            }
+        })
+        }
+    })
+    }
+
+</script>

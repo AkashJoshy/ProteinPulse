@@ -1,4 +1,4 @@
-const { Schema, model, Types } = require('mongoose')
+const { Schema, model } = require('mongoose')
 
 const BillingAddressSchema = new Schema({
     address: {
@@ -67,14 +67,14 @@ const ShippingAddressSchema = new Schema({
 const UserAddressSchema = new Schema({
     userID: {
         type: Schema.Types.ObjectId,
-        ref: 'user',
+        ref: 'User',
         required: true
     },
     billingAddress: [ BillingAddressSchema ],
     shippingAddress: [ ShippingAddressSchema ]
 })
 
-let AddressData = model('address', UserAddressSchema)
+let AddressData = model('Address', UserAddressSchema)
 
 module.exports = {
     AddressData

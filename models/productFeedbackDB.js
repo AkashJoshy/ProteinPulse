@@ -3,14 +3,14 @@ const {Schema, model} = require('mongoose')
 const FeedbackSchema = new Schema({
     productID: {
         type: Schema.Types.ObjectId,
-        ref: 'product',
+        ref: 'Product',
         required: true,
     },
     feedbacks: [
         {
             userID: {
                 type: Schema.Types.ObjectId,
-                ref: 'user',
+                ref: 'User',
                 required: true
             },
             productRating: {
@@ -27,7 +27,7 @@ const FeedbackSchema = new Schema({
 })
 
 
-const ProductFeedback = model('feedback', FeedbackSchema)
+const ProductFeedback = model('Feedback', FeedbackSchema)
 
 module.exports = {
     ProductFeedback

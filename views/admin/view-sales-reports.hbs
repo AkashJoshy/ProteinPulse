@@ -1,0 +1,154 @@
+<div class="mt-5 d-flex ms-auto">
+  <div>
+    <h3 class="ms-3 ms-md-5">Sales Reports</h3>
+  </div>
+  <form class="needs-validation ms-4" novalidate>
+    <div class="d-flex ms-2 justify-content-end">
+      <div class="me-2">
+        <label for="start-date">Start Date</label>
+        <input type="date" id="start-date" class="form-control startDate" required>
+      </div>
+      <div class="me-2">
+        <label for="end-date">End Date</label>
+        <input type="date" id="end-date" class="form-control endDate" required>
+      </div>
+      <div>
+        <button type="submit" class="btn btn-success mt-4">Generate Report</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-9">
+  <table class="table mt-3">
+    <thead class="table-dark">
+      <tr>
+        <th scope="col">Order No</th>
+        <th scope="col">Customer Name</th>
+        <th scope="col">Total</th>
+        <th scope="col">Payment Method</th>
+        <th scope="col">Payment Status</th>
+        <th scope="col">Date</th>
+        <th scope="col">View</th>
+      </tr>
+    </thead>
+    <tbody id="salesTable">
+      <!-- Report data will be inserted here -->
+    </tbody>
+  </table>
+
+    </div>
+
+    <div class="col-md-3">
+      <div class="rounded shadow p-2">
+        <h5 class="p-2 text-center">Transaction Details</h5>
+        <div class="d-flex justify-content-around">
+          <p>Total Price</p>
+          <p>₹ <span>3000</span>.00</p>
+        </div>
+        <div class="d-flex justify-content-around">
+          <p>Total Sales</p>
+          <p>65</p>
+        </div>
+        <div class="d-flex justify-content-around">
+          <p>Total Coupon Price</p>
+          <p>₹ <span>3000</span>.00</p>
+        </div>
+        <div class="d-flex justify-content-around">
+          <p>Total Payment</p>
+          <p>₹ <span>3000</span>.00</p>
+        </div>
+
+        <div class="d-flex mb-3 mt-3 ">
+        <button class="btn btn-success mx-auto report-download">
+          Download Report
+        </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // Fetch all the forms we want to apply custom Bootstrap validation styles to
+  const forms = document.querySelectorAll(".needs-validation");
+
+  // Loop over them and prevent submission
+  Array.from(forms).forEach((form) => {
+    form.addEventListener(
+      "submit",
+      (event) => {
+        event.preventDefault(); // Prevent default form submission
+        if (!form.checkValidity()) {
+          form.classList.add("was-validated");
+          return; // Stop processing if the form is not valid
+        }
+
+        let startDate = document.querySelector('.startDate').value;
+        let endDate = document.querySelector('.endDate').value;
+
+        console.log(`Start Date: ${startDate}`);
+        console.log(`End Date: ${endDate}`);
+
+        if (startDate && endDate) {
+          $.ajax({
+            url: `/admin/get-sales-reports?startDate=${startDate}&endDate=${endDate}`,
+            method: 'GET',
+            success: response => {
+              if (response.status) {
+                let orders = response.orders;
+                console.log(orders);
+
+                // Clear previous table data
+                let tableBody = document.querySelector('#salesTable');
+                tableBody.innerHTML = '';
+                let reportDownload = document.querySelector('.report-download');
+
+                if (orders.length === 0) {
+                  tableBody.innerHTML = '<tr><td colspan="7" style="font-size: 1.3rem;" class="text-center">No Sales Report Found...</td></tr>';
+                  reportDownload.style.display = "none"  
+                } else {
+                  let html = '';
+                  reportDownload.style.display = "block"  
+                  orders.forEach((order, index) => {
+                    html += `
+                      <tr>
+                        <th scope="row">${order.orderNumber}</th>
+                        <td>${order.customer}</td>
+                        <td><span>₹</span>${order.totalSalePrice}<span>.00</span></td>
+                        <td>${order.paymentMethod}</td>
+                        <td>${order.paymentStatus}</td>
+                        <td>${order.createdAt}</td>
+                        <td>
+                          <a href="/admin/orders/view-details/${order._id}" style="text-decoration: none; color: #F46F36;">
+                            View Details <i class="fa-solid fa-up-right-from-square ms-1"></i>
+                          </a>
+                        </td>
+                      </tr>
+                    `;
+                  });
+                  tableBody.innerHTML = html;
+                }
+              } else {
+                window.location.href = response.redirected;
+              }
+            },
+            error: (xhr, status, error) => {
+              console.error('Error fetching sales report:', error);
+            }
+          });
+        }
+
+        form.classList.add("was-validated");
+      },
+      false
+    );
+  });
+})();
+</script>

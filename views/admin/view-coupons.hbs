@@ -1,0 +1,268 @@
+<style>
+  
+  .form-control.is-valid, .was-validated .form-control:valid {
+    background-image: none;
+  }
+
+      .form-control:focus {
+      border-color: #c1c1c1;
+      box-shadow: none;
+      background-color: #f8f9fa;
+    }
+
+</style>
+
+<div class="mt-5">
+  <h3 class="category-title ms-3 ms-md-5 " style="cursor: pointer;">
+    Coupons
+    </h3>
+    {{!-- <div>
+        <h5>Sort</h5>
+        <select name="" id=""></select>
+    </div>
+    <div>
+        <h5>Sort</h5>
+        <select name="" id=""></select>
+    </div> --}}
+</div>
+
+<div class="container table-responsive shadow-lg rounded">
+  <table class="table mt-3 ">
+    <thead class="table-dark">
+      <tr>
+        <th scope="col">Code</th>
+        <th scope="col">Coupon type</th>
+        <th scope="col">Description</th>
+        <th scope="col">Max Discount</th>
+        <th scope="col">Min Order Value</th>
+        <th scope="col">Discount</th>
+        <th scope="col">Usage Limit</th>
+        <th scope="col">Expiry Date</th>
+        <th scope="col">Delete</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#if coupons}}
+        {{#each coupons}}
+        <tr>
+            <th> {{this.code}} </th>
+            <td> {{this.couponType}} </td>
+            <td> {{this.description}} </td>
+            <td> {{this.maxDiscount}} </td>
+            <td> {{this.minOrderValue}} </td>
+            <td> {{this.discount}}<span>%</span> </td>
+            <td> {{this.limit}} </td>
+            <td> {{this.expiryDate}} </td>
+            <td><i class="fa-solid fa-trash text-danger"
+            onclick="deleteCoupon(`{{this._id}}`, this.parentElement.parentElement)"></i></td>
+        </tr>
+        {{/each}}
+        {{else}}
+
+      {{/if}}
+    </tbody>
+  </table>
+
+</div>
+
+  <h4 class="ms-3 ms-md-5 mt-5" style="cursor: pointer;">
+    Add Coupon
+    <a data-bs-toggle="modal" data-bs-target="#helpModal"><i class="fa-solid fa-circle-question" 
+    style="font-size: 1.2rem; color: rgb(175, 165, 165);" ></i></a>
+  </h4>
+
+<div class="container shadow rounded" style="border-top: 4px solid #039b36; ">
+  <form action="/admin/add-coupon" class="needs-validation" method="post" novalidate>
+  <div class="row p-4">
+
+    <div class="col-12 col-md-4 d-flex mt-2">
+    <label for="code" class="mb-0 w-50" >Code</label>
+    <input type="text" class="form-control ms-2 " name="code" id="code" required>
+    </div>
+
+    <div class="col-12 col-md-4 d-flex mt-2">
+    <label for="couponType" class="mb-0 w-50">Coupon Type</label>
+    <input type="text" class="form-control ms-2" name="couponType" id="couponType" required>
+    </div>
+
+    <div class="col-12 col-md-4 d-flex mt-2">
+    <label for="description" class="mb-0 w-50">Description</label>
+    <input type="text" class="form-control ms-2" name="description" id="description" required>
+    </div>
+
+    <div class="col-12 col-md-4 d-flex mt-2">
+    <label for="maxDiscount" class="mb-0 w-50">Max Discount</label>
+    <input type="number" class="form-control ms-2" name="maxDiscount" id="maxDiscount" required>
+    </div>
+
+    <div class="col-12 col-md-4 d-flex mt-2">
+    <label for="limit" class="mb-0 w-50">Limit</label>
+    <input type="number" class="form-control ms-2" name="limit" id="limit" required>
+    </div>
+
+    <div class="col-12 col-md-4 d-flex mt-2">
+    <label for="minOrderValue" class="mb-0 w-50">Min Order Value</label>
+    <input type="number" class="form-control ms-2" name="minOrderValue" id="minOrderValue" required>
+    </div>
+
+    <div class="col-12 col-md-4 d-flex mt-2">
+    <label for="discount" class="mb-0 w-50">Discount</label>
+    <input type="number" class="form-control ms-2" name="discount" id="discount" required>
+    </div>
+
+    <div class="col-12 col-md-4 d-flex mt-2">
+    <label for="expiryDate" class="mb-0 w-50">Expiry Date</label>
+    <input type="date"  class="form-control ms-2" name="expiryDate" id="bestBefore" required>
+    </div>
+
+  </div>
+
+  <div class="d-flex">
+  <button type="submit" class="btn btn-success mb-3 mx-auto">
+    Save
+  </button>
+  </div>
+
+    </form>
+</div>
+
+
+{{!-- Modal (Coupon Help) --}}
+<!-- Button trigger modal -->
+{{!-- <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#helpModal">
+  Launch demo modal
+</button> --}}
+
+<!-- Modal -->
+<div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Coupon Help</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Help needed for adding new Coupons</p>
+        <div>
+          <h6 style="text-decoration: underline; text-decoration-color: #039b36;">Code</h6>
+            <p>
+             It should be Unique, Mainly Consist of Letters and Numbers. For example "COUPON30"
+            </p>
+          <h6 style="text-decoration: underline; text-decoration-color: #039b36;">Coupon Type</h6>
+            <p>
+             It specify which kind of coupon is this. For example "New User Join" that means the coupon is only for the new user 
+            </p>
+          <h6 style="text-decoration: underline; text-decoration-color: #039b36;">Description</h6>
+            <p>
+             Brief text about the coupon. For example "20% off on the first order"
+            </p>
+          <h6 style="text-decoration: underline; text-decoration-color: #039b36;">Max Discount</h6>
+            <p>
+             For example if the coupon has 20% off, then the user total purchase is 100, 
+             which means the user can deduct 20 rupees from the actual total price and 
+             if user total is 200 the user can deduct 40 and so on. and we dont want that to happen
+            we need a Fixed amount that is maximum amount deducted from the Coupon.
+            </p>
+          <h6 style="text-decoration: underline; text-decoration-color: #039b36;">Min Order Value</h6>
+            <p>
+              The coupon can only be used if the order exceed Min order value. 
+              For example if the minimum order value is 100 then the coupon 
+              can only be used if the total purchase is 100 or more.
+            </p>
+          <h6 style="text-decoration: underline; text-decoration-color: #039b36;">Discount</h6>
+            <p>
+               The "Discount" specifies the percentage off that the coupon provides. 
+               For example, a discount of 20% means that the coupon will reduce the purchase price by 20%.
+            </p>
+          <h6 style="text-decoration: underline; text-decoration-color: #039b36;">Limit</h6>
+            <p>
+              Maximum number of times the coupon can be used by the user. 
+              For example , if the Limit is 2, then the user can only use the same coupon 2 times
+            </p>
+        </div>
+      </div>
+     
+    </div>
+  </div>
+</div>
+
+{{!-- Coupon Error Messages --}}
+{{#if errMsg}}
+<div class="d-none">
+  <input type="text" id="errMessage" value="{{errMsg}}">
+</div>
+{{/if}}
+
+{{!-- Coupon Success Messages --}}
+{{#if successMsg}}
+<div class="d-none">
+  <input type="text" id="successMessage" value="{{successMsg}}">
+</div>
+{{/if}}
+
+
+<script src="/javaScript/addCoupons.js"></script>
+<script>
+
+  // Err Messgaes viewing
+  const errMessage = document.querySelector('#errMessage')
+  const successMessage = document.querySelector('#successMessage')
+
+  if(errMessage) {
+    Swal.fire(errMessage.value)
+  }
+
+  if(successMessage) {
+    Swal.fire(successMessage.value)
+  }
+
+  // Delete Coupon
+  function deleteCoupon(couponID, element) {
+    console.log(element)
+    Swal.fire({
+      title: `Are you sure?`,
+      text: `You won't be able to revert this!`,
+      icon: `warning`,
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    }).then( result => {
+      if(result.isConfirmed) {
+        // AJAX 
+        $.ajax({
+          url: `/admin/delete-coupon/${couponID}`,
+          method: 'DELETE',
+          success: response => {
+            if(response.status) {
+              // Toastify message 
+              Toastify({
+                      text: response.message,
+                      duration: 3000,
+                      close: true,
+                      gravity: "bottom", 
+                      position: "right",
+                      style: {
+                          background: "black",
+                          color: "white",
+                          borderRadius: "10px"
+                      }
+                  }).showToast();
+
+                  if(element) {
+                    $(element).remove()
+                  }
+            } else {
+              window.location.href = response.redirected
+            }
+          }
+        })
+        
+
+      }
+    })
+  }
+
+
+</script>

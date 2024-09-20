@@ -75,7 +75,7 @@ const ProductSchema = new Schema({
 })
 
 
-const ProductData = model('product', ProductSchema)
+const ProductData = model('Product', ProductSchema)
 
 module.exports = {
     ProductData

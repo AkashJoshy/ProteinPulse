@@ -3,7 +3,7 @@ const {Schema, model} = require('mongoose')
 const OtpSchema = new Schema({
     userID: {
         type: Schema.ObjectId,
-        ref: 'user',
+        ref: 'User',
         required: true
     },
     otp: {
@@ -17,7 +17,7 @@ const OtpSchema = new Schema({
 },{ timestamps: true })
 
 
-const OtpData = model('userOtp', OtpSchema)
+const OtpData = model('UserOtp', OtpSchema)
 
 
 module.exports = { 
