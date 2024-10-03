@@ -299,57 +299,61 @@
 
         {{!-- <div id="order-management"> --}}
 
-        {{#if (isCancelled order.status)}}
-        <div class="col-md-1">
-            <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
-                <div class="invoice">
-                    <div class="btn text-light" style="background-color: #F46F36; border: 1px solid white;">Invoice
+            {{#if (isCancelled order.status)}}
+            <div class="col-md-1">
+                <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
+                    <div class="invoice">
+                        <div class="btn text-light" style="background-color: #F46F36; border: 1px solid white;">Invoice
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        {{else}}
-        {{#if (isDelivered order.status)}}
-        <div class="col-md-1">
-            <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
-                <div class="invoice">
-                    <div class="btn text-light" style="background-color: #F46F36; border: 1px solid white;">Invoice
+            {{else}}
+            {{#if (isDelivered order.status)}}
+            <div class="col-md-1">
+                <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
+                    <div class="invoice">
+                        <div class="btn text-light" style="background-color: #F46F36; border: 1px solid white;">Invoice
+                        </div>
+                        <div class="return">
+                            <div class="btn text-light"
+                                style="background-color: rgb(35, 196, 35); border: 1px solid white;">Return</div>
+                        </div>
                     </div>
+                </div>
+            </div>
+            {{/if}}
+
+            {{#if (isReturned order.status)}}
+            <div class="col-md-1">
+                <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
                     <div class="return">
                         <div class="btn text-light"
-                           style="background-color: rgb(35, 196, 35); border: 1px solid white;">Return</div>
+                            style="background-color: rgb(35, 196, 35); border: 1px solid white;">
+                            Return</div>
                     </div>
                 </div>
             </div>
-        </div>
-        {{/if}}
+            {{/if}}
 
-        {{#if (isReturned order.status)}}
-        <div class="col-md-1">
-            <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
-                <div class="return">
-                    <div class="btn text-light" style="background-color: rgb(35, 196, 35); border: 1px solid white;">
-                        Return</div>
+            {{!-- <div> --}}
+                <div class="col-md-1" id="order-cancel">
+                    <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
+                        <div class="cancel" onclick="myOrderUpdate('{{order._id}}', 'Cancelled', 'cancel-order')">
+                            <div class="btn text-light" style="background-color: black; border: 1px solid white;">Cancel
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        {{/if}}
 
-        {{!-- <div> --}}
-        <div class="col-md-1" id="order-cancel">
-            <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
-                <div class="cancel" onclick="myOrderUpdate('{{order._id}}', 'Cancelled', 'cancel-order')">
-                    <div class="btn text-light" style="background-color: black; border: 1px solid white;">Cancel</div>
-                </div>
-            </div>
-        </div>
-
-        {{!-- </div> --}}
+                {{!--
+            </div> --}}
 
 
-        {{/if}}
+            {{/if}}
 
-        {{!-- </div> --}}
+            {{!--
+        </div> --}}
 
 
     </div>
@@ -465,7 +469,7 @@
                             `
                                 }
 
-                            html += `
+                                html += `
                             <div class="d-flex">
                             ${statusOption}
                             <div class="mt-2 px-2">
@@ -477,10 +481,10 @@
                             })
 
                             document.querySelector('#order-activities').innerHTML = html
-                            
+
                             // If the Order is Cancelled
-                            if(response.isOrderCancelled) {
-                            document.querySelector('#order-cancel').innerHTML = `
+                            if (response.isOrderCancelled) {
+                                document.querySelector('#order-cancel').innerHTML = `
                             <div class="col-md-1">
                             <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
                                 <div class="invoice">
@@ -492,7 +496,7 @@
                             `
                             }
 
-                            if(element) {
+                            if (element) {
                                 $(element).remove()
                             }
 

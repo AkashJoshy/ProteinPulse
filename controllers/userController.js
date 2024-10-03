@@ -8,16 +8,21 @@ const { CartData } = require("../models/cartDB");
 const { ProductFeedback } = require("../models/productFeedbackDB");
 const { AddressData } = require("../models/AddressDB");
 const { OrderData } = require("../models/OrderDB");
+const { OfferData } = require('../models/OfferDB')
+const { WalletData } = require('../models/WalletDB')
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const moment = require("moment");
+const { createHmac } = require("crypto");
 const { CouponData } = require("../models/CouponDB");
-const { v4: uuidv4 } = require('uuid')
-let generateOrderNumber = require('../utils/generateUniqueOrderNumberHelper')
-let generateReferralCode = require('../utils/generateReferralCodeHelper')
-let instance = require('../config/razorpay')
+const { v4: uuidv4 } = require("uuid");
+let generateOrderNumber = require("../utils/generateUniqueOrderNumberHelper");
+let generateReferralCode = require("../utils/generateReferralCodeHelper");
+let generateTransactionID = require("../utils/generateUniqueTransactionIDHelper");
+let instance = require("../config/razorpay");
+const { off } = require("process");
 require("dotenv").config();
 
 // Company Info
@@ -25,6 +30,9 @@ const email = process.env.COMPANY_GMAIL;
 const password = process.env.COMPANY_PASS;
 const transporterHost = process.env.TRANSPORTER_HOST;
 const transporterPort = process.env.TRANSPORTER_PORT;
+
+// Razorpay
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
 
 // Port Number
 const port = process.env.PORT || 4000;
@@ -274,26 +282,23 @@ const signup = asyncHandler(async (req, res) => {
 
 // User Sign Up
 const doSignup = asyncHandler(async (req, res, next) => {
-  const { firstName, lastName, email, password, mobileNumber, referralCode } = req.body;
+  const { firstName, lastName, email, password, mobileNumber, referralCode } =
+    req.body;
   let existedUser = await UserData.findOne({ email: email });
   console.log(existedUser);
-  let referredBy
 
-  console.log(referralCode)
-  if(referralCode) {
-    let existingUser = await UserData.findOne({ referralCode: referralCode })
-
-    if(!existingUser) {
-      const error = new Error("Referal Code is Invalid");
-      const redirectPath = "/login";
-      return next({ error, redirectPath });
-    }
-
-    referredBy = existingUser._id
-    let referredUser = await UserData.findById({ _id: referredBy })
-
-  //  console.log(referredUser)
+  console.log(referralCode);
+  let referredUser
+  if (referralCode) {
+    referredUser = await UserData.findOne({ referralCode: referralCode });
   }
+  if (referralCode && !referredUser) {
+    const error = new Error("Referal Code is Invalid");
+    const redirectPath = "/login";
+    return next({ error, redirectPath });
+  }
+
+
   // If the User is already an Existing User
   if (existedUser) {
     const error = new Error("User is Already existed");
@@ -301,10 +306,15 @@ const doSignup = asyncHandler(async (req, res, next) => {
     return next({ error, redirectPath });
   } else {
     // if the User is new to Protein Pulze Plaza(PZ)
+    let referredBy
+    if (referredUser) {
+      referredBy = referredUser._id
+    }
+    let walletBalance = referredUser ? 50 : 0
     // Password Hashing for Security purpose
     const hashedPassword = await bcrypt.hash(password, 10);
-    const codeReferral = await generateReferralCode()
-    console.log(`codeReferral: ${codeReferral}`)
+    const codeReferral = await generateReferralCode();
+    console.log(`codeReferral: ${codeReferral}`);
     const user = await UserData.create({
       firstName,
       lastName,
@@ -312,8 +322,44 @@ const doSignup = asyncHandler(async (req, res, next) => {
       password: hashedPassword,
       mobileNumber,
       referralCode: codeReferral,
-      referredBy: referralCode ? referredBy : ''
+      referredBy: referralCode ? referredBy : "",
     });
+
+    // Create Wallet for the New User
+    let newUserTransactionID = await generateTransactionID(referredBy)
+    await WalletData.create({
+      userID: user._id,
+      balance: walletBalance,
+      transactions: [{
+        amount: walletBalance,
+        transactionID: newUserTransactionID,
+        transactionType: 'referral',
+        paymentType: 'Referral',
+        description: 'The Refferal amount credited',
+        status: 'Success',
+      }]
+    })
+
+    // Give thhe reffered money to user
+    let transactionID = await generateTransactionID(referredBy)
+    await WalletData.findOneAndUpdate(
+      { userID: referredBy },
+      {
+        $inc: { balance: walletBalance },
+        $push:
+        {
+          transactions: {
+            amount: walletBalance,
+            transactionID: transactionID,
+            transactionType: 'referral',
+            paymentType: 'Referral',
+            description: 'The Refferal amount credited',
+            status: 'Success',
+          }
+        }
+      }
+    )
+
     // also, sending an mail to the user for verifying the user is the same or real
     await verifyEmail(user._id);
     req.session.loginMessage =
@@ -543,11 +589,49 @@ const products = asyncHandler(async (req, res) => {
   const user = await UserData.findById({ _id: userID }).lean();
   // Removing Out of Stock Proucts which is the quantities will be Zero
   const products = await ProductData.find({ quantities: { $gt: 0 } }).lean();
+  const updatedProducts = await Promise.all(
+    products.map(async (prod) => {
+      let productOffer = await OfferData.findOne({ productID: prod._id, isActive: true })
+      let category = await CategoryData.findOne({ name: prod.categoryName })
+      let categoryOffer = await OfferData.findOne({ categoryID: category._id, isActive: true })
+
+      let productDiscount = 0
+      let categoryDiscount = 0
+
+      // Checking Product Offer
+      if (productOffer) {
+        productDiscount = productOffer.discount
+        prod.salePrice = prod.price - productDiscount
+        prod.offer = productOffer.discountPercentage
+      } else {
+        prod.salePrice = prod.price
+        prod.offer = 0
+      }
+
+      // Checking Category Offers
+      if (categoryOffer) {
+        let categoryDiscount = (categoryOffer.discountPercentage * prod.price) / 100
+        let bestDiscount = Math.max(categoryDiscount, productDiscount)
+        bestDiscount = Math.round(bestDiscount)
+        prod.salePrice = prod.price - bestDiscount
+        // Checks if the Category Discount is higher
+        if (categoryDiscount > productDiscount) {
+          prod.offer = categoryOffer.discountPercentage
+        }
+      }
+
+      // Update Product Price
+      await ProductData.findByIdAndUpdate({ _id: prod._id },
+        { $set: { salePrice: prod.salePrice, offer: prod.offer } },
+        { new: true })
+      return { ...prod }
+    })
+  )
   return res.render("user/view-products", {
     auth: true,
     isDashboard: true,
     user,
-    products,
+    updatedProducts,
   });
 });
 
@@ -583,9 +667,13 @@ const dashboard = asyncHandler(async (req, res) => {
           },
           totalOrders: {
             $sum: {
-              $cond: [ {$in: [ "$status", ['Cancelled', 'Returned', 'Refunded'] ] }, 0, 1 ]
-            }
-          }
+              $cond: [
+                { $in: ["$status", ["Cancelled", "Returned", "Refunded"]] },
+                0,
+                1,
+              ],
+            },
+          },
         },
       },
     ]);
@@ -622,7 +710,7 @@ const dashboard = asyncHandler(async (req, res) => {
     }
 
     // User Order Details
-    totalOrders = orders == null ? 0 : userOrdersDetails[0].totalOrders
+    totalOrders = orders == null ? 0 : userOrdersDetails[0].totalOrders;
     pendingOrders = orders == null ? 0 : userOrdersDetails[0].pendingOrders;
     completedOrders = orders == null ? 0 : userOrdersDetails[0].completedOrders;
 
@@ -1128,10 +1216,10 @@ const cancelOrder = asyncHandler(async (req, res) => {
     }
     const { orderID, orderUpdate } = req.body;
     const userID = req.session.user._id;
-    const totalPrice = 0
-    
+    const totalPrice = 0;
+
     const order = await OrderData.findById({ _id: orderID });
-    
+
     // Order Stock management
     for (const prod of order.products) {
       let quantity = Number(prod.quantity);
@@ -1139,7 +1227,7 @@ const cancelOrder = asyncHandler(async (req, res) => {
         $inc: { quantities: quantity },
       });
     }
-    
+
     // changing order status to cancelled
     await OrderData.findByIdAndUpdate(
       { _id: orderID },
@@ -1153,63 +1241,102 @@ const cancelOrder = asyncHandler(async (req, res) => {
   }
 });
 
-
 // Cancel Product(single product in the Order)
-const cancelProduct = asyncHandler(async(req, res, next) => {
-  if(!req.session.user) {
+const cancelProduct = asyncHandler(async (req, res, next) => {
+  if (!req.session.user) {
     return res.json({ status: false, redirected: "/login" });
   }
 
-  let totalPrice = 0
-  let originalPrice = 0
-  let deliveryFee = 0
-  const userID = req.session.user._id
-  let isOrderCancelled = false
-  const { orderID, productID } = req.body
-  let order = await OrderData.findById({ _id: orderID })
+  let totalPrice = 0;
+  let originalPrice = 0;
+  let deliveryFee = 0;
+  const userID = req.session.user._id;
+  let isOrderCancelled = false;
+  const { orderID, productID } = req.body;
+  let order = await OrderData.findById({ _id: orderID });
 
-  if(!order) {
-    return res.json({ status: false, message: `No order found` })
+  if (!order) {
+    return res.json({ status: false, message: `No order found` });
   }
 
   // cheking whether the product is in the Order
   let orderProduct = await Promise.all(
-    order.products.filter(prod => {
-      if(prod.productID.toString() === productID) {
-        return prod
+    order.products.filter((prod) => {
+      if (prod.productID.toString() === productID) {
+        return prod;
       }
-    } )
-  )
+    })
+  );
 
   // If there is no product found
-  if(!orderProduct) {
-    return res.json({ status: false, message: `No product found!..` })
-  }
-  
-  // Findind the order and update the status
-  let updatedOrder = await OrderData.findOneAndUpdate({ _id: orderID, 'products.productID': productID }, 
-    { $set: { 'products.$.status': 'Cancelled', deliveryFee: deliveryFee } },
-    { new: true }
-  ) 
-  
-  if(!updatedOrder) {
-    return res.json({ status: false, message: `No product found!..` })
+  if (!orderProduct) {
+    return res.json({ status: false, message: `No product found!..` });
   }
 
-  let cancelledProduct = updatedOrder.products.filter(prod => prod.productID.toString() === productID)
-  let productStatus = cancelledProduct[0].status
+  // Findind the order and update the status
+  let updatedOrder = await OrderData.findOneAndUpdate(
+    { _id: orderID, "products.productID": productID },
+    { $set: { "products.$.status": "Cancelled", deliveryFee: deliveryFee } },
+    { new: true }
+  );
+
+  if (!updatedOrder) {
+    return res.json({ status: false, message: `No product found!..` });
+  }
+
+  let walletAmount
+  if (updatedOrder.paymentMethod == 'Razorpay' || updatedOrder.paymentMethod == 'myWallet') {
+    walletAmount = updatedOrder.totalSalePrice
+    let paymentType = updatedOrder.paymentMethod
+    const transactionID = await generateTransactionID(userID)
+    walletAmount = updatedOrder.totalSalePrice
+    walletAmount = Number(walletAmount)
+    const wallet = await WalletData.findOneAndUpdate(
+      { userID: userID },
+      {
+        $inc: { balance: walletAmount },
+        $push:
+        {
+          transactions:
+          {
+            transactionID,
+            amount: walletAmount,
+            transactionType: 'credit',
+            paymentType: paymentType,
+            description: "The amount has been credited for the product cancellation.",
+            status: "Success"
+          }
+        }
+      }
+    )
+  }
+
+  let cancelledProduct = updatedOrder.products.filter(
+    (prod) => prod.productID.toString() === productID
+  );
+  let productStatus = cancelledProduct[0].status;
 
   // If all the products are cancelled, we should make the order canncel too and also provide the cancel message too
-  let isOrderCancel = updatedOrder.products.every(prod => prod.status === 'Cancelled')
+  let isOrderCancel = updatedOrder.products.every(
+    (prod) => prod.status === "Cancelled"
+  );
 
-  if(isOrderCancel) {
-    order = await OrderData.findByIdAndUpdate({ _id: orderID }, 
-      { 
-        $set: { status: 'Cancelled' }, 
-        $push: { orderActivity: { orderStatus: 'Cancelled', message: 'Your order has been cancelled' } } 
-      }, { new: true })
+  if (isOrderCancel) {
+    order = await OrderData.findByIdAndUpdate(
+      { _id: orderID },
+      {
+        $set: { status: "Cancelled" },
+        $push: {
+          orderActivity: {
+            orderStatus: "Cancelled",
+            message: "Your order has been cancelled",
+          },
+        },
+      },
+      { new: true }
+    );
 
-      isOrderCancelled = true
+    isOrderCancelled = true;
   }
 
   // Recalculating order Total Price
@@ -1217,99 +1344,110 @@ const cancelProduct = asyncHandler(async(req, res, next) => {
     {
       $match: {
         _id: new mongoose.Types.ObjectId(orderID),
-        userID: new mongoose.Types.ObjectId(userID)
-      }
+        userID: new mongoose.Types.ObjectId(userID),
+      },
     },
     {
-      $unwind: '$products'
+      $unwind: "$products",
     },
     {
-      $match: { 
-        'products.status': { $ne: 'Cancelled' }
-      }
+      $match: {
+        "products.status": { $ne: "Cancelled" },
+      },
     },
     {
       $group: {
         _id: null,
-        originalPrice: { $sum: { $multiply: ['$products.quantity', '$products.price'] } },
-        totalPrice: { $sum: { $multiply: ['$products.quantity', '$products.salePrice'] } },
-        deliveryFee: { $first: '$deliveryFee' }
-      }
+        originalPrice: {
+          $sum: { $multiply: ["$products.quantity", "$products.price"] },
+        },
+        totalPrice: {
+          $sum: { $multiply: ["$products.quantity", "$products.salePrice"] },
+        },
+        deliveryFee: { $first: "$deliveryFee" },
+      },
     },
     {
-      $project: { 
+      $project: {
         _id: 0,
         originalPrice: 1,
         totalPrice: 1,
         deliveryFee: 1,
-      }
+      },
     },
-  ])
+  ]);
 
-  console.log(`orderTotal`)
-  console.log(orderTotal)
+  console.log(`orderTotal`);
+  console.log(orderTotal);
   originalPrice = (orderTotal[0] && orderTotal[0].originalPrice) || 0;
   totalPrice = (orderTotal[0] && orderTotal[0].totalPrice) || 0;
   deliveryFee = (orderTotal[0] && orderTotal[0].deliveryFee) || 0;
 
   // Delivery Charge
   deliveryFee = originalPrice >= 4500 ? 100 : 0;
-  totalPrice += deliveryFee
-  
+  totalPrice += deliveryFee;
 
   // Coupon Checking after Cancellation (Checking whether the coupon can be used after Deduction)
-  let isValidCoupon
-  let couponPrice = 0
+  let isValidCoupon;
+  let couponPrice = 0;
   let coupons = await Promise.all(
-    order.coupons.map(async(coupon) => {
-      isValidCoupon = await CouponData.findOne({ code: coupon.code })
-    //  if() Coupon Expiry
+    order.coupons.map(async (coupon) => {
+      isValidCoupon = await CouponData.findOne({ code: coupon.code });
+      //  if() Coupon Expiry
 
-    // cheking the coupon is valid to use
-      if(isValidCoupon) {
-        return originalPrice >= isValidCoupon.minOrderValue ? isValidCoupon : null
+      // cheking the coupon is valid to use
+      if (isValidCoupon) {
+        return originalPrice >= isValidCoupon.minOrderValue
+          ? isValidCoupon
+          : null;
       } else {
-        return null
+        return null;
       }
     })
-  )
+  );
 
-  coupons = coupons.filter(coupon => coupon !== null)
+  coupons = coupons.filter((coupon) => coupon !== null);
 
-  console.log(coupons)
+  console.log(coupons);
 
   couponPrice = !coupons
-          ? 0
-          : coupons.reduce((acc, coupon) => {
-              couponDiscount =
-                originalPrice >= coupon.maxDiscount
-                  ? coupon.maxDiscount
-                  : originalPrice * (1 - discountPercentage / 100);
-              return acc + couponDiscount;
-            }, 0);
-    
-        // then Deduct the Coupon price from Total Sale Price 
-        totalPrice -= couponPrice;
+    ? 0
+    : coupons.reduce((acc, coupon) => {
+      couponDiscount =
+        originalPrice >= coupon.maxDiscount
+          ? coupon.maxDiscount
+          : originalPrice * (1 - discountPercentage / 100);
+      return acc + couponDiscount;
+    }, 0);
 
-  console.log(couponPrice)
-  console.log(totalPrice)
+  // then Deduct the Coupon price from Total Sale Price
+  totalPrice -= couponPrice;
+
+  console.log(couponPrice);
+  console.log(totalPrice);
 
   // Product quantity in the User Order
-  let productQuantity = orderProduct[0].quantity
-
+  let productQuantity = orderProduct[0].quantity;
 
   // Now add the stock to corresponding Product
-  // await ProductData.findByIdAndUpdate({ _id: productID }, 
-  //   { $inc: { quantities: productQuantity } }
-  // )
-
-  // update the totalPrice of the Order
-  await OrderData.findByIdAndUpdate({ _id: orderID }, 
-    { $set: { totalPrice: totalPrice } }
+  await ProductData.findByIdAndUpdate({ _id: productID },
+    { $inc: { quantities: productQuantity } }
   )
 
-  return res.json({ status: true, productStatus, totalPrice, orderActivity: order.orderActivity, isOrderCancelled })
-})
+  // update the totalPrice of the Order
+  await OrderData.findByIdAndUpdate(
+    { _id: orderID },
+    { $set: { totalPrice: totalPrice } }
+  );
+
+  return res.json({
+    status: true,
+    productStatus,
+    totalPrice,
+    orderActivity: order.orderActivity,
+    isOrderCancelled,
+  });
+});
 
 // view categories
 const categories = asyncHandler(async (req, res) => {
@@ -1377,16 +1515,16 @@ const sortProducts = asyncHandler(async (req, res, next) => {
     sort == "lowToHigh"
       ? { price: 1 }
       : sort == "highToLow"
-      ? { price: -1 }
-      : sort == "ascending"
-      ? { name: 1 }
-      : sort == "descending"
-      ? { name: -1 }
-      : sort == "averageRating"
-      ? { rating: -1 }
-      : sort == "newArrivals"
-      ? { createdAt: -1 }
-      : {};
+        ? { price: -1 }
+        : sort == "ascending"
+          ? { name: 1 }
+          : sort == "descending"
+            ? { name: -1 }
+            : sort == "averageRating"
+              ? { rating: -1 }
+              : sort == "newArrivals"
+                ? { createdAt: -1 }
+                : {};
   // console.log(sortOpt);
 
   let products = await ProductData.find({}).sort(sortOpt).lean();
@@ -1459,16 +1597,16 @@ const productFilters = asyncHandler(async (req, res) => {
       sortType == "lowToHigh"
         ? { price: 1 }
         : sortType == "highToLow"
-        ? { price: -1 }
-        : sortType == "ascending"
-        ? { name: 1 }
-        : sortType == "descending"
-        ? { name: -1 }
-        : sortType == "averageRating"
-        ? { rating: -1 }
-        : sortType == "newArrivals"
-        ? { createdAt: -1 }
-        : {};
+          ? { price: -1 }
+          : sortType == "ascending"
+            ? { name: 1 }
+            : sortType == "descending"
+              ? { name: -1 }
+              : sortType == "averageRating"
+                ? { rating: -1 }
+                : sortType == "newArrivals"
+                  ? { createdAt: -1 }
+                  : {};
 
     // Finding product Availability
     let filters = {};
@@ -1679,29 +1817,29 @@ const myCart = asyncHandler(async (req, res) => {
     let deliveryCharge = 0;
     const userID = req.session.user._id;
     // Get Offer
-    const offers = await CouponData.find().lean();
+    const offers = await CouponData.find({ isActive: true }).lean();
     const user = await UserData.findById({ _id: userID }).lean();
 
     // check any offer has been applied by the user
-    let availableOffers
-    let validOffers
-    if(user.coupons.length <= 0) {
-      availableOffers = offers
+    let availableOffers;
+    let validOffers;
+    if (user.coupons.length <= 0) {
+      availableOffers = offers;
     } else {
       // if the offer has been applied by the user,
-      // then check the coupon limit 
-      availableOffers = offers.map(offer => {
-        validOffers = user.coupons.filter(coupon => {
-          if(offer._id.toString() === coupon.couponID.toString()) {
-            if(coupon.limit < offer.limit) {
-              return offer
+      // then check the coupon limit
+      availableOffers = offers.map((offer) => {
+        validOffers = user.coupons.filter((coupon) => {
+          if (offer._id.toString() === coupon.couponID.toString()) {
+            if (coupon.limit < offer.limit) {
+              return offer;
             }
           } else {
-            return offer
+            return offer;
           }
-        })
-        return validOffers
-      })
+        });
+        return validOffers;
+      });
     }
 
     // User Cart
@@ -1718,7 +1856,7 @@ const myCart = asyncHandler(async (req, res) => {
         totalDiscountAmount: 0,
         discountPrice: 0,
         deliveryCharge,
-        totalPrice
+        totalPrice,
       });
     }
 
@@ -1753,21 +1891,21 @@ const myCart = asyncHandler(async (req, res) => {
         totalDiscountAmount: 0,
         discountPrice: 0,
         deliveryCharge,
-        totalPrice
+        totalPrice,
       });
     }
 
     originalPrice = cartTotal[0].originalPrice;
     totalSalePrice = cartTotal[0].totalSalePrice;
     totalDiscountAmount = cartTotal[0].totalDiscountAmount;
-    
+
     // Price deducted from Original Price
-    discountPrice = originalPrice - totalSalePrice
+    discountPrice = originalPrice - totalSalePrice;
 
     // Discount Percentage (Price deducted from OG price)
     let discountPercentage = (discountPrice / originalPrice) * 100;
     discountPercentage = Math.trunc(discountPercentage);
-    
+
     // Delivery Charge
     deliveryCharge = originalPrice >= 4500 ? 100 : 0;
 
@@ -1776,69 +1914,69 @@ const myCart = asyncHandler(async (req, res) => {
     const productDetails = await CartData.find({})
       .populate("products.productID")
       .lean();
-    
+
     // If any Coupons has been applied by User
     //  console.log(typeof user.appliedCoupons)
-      if(user.appliedCoupons) {
-        let couponDiscountPercentage = 0
-        let coupons
-        let couponDiscount = 0;
-        let couponPrice = 0
-        console.log(`coupon Applyied`)
-        coupons = await Promise.all(
-          user.appliedCoupons.map(async (coupon) => {
-            if (coupon.cartID.toString() === cart._id.toString()) {
-              const existingCoupon = await CouponData.findById({
-                _id: coupon.couponID,
-              }).lean();
-              return { coupon, existingCoupon };
-            } else {
-              return null;
-            }
-          })
-        )
-        coupons = coupons.filter((coupon) => coupon !== null);
-        console.log(coupons);
+    if (user.appliedCoupons) {
+      let couponDiscountPercentage = 0;
+      let coupons;
+      let couponDiscount = 0;
+      let couponPrice = 0;
+      console.log(`coupon Applyied`);
+      coupons = await Promise.all(
+        user.appliedCoupons.map(async (coupon) => {
+          if (coupon.cartID.toString() === cart._id.toString()) {
+            const existingCoupon = await CouponData.findById({
+              _id: coupon.couponID,
+            }).lean();
+            return { coupon, existingCoupon };
+          } else {
+            return null;
+          }
+        })
+      );
+      coupons = coupons.filter((coupon) => coupon !== null);
+      console.log(coupons);
 
-        // Coupon Offer applying if the user has Apply any
-        couponPrice = !coupons
-          ? 0
-          : coupons.reduce((acc, coupon) => {
-              couponDiscount =
-                originalPrice >= coupon.existingCoupon.maxDiscount
-                  ? coupon.existingCoupon.maxDiscount
-                  : originalPrice * (1 - discountPercentage / 100);
-              return acc + couponDiscount;
-            }, 0);
-    
-        // then Deduct the Coupon price from Total Sale Price 
-        totalPrice -= couponPrice;
-        // Coupon Discount Percentage
-        couponDiscountPercentage = Math.trunc(
-          (couponPrice / originalPrice) * 100
-        );
-        res.render("user/view-my-cart", {
-          auth: true,
-          user: req.session.user,
-          cart,
-          userCart: cart.products,
-          products: productDetails[0].products,
-          originalPrice,
-          discountPercentage,
-          couponDiscountPercentage,
-          totalSalePrice,
-          discountPrice: discountPrice <= 0 ? 0 : -discountPrice,
-          totalPrice,
-          deliveryCharge,
-          offers,
-          coupons,
-          couponDiscountPrice: couponPrice <= 0 ? 0 : -couponPrice,
-          loginErr: req.session.errMessage,
-        });
-        
-        req.session.errMessage = false;
-        return
-      }
+      // Coupon Offer applying if the user has Apply any
+      couponPrice = !coupons
+        ? 0
+        : coupons.reduce((acc, coupon) => {
+          couponDiscount =
+            originalPrice >= coupon.existingCoupon.maxDiscount
+              ? coupon.existingCoupon.maxDiscount
+              : originalPrice * (1 - discountPercentage / 100);
+          return acc + couponDiscount;
+        }, 0);
+
+      // then Deduct the Coupon price from Total Sale Price
+      totalPrice -= couponPrice;
+      // Coupon Discount Percentage
+      couponDiscountPercentage = Math.trunc(
+        (couponPrice / originalPrice) * 100
+      );
+      res.render("user/view-my-cart", {
+        auth: true,
+        user: req.session.user,
+        cart,
+        userCart: cart.products,
+        products: productDetails[0].products,
+        originalPrice,
+        discountPercentage,
+        couponDiscountPercentage,
+        totalSalePrice,
+        discountPrice: discountPrice <= 0 ? 0 : -discountPrice,
+        totalPrice,
+        deliveryCharge,
+        offers,
+        coupons,
+        couponDiscountPrice: couponPrice <= 0 ? 0 : -couponPrice,
+        loginErr: req.session.errMessage,
+      });
+
+      req.session.errMessage = false;
+      return;
+    }
 
     res.render("user/view-my-cart", {
       auth: true,
@@ -1861,6 +1999,122 @@ const myCart = asyncHandler(async (req, res) => {
     console.error(error);
   }
 });
+
+
+// Add Amount to Wallet
+const addToWallet = asyncHandler(async (req, res, next) => {
+  if (!req.session.user) {
+    return res.json({ status: false, redirected: "/login" });
+  }
+  let { amount } = req.body
+  amount = Number(amount)
+  let userID = req.session.user._id
+  const user = await UserData.findById({ _id: userID }).lean()
+  let transactionID = await generateTransactionID(userID)
+  let userWallet = await WalletData.findOneAndUpdate(
+    { userID: userID, },
+    {
+      $push:
+      {
+        transactions: {
+          amount: amount,
+          transactionID: transactionID,
+          transactionType: 'credit',
+          paymentType: 'Razorpay',
+          description: 'Your wallet has been topped up'
+        }
+      }
+    }, { new: true })
+
+
+  // Razorpay instance creation
+  var options = {
+    amount: amount * 100, // amount in the smallest currency unit
+    currency: "INR",
+    receipt: transactionID,
+  };
+  let razorpayOrder = await instance.orders.create(options);
+
+  return res.json({ status: true, user, RAZORPAY_KEY_ID, order: razorpayOrder })
+})
+
+// Verify Wallet Top up using Razorpay
+const verifyWalletTopup = asyncHandler(async (req, res, next) => {
+  if (!req.session.user) {
+    return res.json({ status: false, redirected: "/login" });
+  }
+
+  let { razorpay, topUp } = req.body
+
+  console.log(topUp)
+  let topUpAmount = Number(topUp.amount)
+  topUpAmount = topUpAmount / 100
+  console.log(`Topup Amount: ${topUpAmount}`)
+  const userID = req.session.user._id
+  const user = await UserData.findById({ _id: userID })
+  const secretKey = process.env.RAZORPAY_SECRET_KEY;
+  if (!secretKey) {
+    return res.json({ success: false, message: "Internal server error" });
+  }
+
+  // hashing the razorpayOrderID and razorpayPaymentID with secretKey into SHA256
+  let hash = createHmac("sha256", secretKey).update(
+    razorpay.razorpay_order_id + "|" + razorpay.razorpay_payment_id
+  );
+
+  // then converting into hex
+  let generatedSignature = hash.digest("hex");
+
+  if (generatedSignature == razorpay.razorpay_signature) {
+    // Top-Up is Success
+    await WalletData.findOneAndUpdate(
+      { 'transactions.transactionID': topUp.receipt, userID: userID },
+      { $set: { 'transactions.$.status': "Success" }, $inc: { balance: topUpAmount } },
+      { new: true }
+    );
+
+    // Total Wallet Balance
+    let walletBalance = await WalletData.aggregate([
+      {
+        $match: { userID: new mongoose.Types.ObjectId(userID) }
+      },
+      {
+        $unwind: "$transactions"
+      },
+      {
+        $match: { "transactions.status": { $eq: "Success" } }
+      },
+      {
+        $group: {
+          _id: null,
+          creditTotal: {
+            $sum: { $cond: [{ $eq: ["$transactions.transactionType", "credit"] }, "$transactions.amount", 0] },
+          },
+          debitTotal: {
+            $sum: { $cond: [{ $eq: ["$transactions.transactionType", "debit"] }, "$transactions.amount", 0] },
+          }
+
+        }
+      }
+    ])
+
+    const totalBalance = walletBalance[0].creditTotal - walletBalance[0].debitTotal
+
+    return res.json({
+      status: true,
+      success: true,
+      totalBalance,
+      message: `Top-up successful`
+    })
+  } else {
+    return res.json({
+      status: true,
+      success: false,
+      message: `Top-up failed`
+    })
+  }
+
+})
 
 // Apply Coupon
 const applyCoupon = asyncHandler(async (req, res, next) => {
@@ -1981,12 +2235,12 @@ const applyCoupon = asyncHandler(async (req, res, next) => {
   let existingCouponPrice = !coupons
     ? 0
     : coupons.reduce((acc, coupon) => {
-        couponDiscount =
-          originalPrice >= coupon.existingCoupon.maxDiscount
-            ? coupon.existingCoupon.maxDiscount
-            : originalPrice * (1 - discountPercentage / 100);
-        return acc + couponDiscount;
-      }, 0);
+      couponDiscount =
+        originalPrice >= coupon.existingCoupon.maxDiscount
+          ? coupon.existingCoupon.maxDiscount
+          : originalPrice * (1 - discountPercentage / 100);
+      return acc + couponDiscount;
+    }, 0);
 
   let couponPrice =
     originalPrice >= isOfferexist.maxDiscount
@@ -2093,20 +2347,20 @@ const removeCoupon = asyncHandler(async (req, res, next) => {
   let existingCouponPrice = !coupons
     ? 0
     : coupons.reduce((acc, coupon) => {
-        couponDiscount =
-          originalPrice >= coupon.existingCoupon.maxDiscount
-            ? coupon.existingCoupon.maxDiscount
-            : originalPrice * (1 - discountPercentage / 100);
-        return acc + couponDiscount;
-      }, 0);
-      
-      // Price of the coupon to reduct from applied coupon price
-      let priceTodeduct =
-        originalPrice >= couponToRemove.maxDiscount
-          ? couponToRemove.maxDiscount
+      couponDiscount =
+        originalPrice >= coupon.existingCoupon.maxDiscount
+          ? coupon.existingCoupon.maxDiscount
           : originalPrice * (1 - discountPercentage / 100);
-    
-      console.log(priceTodeduct);
+      return acc + couponDiscount;
+    }, 0);
+
+  // Price of the coupon to reduct from applied coupon price
+  let priceTodeduct =
+    originalPrice >= couponToRemove.maxDiscount
+      ? couponToRemove.maxDiscount
+      : originalPrice * (1 - discountPercentage / 100);
+
+  console.log(priceTodeduct);
 
   let couponDiscountPrice = existingCouponPrice - priceTodeduct;
   totalSalePrice = totalSalePrice - couponDiscountPrice;
@@ -2115,7 +2369,6 @@ const removeCoupon = asyncHandler(async (req, res, next) => {
   let couponDiscountPercentage = Math.trunc(
     (couponDiscountPrice / originalPrice) * 100
   );
-
 
   // Delivery Charge
   deliveryCharge = originalPrice >= 3500 ? 100 : 0;
@@ -2129,19 +2382,23 @@ const removeCoupon = asyncHandler(async (req, res, next) => {
       "appliedCoupons.cartID": cart._id,
       "appliedCoupons.couponID": couponToRemove._id,
     },
-    { $pull: { appliedCoupons: { cartID: cart._id, couponID: couponToRemove._id } } }
+    {
+      $pull: {
+        appliedCoupons: { cartID: cart._id, couponID: couponToRemove._id },
+      },
+    }
   );
 
-  return res.json({ 
+  return res.json({
     status: true,
     isCoupon: true,
-    message: `coupon removed` ,
+    message: `coupon removed`,
     originalPrice,
     totalPrice,
     couponDiscountPrice,
     couponDiscountPercentage,
     discountPercentage,
-    discountAmount
+    discountAmount,
   });
 });
 
@@ -2281,21 +2538,21 @@ const updateCartProductQuantity = asyncHandler(async (req, res) => {
     originalPrice = cartTotal[0].originalPrice;
     totalSalePrice = cartTotal[0].totalSalePrice;
     totalDiscountAmount = cartTotal[0].totalDiscountAmount;
-  
+
     let deliveryCharge = 0;
-    discountPrice = originalPrice - totalSalePrice
+    discountPrice = originalPrice - totalSalePrice;
 
     // Coupon Offer applying
     let couponDiscount = 0;
     let couponPrice = !coupons
       ? 0
       : coupons.reduce((acc, coupon) => {
-          couponDiscount =
-            originalPrice >= coupon.existingCoupon.maxDiscount
-              ? coupon.existingCoupon.maxDiscount
-              : originalPrice * (1 - discountPercentage / 100);
-          return acc + couponDiscount;
-        }, 0);
+        couponDiscount =
+          originalPrice >= coupon.existingCoupon.maxDiscount
+            ? coupon.existingCoupon.maxDiscount
+            : originalPrice * (1 - discountPercentage / 100);
+        return acc + couponDiscount;
+      }, 0);
     totalSalePrice -= couponPrice;
 
     // Discount Percentage
@@ -2311,7 +2568,7 @@ const updateCartProductQuantity = asyncHandler(async (req, res) => {
 
     // Total Amount (includes delivery charge too)
     totalPrice = totalSalePrice + deliveryCharge;
-    console.log(`Discount Percentage: ${discountPercentage}`)
+    console.log(`Discount Percentage: ${discountPercentage}`);
 
     productQuantity = cart.products[cartProductIndex].quantity;
     return res.json({
@@ -2320,7 +2577,7 @@ const updateCartProductQuantity = asyncHandler(async (req, res) => {
       cartProductIndex,
       redirected: "/dashboard/my-cart",
       discountPercentage,
-      totalSalePrice, 
+      totalSalePrice,
       couponDiscountPercentage,
       discountPrice: discountPrice <= 0 ? 0 : -discountPrice,
       couponPrice: couponPrice <= 0 ? 0 : -couponPrice,
@@ -2339,7 +2596,7 @@ const orderPreCheckout = asyncHandler(async (req, res, next) => {
     if (!req.session.user) {
       return res.redirect("/login");
     }
-    console.log(req.body)
+    console.log(req.body);
     const userID = req.session.user._id;
     const cartID = req.body.cartID;
     let originalPrice = 0;
@@ -2373,16 +2630,18 @@ const orderPreCheckout = asyncHandler(async (req, res, next) => {
     let coupons = await Promise.all(
       user.appliedCoupons.map(async (coupon) => {
         if (coupon.cartID.toString() === cart._id.toString()) {
-          let appliedCoupons = await CouponData.findById({ _id: coupon.couponID }).lean()
-            return { appliedCoupons, coupon } 
+          let appliedCoupons = await CouponData.findById({
+            _id: coupon.couponID,
+          }).lean();
+          return { appliedCoupons, coupon };
         } else {
-          return null
+          return null;
         }
       })
-    )
+    );
 
-    coupons = coupons.filter(coupon => coupon !== null)
-    
+    coupons = coupons.filter((coupon) => coupon !== null);
+
     // Cart Amount Section
     let cartTotal = await CartData.aggregate([
       {
@@ -2413,39 +2672,40 @@ const orderPreCheckout = asyncHandler(async (req, res, next) => {
     originalPrice = cartTotal[0].originalPrice;
     totalSalePrice = cartTotal[0].totalSalePrice;
     totalDiscountPrice = cartTotal[0].totalDiscountPrice;
-    
+
     let taxPrice = 0;
-    let couponDiscountPercentage = 0
+    let couponDiscountPercentage = 0;
     let deliveryCharge = 0;
     let discountPrice = originalPrice - totalSalePrice;
-    console.log(`Saved price: ${discountPrice}`)
+    console.log(`Saved price: ${discountPrice}`);
     let discountPercentage = (discountPrice / originalPrice) * 100;
     discountPercentage = Math.trunc(discountPercentage);
-    
+
     // Coupon Discount Price
-    let discountAmount = 0
-    let couponPrice = !coupons 
-      ? 0 
-        : coupons.reduce((acc, currentValue) => {
-          discountAmount = originalPrice >= currentValue.appliedCoupons.maxDiscount 
+    let discountAmount = 0;
+    let couponPrice = !coupons
+      ? 0
+      : coupons.reduce((acc, currentValue) => {
+        discountAmount =
+          originalPrice >= currentValue.appliedCoupons.maxDiscount
             ? currentValue.appliedCoupons.maxDiscount
-             : originalPrice * (1 - discountPercentage / 100)
-             return acc + discountAmount
-        }, 0)
-        totalSalePrice -= couponPrice
-        couponDiscountPercentage = Math.trunc((couponPrice / originalPrice) * 100)
+            : originalPrice * (1 - discountPercentage / 100);
+        return acc + discountAmount;
+      }, 0);
+    totalSalePrice -= couponPrice;
+    couponDiscountPercentage = Math.trunc((couponPrice / originalPrice) * 100);
 
     // Delivery Charge
     deliveryCharge = originalPrice >= 4500 ? 100 : 0;
-    totalPrice = totalSalePrice + deliveryCharge
-        
+    totalPrice = totalSalePrice + deliveryCharge;
+
     // Tax amount calculation
     let taxAmount = totalPrice - totalDiscountPrice;
 
     // Tax rate calculation
     let taxRate = (taxAmount / totalDiscountPrice) * 100;
-    console.log(taxAmount, taxRate, totalPrice)
-  
+    console.log(taxAmount, taxRate, totalPrice);
+
     if (!address) {
       return res.render("user/view-checkout", {
         auth: true,
@@ -2466,6 +2726,9 @@ const orderPreCheckout = asyncHandler(async (req, res, next) => {
       });
     }
 
+    // Wallet Amount 
+    const wallet = await WalletData.findOne({ userID: userID }).lean()
+
     return res.render("user/view-checkout", {
       auth: true,
       products: cart.products,
@@ -2480,6 +2743,7 @@ const orderPreCheckout = asyncHandler(async (req, res, next) => {
       deliveryCharge,
       originalPrice,
       taxPrice,
+      wallet,
       cart,
       user,
       address,
@@ -2497,19 +2761,18 @@ const orderCheckout = asyncHandler(async (req, res) => {
     if (!req.session.user) {
       return res.redirect("/login");
     }
-    
-   return res.render("user/post-checkout-page", {});
+
+    return res.render("user/post-checkout-page", {});
   } catch (error) {
     console.error(error);
   }
 });
 
-
 // Order placing
 const placeOrder = asyncHandler(async (req, res) => {
   try {
     if (!req.session.user) {
-      return res.json({ status: false, redirected: '/login' })
+      return res.json({ status: false, redirected: "/login" });
     }
     // console.log(req.body)
     let {
@@ -2529,12 +2792,12 @@ const placeOrder = asyncHandler(async (req, res) => {
       cartID,
     } = req.body;
 
-    console.log(req.body)
-    console.log(shippingAddressID)
+    console.log(req.body);
+    console.log(shippingAddressID);
 
     const userID = req.session.user._id;
-    const user = await UserData.findById({ _id: userID }).lean()
-    let customer = user.firstName+' '+user.lastName
+    const user = await UserData.findById({ _id: userID }).lean();
+    let customer = user.firstName + " " + user.lastName;
 
     orderNotes = orderNotes == "" ? "Nill" : orderNotes;
     // converting to Numbers(zipcode and mobileNumber)
@@ -2544,6 +2807,7 @@ const placeOrder = asyncHandler(async (req, res) => {
     let originalPrice = 0;
     let totalSalePrice = 0;
     let totalPrice = 0;
+
 
     // Cart Total
     const cartTotal = await CartData.aggregate([
@@ -2582,9 +2846,9 @@ const placeOrder = asyncHandler(async (req, res) => {
     const cart = await CartData.findById({ _id: cartID });
 
     // Insert status for each products
-    let products =  cart.products.map(product => {
-      return { ...product, status: 'Pending' }
-    })
+    let products = cart.products.map((product) => {
+      return { ...product, status: "Pending" };
+    });
 
     // Checking if the user has applied any Coupons
     let coupons = await Promise.all(
@@ -2598,22 +2862,23 @@ const placeOrder = asyncHandler(async (req, res) => {
           return null;
         }
       })
-    )
+    );
 
-    coupons = coupons.filter(coupon => coupon !== null)
+    coupons = coupons.filter((coupon) => coupon !== null);
 
-    let appliedCoupons = coupons.map(coupon => {
-      let deductedPrice =  originalPrice >= coupon.existingCoupon.maxDiscount
-      ? coupon.existingCoupon.maxDiscount
-      : originalPrice * (1 - discountPercentage / 100);
-      return {code: coupon.existingCoupon.code, deductedPrice }
-    })
-    
-    console.log(appliedCoupons)
+    let appliedCoupons = coupons.map((coupon) => {
+      let deductedPrice =
+        originalPrice >= coupon.existingCoupon.maxDiscount
+          ? coupon.existingCoupon.maxDiscount
+          : originalPrice * (1 - discountPercentage / 100);
+      return { code: coupon.existingCoupon.code, deductedPrice };
+    });
+
+
 
     let couponPrice = !coupons
-    ? 0
-    : coupons.reduce((acc, coupon) => {
+      ? 0
+      : coupons.reduce((acc, coupon) => {
         couponDiscount =
           originalPrice >= coupon.existingCoupon.maxDiscount
             ? coupon.existingCoupon.maxDiscount
@@ -2621,66 +2886,68 @@ const placeOrder = asyncHandler(async (req, res) => {
         return acc + couponDiscount;
       }, 0);
 
-    // then Deduct the Coupon price from Total Sale Price 
-    totalPrice = totalSalePrice
+    // then Deduct the Coupon price from Total Sale Price
+    totalPrice = totalSalePrice;
     totalPrice -= couponPrice;
 
-  // Coupon Discount Percentage
-  let couponDiscountPercentage = Math.trunc(
-    (couponPrice / originalPrice) * 100
-  );
+    // Coupon Discount Percentage
+    let couponDiscountPercentage = Math.trunc(
+      (couponPrice / originalPrice) * 100
+    );
 
     // Tax Calculating
-  //  tax = orginalPrice >= 15000 ? 300 : 150;
+    //  tax = orginalPrice >= 15000 ? 300 : 150;
 
     // Delivery Charge
     deliveryFee = originalPrice >= 4500 ? 100 : 0;
 
     // Total Amount
-    totalPrice += deliveryFee
+    totalPrice += deliveryFee;
     console.log(totalPrice);
+
+    // checking whether it can be paid using Wallet
+    if (paymentMethod == 'myWallet') {
+      const wallet = await WalletData.findOne({ userID: userID })
+      if (wallet.balance < totalPrice) {
+        return res.json({ status: true, insuffient: true, message: `Wallet is Insuffient. Use Razorpay or COD` })
+      }
+    }
 
     // Order Details creation
     // Order Number Creation
-    let orderNumber = await generateOrderNumber()
-
-  //  Order Stock management
-    // for (const prod of cart.products) {
-    //   let quantity = -Number(prod.quantity);
-    //   await ProductData.findByIdAndUpdate(prod.productID, {
-    //     $inc: { quantities: quantity },
-    //   });
-    // }
+    let orderNumber = await generateOrderNumber();
 
     // Finding userAddress with UserID
     const userAddress = await AddressData.findOne({ userID }).lean();
-   
-    // Assign the address for the order in this variable 
-    let orderAddress
+
+    // Assign the address for the order in this variable
+    let orderAddress;
 
     // If the Address is selected into diff. address(here they all are shipped Address)
-    if(shippingAddressID) {
+    if (shippingAddressID) {
       const addressData = await AddressData.aggregate([
-            {
-              $match: { 
-                userID: new mongoose.Types.ObjectId(userID),
-              },
-            },
-            {
-              $unwind: "$shippingAddress",
-            },
-            {
-              $match: { 
-                'shippingAddress._id': new mongoose.Types.ObjectId(shippingAddressID)
-              }
-            },
-            {
-              $project: { shippingAddress: 1, userID: 1 },
-            },
-          ]);
+        {
+          $match: {
+            userID: new mongoose.Types.ObjectId(userID),
+          },
+        },
+        {
+          $unwind: "$shippingAddress",
+        },
+        {
+          $match: {
+            "shippingAddress._id": new mongoose.Types.ObjectId(
+              shippingAddressID
+            ),
+          },
+        },
+        {
+          $project: { shippingAddress: 1, userID: 1 },
+        },
+      ]);
 
-          orderAddress = addressData[0].shippingAddress
-    } else if(!userAddress) {
+      orderAddress = addressData[0].shippingAddress;
+    } else if (!userAddress) {
       orderAddress = {
         firstName,
         lastName,
@@ -2691,146 +2958,365 @@ const placeOrder = asyncHandler(async (req, res) => {
         city,
         zipcode,
         mobileNumber,
-      }
+      };
     } else {
       // If the User has Billing Address
-      
+
       orderAddress = {
         address: address || orderAddress.address,
         country: country || orderAddress.country,
         state: state || orderAddress.state,
         city: city || orderAddress.city,
         zipcode: zipcode || orderAddress.zipcode,
-        mobileNumber: mobileNumber || orderAddress.mobileNumber
+        mobileNumber: mobileNumber || orderAddress.mobileNumber,
       };
     }
+
+    // PaymentStatus
+    let paymentStatus = paymentMethod === "COD" ? "Unpaid" : (paymentMethod == 'Razorpay' ? "Pending" : "Paid")
 
     // Order Expected date
-    const deliveryDay = 7
-    let currentDate = new Date()
-    let expectedDate = moment(currentDate).add(deliveryDay , 'days').toDate()
+    const deliveryDay = 7;
+    let currentDate = new Date();
+    let expectedDate = moment(currentDate).add(deliveryDay, "days").toDate();
 
+    // Checking if the order is already existing
+    let existingOrder = await OrderData.findOne({ cartID });
 
-    // Order Creation
-    await OrderData.create({
-      orderNumber,
-      userID,
-      customer,
-      address: orderAddress,
-      paymentStatus: paymentMethod === "COD" ? "Unpaid" : "Pending",
-      paymentMethod,
-      totalPrice,
-      totalSalePrice,
-      orderNote: orderNotes,
-      deliveryFee,
-      discountPrice,
-      orderActivity: [
+    if (existingOrder) {
+      await OrderData.findByIdAndUpdate(
+        { _id: existingOrder._id },
         {
-          orderStatus: "Pending",
-          message: "Your order has been confirmed.",
-        },
-      ],
-      coupons: appliedCoupons,
-      products,
-      expectedDate
-    })
-
-    // Razorpay - Payment Method
-    if(paymentMethod == 'Razorpay') {
-      totalPrice = Number(totalPrice)
-      var options = {
-        amount: totalPrice * 100,  // amount in the smallest currency unit
-        currency: "INR",
-        receipt: orderNumber
-      };
-      let razorpayOrder = await instance.orders.create(options);
-      console.log(razorpayOrder)
-
-      // Razorpay Key_Id
-      const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID
-    
-      return res.json({ status: true, razorpayStatus: true, order: razorpayOrder, RAZORPAY_KEY_ID })
+          $set: {
+            orderNumber: orderNumber,
+            address: orderAddress,
+            totalPrice,
+            totalSalePrice,
+            deliveryFee,
+            discountPrice,
+            paymentStatus,
+            paymentMethod,
+            orderNote: orderNotes,
+            coupons: appliedCoupons,
+            products,
+            expectedDate
+          },
+        }
+      );
+    } else {
+      // Order Creation
+      const newOrder = await OrderData.create({
+        orderNumber,
+        userID,
+        cartID,
+        customer,
+        address: orderAddress,
+        paymentStatus,
+        paymentMethod,
+        totalPrice,
+        totalSalePrice,
+        orderNote: orderNotes,
+        deliveryFee,
+        discountPrice,
+        orderActivity: [
+          {
+            orderStatus: "Pending",
+            message: "Your order has been confirmed.",
+          },
+        ],
+        coupons: appliedCoupons,
+        products,
+        expectedDate,
+      });
     }
 
-  // await CartData.findByIdAndDelete({ _id: cartID });
-   return res.json({ status: true, codStatus: true, redirected: '/order-checkout' });
-  //  return res.render("user/post-checkout-page", {});
+
+    // Razorpay - Payment Method
+    if (paymentMethod == "Razorpay") {
+      totalPrice = Number(totalPrice);
+      var options = {
+        amount: totalPrice * 100, // amount in the smallest currency unit
+        currency: "INR",
+        receipt: orderNumber,
+      };
+      let razorpayOrder = await instance.orders.create(options);
+      console.log(razorpayOrder);
+
+      // Razorpay Key_Id
+
+
+      return res.json({
+        status: true,
+        razorpayStatus: true,
+        order: razorpayOrder,
+        RAZORPAY_KEY_ID,
+        user,
+      });
+    }
+
+    // Wallet Deduction (Payment Method is Wallet)
+    if (paymentMethod == 'myWallet') {
+      const transactionID = await generateTransactionID(userID)
+      let debitingAmount = -Number(totalPrice)
+      const wallet = await WalletData.findOneAndUpdate(
+        { userID: userID },
+        {
+          $inc: { balance: debitingAmount },
+          $push:
+          {
+            transactions:
+            {
+              transactionID,
+              amount: totalPrice,
+              transactionType: 'debit',
+              paymentType: 'Wallet',
+              description: "The amount has been debited for the order.",
+              status: "Success"
+            }
+          }
+        }
+      )
+
+    }
+
+    // After the Order is Successfully Created then,
+    // Order Stock management
+    // for (const prod of cart.products) {
+    //   let quantity = -Number(prod.quantity);
+    //   await ProductData.findByIdAndUpdate(prod.productID, {
+    //     $inc: { quantities: quantity },
+    //   });
+    // }
+
+    console.log(`appliedCoupons`);
+    console.log(appliedCoupons);
+
+    const couponsID = await Promise.all(
+      appliedCoupons.map(async (coupn) => {
+        return await CouponData.findOne({ code: coupn.code })
+      })
+    )
+
+    console.log(couponsID)
+
+    let userAppliedCoupons
+    if(couponsID.length > 0) {
+      userAppliedCoupons = await Promise.all(
+         couponsID.map(async (coupn) => {
+          await UserData.findByIdAndUpdate({ _id: userID }, 
+            { 
+              $push: { coupons: { couponID: coupn._id, limit: 1 } },
+              $pull: { appliedCoupons: { couponID: coupn._id} },
+             }
+          )
+        })
+      )
+    }
+
+    // let userAppliedCoupons
+    // if (couponsID.length > 0) {
+    //   userAppliedCoupons = await Promise.all(
+    //     couponsID.map(async (coupn) => {
+    //       let userCoupons = await UserData.findById({ _id: userID })
+    //       if (coupn._id.toString() === userCoupons.coupons.couponID.toString()) {
+    //         await UserData.findOneAndUpdate({ _id: userID, 'coupons.couponID': coupn._id },
+    //           {
+    //             $inc: { 'coupons.$.limit': 1 },
+    //             $pull: { appliedCoupons: { couponID: coupn._id } },
+    //           }
+    //         )
+    //       } else {
+    //         await UserData.findByIdAndUpdate({ _id: userID },
+    //           {
+    //             $push: { coupons: { couponID: coupn._id, limit: 1 } },
+    //             $pull: { appliedCoupons: { couponID: coupn._id } },
+    //           }
+    //         )
+    //       }
+    //     })
+    //   )
+    // }
+
+    // Deleting the cart after the is order is Successfully placed
+    await CartData.findByIdAndDelete({ _id: cartID });
+
+    return res.json({
+      status: true,
+      codStatus: true,
+      redirected: "/order-checkout",
+    });
+    //  return res.render("user/post-checkout-page", {});
   } catch (error) {
     console.error(error);
   }
 });
 
-
 // Order place - Razorpay
 const placeOrderRazorpay = asyncHandler(async (req, res, next) => {
-  if(!req.session.user) {
-    return res.json({ status: false, redirected: '/login' })
+  if (!req.session.user) {
+    return res.json({ status: false, redirected: "/login" });
   }
 
-  const cartID = req.body.cartID
-  const cart = await CartData.findById({ _id: cartID })
-  const userID = req.session.user._id
-  const user = await UserData.findById({ _id: userID })
+  const cartID = req.body.cartID;
+  const cart = await CartData.findById({ _id: cartID });
+  const userID = req.session.user._id;
+  const user = await UserData.findById({ _id: userID });
 
   // Cart Total
   const cartTotal = await CartData.aggregate([
     {
-      $match: { _id: new mongoose.Types.ObjectId(cartID) }
+      $match: { _id: new mongoose.Types.ObjectId(cartID) },
     },
     {
-      $unwind: "$products"
+      $unwind: "$products",
     },
     {
-      $group: { 
+      $group: {
         _id: null,
-        originalPrice: { $sum: { $multiply: ['$products.quantity', '$products.price'] } },
-        totalSalePrice: { $sum: { $multiply: ['$products.quantity', '$products.salePrice'] } }
-      }
-    }
-  ])
+        originalPrice: {
+          $sum: { $multiply: ["$products.quantity", "$products.price"] },
+        },
+        totalSalePrice: {
+          $sum: { $multiply: ["$products.quantity", "$products.salePrice"] },
+        },
+      },
+    },
+  ]);
 
   // Original Price
-  let originalPrice = cartTotal[0].originalPrice
-  let totalSalePrice = cartTotal[0].totalSalePrice
+  let originalPrice = cartTotal[0].originalPrice;
+  let totalSalePrice = cartTotal[0].totalSalePrice;
 
   // Create a Order Number
-  const orderNumber = await generateOrderNumber()
+  const orderNumber = await generateOrderNumber();
 
-  if(req.body.paymentMethod === 'Razorpay') {
+  if (req.body.paymentMethod === "Razorpay") {
     const razorpayInstance = await instance.orders.create({
       amount: totalSalePrice * 100,
       currency: "INR",
       receipt: orderNumber,
-    })
+    });
     // razorpayInstance.status = 'pending'
 
-    console.log(razorpayInstance)
-    const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID
+    console.log(razorpayInstance);
+    const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
 
-    return res.json({ status: true, order: razorpayInstance, RAZORPAY_KEY_ID })
+    return res.json({ status: true, order: razorpayInstance, RAZORPAY_KEY_ID });
   }
-
-})
-
+});
 
 // Verify payment (Razorpay)
-const verifyPaymentRazorpay = asyncHandler(async(req, res, next) => {
-  if(!req.session.user) {
-    return res.json({ status: false, redirected: '/login' })
+const verifyPaymentRazorpay = asyncHandler(async (req, res, next) => {
+  if (!req.session.user) {
+    return res.json({ status: false, redirected: "/login" });
   }
 
-  console.log(req.body)
-})
+  const { razorpay, order } = req.body;
+  console.log(razorpay, order);
 
+  const secretKey = process.env.RAZORPAY_SECRET_KEY;
+  if (!secretKey) {
+    return res.json({ success: false, message: "Internal server error" });
+  }
+
+  // hashing the razorpayOrderID and razorpayPaymentID with secretKey into SHA256
+  let hash = createHmac("sha256", secretKey).update(
+    razorpay.razorpay_order_id + "|" + razorpay.razorpay_payment_id
+  );
+
+  // then converting into hex
+  let generatedSignature = hash.digest("hex");
+
+  if (generatedSignature == razorpay.razorpay_signature) {
+    const orderDetails = await OrderData.findOneAndUpdate(
+      { orderNumber: order.receipt },
+      { $set: { paymentStatus: "Paid" } }
+    );
+
+    console.log(`Recept Number: ${order.receipt}`)
+    console.log(`orderDetails`)
+    console.log(orderDetails)
+
+    const cart = await CartData.findById({ _id: orderDetails.cartID })
+
+    // Order Stock management
+    for (const prod of cart.products) {
+      let quantity = -Number(prod.quantity);
+      await ProductData.findByIdAndUpdate(prod.productID, {
+        $inc: { quantities: quantity },
+      });
+    }
+
+    // Delete the Cart after successfully placed the Order
+    await CartData.findByIdAndDelete({ _id: cart._id })
+
+    return res.json({
+      status: true,
+      success: true,
+      redirected: "/order-checkout",
+    });
+  } else {
+    return res.json({
+      status: true,
+      success: false,
+      redirected: "/dashboard/my-cart",
+    });
+  }
+});
 
 // Wallet viewing
 const wallet = asyncHandler(async (req, res) => {
   if (!req.session.user) {
     return res.redirect("/login");
   }
+
+  const userID = req.session.user._id
+  let wallet = await WalletData.findOne({ userID: userID }).lean()
+  let walletTransactions
+  if (wallet.transactions.length <= 0) {
+    walletTransactions = null
+  } else {
+    walletTransactions = wallet.transactions.map(transaction => {
+      transaction.createdAt = moment(transaction.createdAt).format('Do MMMM YYYY')
+      transaction.statusColor = transaction.status == 'Pending' ? '#FF9800'
+        : (transaction.status == 'Success' ? '#388E3C' : '#F44336')
+      return transaction
+    })
+  }
+
+  // Total Wallet Balance
+  let walletBalance = await WalletData.aggregate([
+    {
+      $match: { userID: new mongoose.Types.ObjectId(userID) }
+    },
+    {
+      $unwind: "$transactions"
+    },
+    {
+      $match: { "transactions.status": { $eq: "Success" } }
+    },
+    {
+      $group: {
+        _id: null,
+        creditTotal: {
+          $sum: { $cond: [{ $eq: ["$transactions.transactionType", "credit"] }, "$transactions.amount", 0] },
+        },
+        debitTotal: {
+          $sum: { $cond: [{ $eq: ["$transactions.transactionType", "debit"] }, "$transactions.amount", 0] },
+        }
+
+      }
+    }
+  ])
+
+  const totalBalance = walletBalance[0].creditTotal - walletBalance[0].debitTotal
+
   return res.render("user/view-wallet", {
     auth: true,
     user: req.session.user,
+    wallet,
+    totalBalance,
+    walletTransactions
   });
 });
 
@@ -2885,11 +3371,11 @@ const updateWishlist = asyncHandler(async (req, res, next) => {
 });
 
 // Remove Wishlist Product
-const removeWishlistProduct = asyncHandler(async(req, res, next) => {
-  if(!req.session.user) {
+const removeWishlistProduct = asyncHandler(async (req, res, next) => {
+  if (!req.session.user) {
     return res.json({
       status: false,
-      redirected: "/login"
+      redirected: "/login",
     });
   }
 
@@ -2897,14 +3383,14 @@ const removeWishlistProduct = asyncHandler(async(req, res, next) => {
   let userID = req.session.user._id;
   const user = await UserData.findById({ _id: userID }).lean();
 
-  let removedProduct = await UserData.findOneAndUpdate({ _id: userID, 'wishlist.productID': productID }, 
+  let removedProduct = await UserData.findOneAndUpdate(
+    { _id: userID, "wishlist.productID": productID },
     { $pull: { wishlist: { productID: productID } } }
-  )
-//  console.log(removedProduct)
+  );
+  //  console.log(removedProduct)
 
-  return res.json({ status: true, message: `Product removed` })
-
-})
+  return res.json({ status: true, message: `Product removed` });
+});
 
 // Logout
 const logout = asyncHandler(async (req, res) => {
@@ -2966,6 +3452,8 @@ module.exports = {
   productReview,
   addToCart,
   myCart,
+  addToWallet,
+  verifyWalletTopup,
   applyCoupon,
   removeCoupon,
   deleteCartProduct,

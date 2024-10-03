@@ -1,91 +1,85 @@
- <div class="container">
-        <h1>Ecommerce Dashboard</h1>
-        <label for="period">Select Period:</label>
-        <select id="period">
-            <option value="day">Day</option>
-            <option value="week">Week</option>
-            <option value="month">Month</option>
-            <option value="year">Year</option>
-        </select>
-        <canvas id="salesChart"></canvas>
-    </div>
+<style>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script>
-        const ctx = document.getElementById('salesChart').getContext('2d');
-        const salesChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: [], // X-axis labels
-                datasets: [{
-                    label: 'Sales Amount',
-                    data: [], // Y-axis data
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `Amount: $${context.raw}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Date'
-                        },
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Sales Amount'
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return `$${value}`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
+    .ribbon {
+    /*
+    */
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100px;
+        height: 100px;
+        pointer-events: none;
+        overflow: hidden;
+    }
 
-        function fetchData(period) {
-            axios.get(`http://localhost:5000/api/sales?period=${period}`)
-                .then(response => {
-                    const data = response.data;
-                    const labels = data.map(item => item._id);
-                    const values = data.map(item => item.total);
-                    
-                    salesChart.data.labels = labels;
-                    salesChart.data.datasets[0].data = values;
-                    salesChart.update();
-                })
-                .catch(error => {
-                    console.error('Error fetching data:', error);
-                });
-        }
+    .ribbon span {
+        background-color: #F46F36;
+        position: absolute;
+        width: 150px;
+        display: block;
+        transform: rotate(-45deg);
+        top: 20px;
+        text-align: center;
+        font-weight: bold;
+        padding: 10px 0;
+        left: -30px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    }
 
-        document.getElementById('period').addEventListener('change', (event) => {
-            fetchData(event.target.value);
-        });
 
-        // Initial load
-        fetchData('day');
-    </script>
+</style>
+
+<div class="container mt-5 p-3">
+    <div class="card mb-3 shadow" style="border: none;">
+                        
+                        <div class="ribbon">
+                            <span>40% OFF</span>
+                        </div>
+                        
+                        <div class="row g-0 ">
+                            {{!-- <div class="col-md-3">
+                                <img src="/uploads/{{this.image}}" style="height: 8.5rem; width: 10.5rem;"
+                                    class="img-fluid rounded-start ms-3 ms-lg-4 mt-3" alt="cart-product-image">
+                            </div> --}}
+                            <div class="col-md-9">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <h5 class="card-title">
+                                            <span>{{this.productName}}</span>
+                                        </h5>
+                                        <a
+                                            onclick="deleteCartProduct(`{{this._id}}`, `{{this.productID}}`, `{{this.productName}}`)"><i
+                                                style="color: red;" class="fa-solid fa-trash"></i></a>
+                                    </div>
+                                    <p class="card-text lh-sm">Size:
+                                        <span>
+                                            {{this.size}}
+                                        </span>
+                                    </p>
+                                    <p class="card-text lh-1">Flavour:
+                                        <span>
+                                            {{this.flavour}}
+                                        </span>
+                                    </p>
+                                    <div class="d-flex justify-content-between">
+                                        <h5 class="">₹ {{this.salePrice}}
+                                            <span class="ms-2 text-decoration-line-through text-secondary opacity-75">₹
+                                                {{this.price}}</span>
+                                        </h5>
+
+                                        <div style=" color: #F46F36; cursor: pointer;"
+                                            class="shadow-lg py-1 rounded-2 p-2 bg-dark">
+                                            <i onclick="manageCartProductQuantity(`{{this.quantity}}`, 1, `{{this.productID}}`, `{{this._id}}`)"
+                                                class="fa-solid fa-plus px-2">
+                                            </i>
+                                            <span class="px-3 quantity-count">{{this.quantity}}</span>
+                                            <i onclick="manageCartProductQuantity(`{{this.quantity}}`, -1, `{{this.productID}}`, `{{this._id}}`)"
+                                                class="fa-solid fa-minus px-1">
+                                            </i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+</div>

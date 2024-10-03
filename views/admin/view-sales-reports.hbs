@@ -1,9 +1,22 @@
-<div class="mt-5 d-flex ms-auto">
+<style>
+  .orange {
+    background-color: #F46F36;
+  }
+
+  .lightColor {
+    background-color: #e23c36;
+  }
+</style>
+
+<div class="mt-5 d-block d-md-flex ms-auto">
   <div>
     <h3 class="ms-3 ms-md-5">Sales Reports</h3>
   </div>
-  <form class="needs-validation ms-4" novalidate>
-    <div class="d-flex ms-2 justify-content-end">
+</div>
+
+<div>
+  <form class="needs-validation ms-4 " novalidate>
+    <div class="d-block d-md-flex justify-content-end me-3">
       <div class="me-2">
         <label for="start-date">Start Date</label>
         <input type="date" id="start-date" class="form-control startDate" required>
@@ -13,7 +26,7 @@
         <input type="date" id="end-date" class="form-control endDate" required>
       </div>
       <div>
-        <button type="submit" class="btn btn-success mt-4">Generate Report</button>
+        <button type="submit" class="btn btn-success mt-2 mt-md-4">Generate Report</button>
       </div>
     </div>
   </form>
@@ -21,134 +34,190 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-9">
-  <table class="table mt-3">
-    <thead class="table-dark">
-      <tr>
-        <th scope="col">Order No</th>
-        <th scope="col">Customer Name</th>
-        <th scope="col">Total</th>
-        <th scope="col">Payment Method</th>
-        <th scope="col">Payment Status</th>
-        <th scope="col">Date</th>
-        <th scope="col">View</th>
-      </tr>
-    </thead>
-    <tbody id="salesTable">
-      <!-- Report data will be inserted here -->
-    </tbody>
-  </table>
+    <div class="col-12 col-md-9 table-responsive">
+      <table class="table mt-3">
+        <thead class="table-dark">
+          <tr>
+            <th scope="col">Order No</th>
+            <th scope="col">Customer Name</th>
+            <th scope="col">Total</th>
+            <th scope="col">Payment Method</th>
+            <th scope="col">Payment Status</th>
+            <th scope="col">Date</th>
+            <th scope="col">View</th>
+          </tr>
+        </thead>
+        <tbody id="salesTable">
+          <!-- Report data will be inserted here -->
+        </tbody>
+      </table>
 
     </div>
 
-    <div class="col-md-3">
-      <div class="rounded shadow p-2">
-        <h5 class="p-2 text-center">Transaction Details</h5>
+    <div class="col-md-3 d-flex d-md-block mt-3">
+      <div class="rounded shadow p-2 mx-auto">
+        <h5 class="p-2 text-center">Transaction Details
+          <hr style="border: none; height: 4px; background-color: grey;">
+        </h5>
         <div class="d-flex justify-content-around">
           <p>Total Price</p>
-          <p>₹ <span>3000</span>.00</p>
+          <p id="price-total">₹ <span id="total-price">0</span>.00</p>
         </div>
         <div class="d-flex justify-content-around">
           <p>Total Sales</p>
-          <p>65</p>
+          <p id="total-sales">0</p>
         </div>
         <div class="d-flex justify-content-around">
           <p>Total Coupon Price</p>
-          <p>₹ <span>3000</span>.00</p>
+          <p id="coupon-price">₹ <span id="total-coupon-price">0</span>.00</p>
         </div>
         <div class="d-flex justify-content-around">
           <p>Total Payment</p>
-          <p>₹ <span>3000</span>.00</p>
+          <p id="total-payment">₹ <span id="overall-total">0</span>.00</p>
         </div>
 
         <div class="d-flex mb-3 mt-3 ">
-        <button class="btn btn-success mx-auto report-download">
-          Download Report
-        </button>
+          <button onclick="generateReport()" class="btn btn-success mx-auto report-download"
+            style="display: none;">
+            Download Report
+          </button>
         </div>
       </div>
     </div>
   </div>
-  
+
 </div>
 
 <script>
-(() => {
-  "use strict";
+  // Starting Date && Ending Date
+  let startDate
+  let endDate
+  let reportDownload = document.querySelector('.report-download');
 
-  // Fetch all the forms we want to apply custom Bootstrap validation styles to
-  const forms = document.querySelectorAll(".needs-validation");
 
-  // Loop over them and prevent submission
-  Array.from(forms).forEach((form) => {
-    form.addEventListener(
-      "submit",
-      (event) => {
-        event.preventDefault(); // Prevent default form submission
-        if (!form.checkValidity()) {
-          form.classList.add("was-validated");
-          return; // Stop processing if the form is not valid
-        }
+  (() => {
+    "use strict";
 
-        let startDate = document.querySelector('.startDate').value;
-        let endDate = document.querySelector('.endDate').value;
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    const forms = document.querySelectorAll(".needs-validation");
 
-        console.log(`Start Date: ${startDate}`);
-        console.log(`End Date: ${endDate}`);
+    // Loop over them and prevent submission
+    Array.from(forms).forEach((form) => {
+      form.addEventListener(
+        "submit",
+        (event) => {
+          event.preventDefault(); // Prevent default form submission
+          if (!form.checkValidity()) {
+            form.classList.add("was-validated");
+            return; // Stop processing if the form is not valid
+          }
 
-        if (startDate && endDate) {
-          $.ajax({
-            url: `/admin/get-sales-reports?startDate=${startDate}&endDate=${endDate}`,
-            method: 'GET',
-            success: response => {
-              if (response.status) {
-                let orders = response.orders;
-                console.log(orders);
+          // Transaction Details Div's
+          let priceTotal = document.querySelector('#price-total');
+          let couponPrice = document.querySelector('#coupon-price');
+          let totalPayment = document.querySelector('#total-payment');
 
-                // Clear previous table data
-                let tableBody = document.querySelector('#salesTable');
-                tableBody.innerHTML = '';
-                let reportDownload = document.querySelector('.report-download');
+          // Transaction Details
+          let totalPrice = document.querySelector('#total-price');
+          let totalSales = document.querySelector('#total-sales');
+          let totalCouponPrice = document.querySelector('#total-coupon-price');
+          let overallTotal = document.querySelector('#overall-total');
 
-                if (orders.length === 0) {
-                  tableBody.innerHTML = '<tr><td colspan="7" style="font-size: 1.3rem;" class="text-center">No Sales Report Found...</td></tr>';
-                  reportDownload.style.display = "none"  
+          startDate = document.querySelector('.startDate').value;
+          endDate = document.querySelector('.endDate').value;
+
+          console.log(`Start Date: ${startDate}`);
+          console.log(`End Date: ${endDate}`);
+
+          if (startDate && endDate) {
+            $.ajax({
+              url: `/admin/get-sales-reports?startDate=${startDate}&endDate=${endDate}`,
+              method: 'GET',
+              success: response => {
+                if (response.status) {
+                  let orders = response.orders;
+
+                  // Clear previous table data
+                  let tableBody = document.querySelector('#salesTable');
+                  tableBody.innerHTML = '';
+
+                  if (orders.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="7" style="font-size: 1.3rem;" class="text-center">No Sales Report Found...</td></tr>';
+                    reportDownload.style.display = "none"
+                  } else {
+                    priceTotal.classList.add('lightColor', 'rounded-2', 'text-light', 'px-2')
+                    totalSales.classList.add('bg-info', 'bg-gradient', 'rounded-2', 'text-light', 'px-2')
+                    couponPrice.classList.add('bg-warning', 'rounded-2', 'text-light', 'px-2')
+                    totalPayment.classList.add('orange', 'rounded-2', 'text-light', 'px-2')
+                    totalPrice.innerHTML = response.totalPrice
+                    totalSales.innerHTML = response.totalSales
+                    totalCouponPrice.innerHTML = response.totalCouponPrice
+                    overallTotal.innerHTML = response.overallTotal
+                    let html = '';
+                    reportDownload.style.display = "block"
+                    orders.forEach((order, index) => {
+                      html += `
+                    <tr>
+                      <th scope="row">${order.orderNumber}</th>
+                      <td>${order.customer}</td>
+                      <td><span>₹</span>${order.totalSalePrice}<span>.00</span></td>
+                      <td class="text-center">${order.paymentMethod}</td>
+                      <td class="text-center">${order.paymentStatus}</td>
+                      <td>${order.createdAt}</td>
+                      <td>
+                        <a href="/admin/orders/view-details/${order._id}" style="text-decoration: none; color: #F46F36;">
+                          View Details <i class="fa-solid fa-up-right-from-square ms-1"></i>
+                        </a>
+                      </td>
+                    </tr>
+                  `;
+                    });
+                    tableBody.innerHTML = html;
+                  }
                 } else {
-                  let html = '';
-                  reportDownload.style.display = "block"  
-                  orders.forEach((order, index) => {
-                    html += `
-                      <tr>
-                        <th scope="row">${order.orderNumber}</th>
-                        <td>${order.customer}</td>
-                        <td><span>₹</span>${order.totalSalePrice}<span>.00</span></td>
-                        <td>${order.paymentMethod}</td>
-                        <td>${order.paymentStatus}</td>
-                        <td>${order.createdAt}</td>
-                        <td>
-                          <a href="/admin/orders/view-details/${order._id}" style="text-decoration: none; color: #F46F36;">
-                            View Details <i class="fa-solid fa-up-right-from-square ms-1"></i>
-                          </a>
-                        </td>
-                      </tr>
-                    `;
-                  });
-                  tableBody.innerHTML = html;
+                  window.location.href = response.redirected;
                 }
-              } else {
-                window.location.href = response.redirected;
+              },
+              error: (xhr, status, error) => {
+                console.error('Error fetching sales report:', error);
               }
-            },
-            error: (xhr, status, error) => {
-              console.error('Error fetching sales report:', error);
-            }
-          });
-        }
+            });
+          }
 
-        form.classList.add("was-validated");
-      },
-      false
-    );
-  });
-})();
+
+          form.classList.add("was-validated");
+        },
+        false
+      );
+    });
+  })();
+
+
+  // Generate Report Fn
+  function generateReport() {
+    startDate = document.querySelector('.startDate').value;
+    endDate = document.querySelector('.endDate').value;
+    if (startDate && endDate) {
+      $.ajax({
+        url: `/admin/download-sales-reports?startDate=${startDate}&endDate=${endDate}`,
+        method: 'GET',
+        success: response => {
+          if(response.status) {
+            startDate
+            endDate
+            let link = document.createElement('a')
+            link.href = `/reports/sales_report_${response.startDate}_to_${response.endDate}.pdf`
+            link.download = `/reports/sales_report_${response.startDate}_to_${response.endDate}.pdf`
+            link.click()
+          } else {
+            window.location.href = response.redirected
+          }
+        }
+      })
+    } else {
+      Swal.fire("Can't get Download Report without Starting Date")
+    }
+  }
+
+
 </script>

@@ -42,15 +42,17 @@ router.post("/login", userController.doLogin);
 router.post("/verify-otp", userController.otpVerify);
 router.post("/forgot-password", userController.checkEmailForPassword);
 router.post("/dashboard/address/add-address", userController.saveAddress);
+router.post("/address/update-address", userController.updateAddress)
 router.post("/update-password", userController.recoveredPassword);
 router.post("/product/review", userController.productReview);
 router.post("/order-pre-checkout", userController.orderPreCheckout)
 router.post("/place-order", userController.placeOrder)
+router.post("/dashboard/add-wallet-amount", userController.addToWallet);
 router.post("/verify-payment", userController.verifyPaymentRazorpay)
-router.post("/address/update-address", userController.updateAddress)
 
 // PUT REQUESTS
 router.put("/product/add-to-cart", userController.addToCart);
+router.put("/dashboard/verify-wallet-topup", userController.verifyWalletTopup);
 router.put("/dashboard/account-details/update-user-details", userController.updateUserDetails);
 router.put("/dashboard/account-details/change-profile-picture", userController.updateUserProfilePic);
 router.put("/dashboard/account-details/change-password", userController.changePassword);
@@ -59,6 +61,7 @@ router.put("/dashboard/orders/cancel-order", userController.cancelOrder);
 router.put("/dashboard/orders/cancel-product", userController.cancelProduct);
 router.put("/delete-cart-product", userController.deleteCartProduct);
 router.put("/update-cart-product-quantity", userController.updateCartProductQuantity)
+
 
 // PATCH REQUESTS
 router.patch("/product/wishlist/:productID", userController.updateWishlist)

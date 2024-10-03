@@ -72,7 +72,9 @@ app.engine('hbs', engine({
     helpers: {
         increment: value => value + 1,
         isStock: value => value <= 0,
+        isOffer: value => value > 0,
         isCart: value => value > 0 ? value : 0,
+        isActive: value => value === true,
         productCheck: value => value <= 1 ? "Product" : "Products",
         productTotal: (quantity, value) => quantity * value,
         stockWarning: quantity => quantity <= 3,
@@ -88,6 +90,7 @@ app.engine('hbs', engine({
         isorderStatusOutForDelivery: value => value == 'Out for Delivery' ? true : false,
         isorderStatusDelivery: value => value == 'Delivered' ? true : false,
         isorderStatusReturned: value => value == 'Returned' ? true : false,
+        isWalletEnough: (walletBalance, totalPrice) => walletBalance < totalPrice ,
         orderCount: products => products.reduce((acc, product) => {
            if(product.status !== 'Cancelled'){
             acc++
@@ -104,6 +107,7 @@ app.engine('hbs', engine({
         },
         paginationManipulation: (currentPage, inc) => {
             inc = Number(inc)
+            currentPage = Number(currentPage)
             return (currentPage + inc)
         }
     }

@@ -1,0 +1,214 @@
+<style>
+    .section {
+        margin: 20px 0;
+        background: white;
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+        margin-bottom: 10px;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+    }
+
+    input,
+    select,
+    button {
+        padding: 10px;
+        margin: 5px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    button {
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+</style>
+
+
+<div class="mt-5">
+    <h3 class="ms-3 ms-md-5">Offers</h3>
+</div>
+
+<div class="px-1 mx-4 table-responsive shadow-lg rounded">
+  <table class="table mt-3">
+    <thead class="table-dark ">
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Type</th>
+        <th scope="col">Percentage</th>
+        <th scope="col">Discount</th>
+        <th scope="col">Starting Date</th>
+        <th scope="col">Expiry Date</th>
+        <th scope="col">Delete</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#if offers}}
+        {{#each offers}}
+        <tr>
+            <th> {{this.name}} </th>
+            <td> {{this.offerType}} </td>
+            <td style="padding-left: 35px;" > {{this.discountPercentage}}% </td>
+            <td> {{this.discount}} </td>
+            <td> {{this.startingDate}} </td>
+            <td> {{this.expiryDate}}</td>
+            {{#if this.isActive}}
+                <td><i class="fa-solid fa-trash" style="padding-left: 15px; color: red;"
+                onclick="deleteOffer(`{{this._id}}`, this.parentElement.parentElement)"></i></td>
+            {{else}}
+                <td>Expired</td>
+            {{/if}}
+        </tr>
+        {{/each}}
+        {{else}}
+        <td>No offers Applyed</td>
+      {{/if}}
+    </tbody>
+  </table>
+
+</div>
+
+
+<div class="mt-5">
+    <h3 class="ms-3 ms-md-5">Add Offers</h3>
+</div>
+
+<div class="container">
+    <div class="section">
+        <h2>Product Offers</h2>
+        <form class="needs-validation" novalidate>
+            <div>
+                <label for="productID">Product Name:</label>
+                <select class="form-select" name="productID" id="productID" required>
+                    <option selected disabled value="">Choose...</option>
+                    {{#each products}}
+                    <option value="{{this._id}}"> {{this.name}} </option>
+                    {{/each}}
+                </select>
+                <div class="invalid-feedback">
+                    Please select a product
+                </div>
+
+            </div>
+
+            <div>
+                <input type="text" class="form-control d-none" value="product" name="offerType" required>
+            </div>
+
+            <label for="discountPercentage">Discount Percentage:</label>
+            <input type="number" class="form-control" name="discountPercentage" id="discountPercentage" min="1"
+                max="100" required>
+
+            <label for="validFrom">Valid From:</label>
+            <input type="date" class="form-control" name="startingDate" id="validFrom" required>
+
+            <label for="validUntil">Valid Until:</label>
+            <input type="date" class="form-control" name="endingDate" id="validUntil" required>
+
+            <button id="addProductOffer" class="btn btn-success" type="submit">Add Product Offer</button>
+        </form>
+    </div>
+
+    <div class="section">
+        <h2>Category Offers</h2>
+        <form id="categoryOfferForm" class="needs-validation" novalidate>
+            <div>
+                <label for="categoryName">Category Name:</label>
+                <select class="form-select" name="categoryID" id="categoryName" required>
+                    <option selected disabled value="">Choose...</option>
+                    {{#each categories}}
+                    <option value="{{this._id}}"> {{this.name}} </option>
+                    {{/each}}
+                </select>
+                <div class="invalid-feedback">
+                    Please select a Category.
+                </div>
+            </div>
+
+            <div>
+                <input type="text" class="form-control d-none" value="category" name="offerType" required>
+            </div>
+
+            <label for="categoryDiscount">Discount Percentage:</label>
+            <input type="number" class="form-control" name="discountPercentage" id="categoryDiscount" min="1" max="100" required>
+
+            <label for="categoryValidFrom">Valid From:</label>
+            <input type="date" class="form-control" name="startingDate" id="categoryValidFrom" required>
+
+            <label for="categoryValidUntil">Valid Until:</label>
+            <input type="date" class="form-control" name="endingDate" id="categoryValidUntil" required>
+
+            <button id="categoryOfferBtn" class="btn btn-success" type="submit">Add Category Offer</button>
+        </form>
+    </div>
+</div>
+
+
+
+
+<script src="/javaScript/offerManagements.js"></script>
+<script>
+
+    // Form for Product and Category offers
+    const productOfferBtn = document.querySelector('#productOfferBtn')
+    const categoryOfferBtn = document.querySelector('#categoryOfferBtn')
+
+    function deleteOffer(offerID, element) {
+    console.log(element)
+    Swal.fire({
+      title: `Are you sure?`,
+      text: `You won't be able to revert this!`,
+      icon: `warning`,
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    }).then( result => {
+      if(result.isConfirmed) {
+        // AJAX 
+        $.ajax({
+          url: `/admin/delete-offer/${offerID}`,
+          method: 'DELETE',
+          success: response => {
+            if(response.status) {
+              // Toastify message 
+              Toastify({
+                      text: response.message,
+                      duration: 3000,
+                      close: true,
+                      gravity: "bottom", 
+                      position: "right",
+                      style: {
+                          background: "black",
+                          color: "white",
+                          borderRadius: "10px"
+                      }
+                  }).showToast();
+
+                  if(element) {
+                    $(element).remove()
+                  }
+            } else {
+              window.location.href = response.redirected
+            }
+          }
+        })
+        
+
+      }
+    })
+  }
+
+    
+    
+</script>

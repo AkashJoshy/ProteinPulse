@@ -295,6 +295,15 @@ background: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(113,57,13,1) 47%, rgba
   .single-product {
     height: 100px;
   }
+
+  .chart-div {
+    height: 1000px;
+  }
+
+  .table-responsive {
+    max-height: 350px; 
+    overflow-y: auto;
+}
   
 }
 
@@ -321,7 +330,10 @@ background: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(113,57,13,1) 47%, rgba
     width: 120%;
   }
 
-
+  .table-responsive {
+    max-height: 350px; 
+    overflow-y: auto;
+}
 
 }
 
