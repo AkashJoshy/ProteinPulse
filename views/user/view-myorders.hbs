@@ -16,6 +16,7 @@
                         <th scope="col">Status</th>
                         <th scope="col">Date</th>
                         <th scope="col">Total</th>
+                        <th scope="col">Payment status</th>
                         <th scope="col">Action</th>
                     </tr>
                 </thead>
@@ -27,6 +28,7 @@
                         <td>{{this.status}}</td>
                         <td>{{this.createdAt}}</td>
                         <td><span>₹ </span>{{this.totalPrice}}</td>
+                        <td class="text-center">{{this.paymentStatus}}</td>
                         <td>
                             <a href="/dashboard/orders/edit-orders/{{this._id}}" style="text-decoration: none;">
                             View Details <i class="fa-solid fa-arrow-right"></i>

@@ -108,6 +108,11 @@ const UserOrderSchema = new Schema({
         ref: 'User',
         required: true
     },
+    cartID: {
+        type: Schema.Types.ObjectId,
+        ref: 'Cart',
+        required: true
+    },
     customer: {
         type: String,
         required: true

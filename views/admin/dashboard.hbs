@@ -1,110 +1,224 @@
 <style>
   #salesChart {
-    background-color: #000000;
-    border-radius: 10px;
+    background-color: #1c1d1d;
+    /*  
+  background-color: #000000;  
+  */
+  }
+
+  .chart-div {
+    height: 350px;
+    position: relative;
   }
 </style>
 
 <div class="mt-5">
-    <h3 class="ms-3 ms-md-5">Dashboard</h3>
+  <h3 class="ms-3 ms-md-5">Dashboard</h3>
 </div>
 
 <div class="container">
-    <div class="row">
-        <div class="col-md-12">
-        <div style="border-radius: 40%;">
-        <div class="d-flex">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="d-flex flex-wrap justify-content-between"
+        style="border-radius: 15px; padding: 20px; background-color: #f8f9fa;">
 
-        <div class="bg-success text-center rounded-3 p-2 w-25">
-            <p>Total Sales</p>
-            <h3>55555</h3>
+        <div class="bg-success text-center rounded-3 p-4 m-2 shadow-sm flex-fill" style="min-width: 200px;">
+          <p class="fw-bold text-white">Total Sales</p>
+          {{#if totalSales}}
+          <h3 class="text-white"> {{totalSales}} </h3>
+          {{else}}
+          <h3 class="text-white"> 0 </h3>
+          {{/if}}
         </div>
-        <div class="bg-primary text-center rounded-3 p-2 w-25">
-            <p>Total Orders</p>
-            <h3>55555</h3>
+        <div class="bg-primary text-center rounded-3 p-4 m-2 shadow-sm flex-fill" style="min-width: 200px;">
+          <p class="fw-bold text-white">Total Orders</p>
+          {{#if orders}}
+          <h3 class="text-white"> {{orders}} </h3>
+          {{else}}
+          <h3 class="text-white">0</h3>
+          {{/if}}
         </div>
-        <div class="bg-warning text-center p-2 rounded-3 w-25">
-            <p>Total Users</p>
-            <h3>55555</h3>
+        <div class="bg-warning text-center rounded-3 p-4 m-2 shadow-sm flex-fill" style="min-width: 200px;">
+          <p class="fw-bold text-light">Total Users</p>
+          {{#if users}}
+          <h3 class="text-light"> {{users}} </h3>
+          {{else}}
+          <h3 class="text-light">0</h3>
+          {{/if}}
         </div>
-        <div class="bg-info text-center p-2 rounded-3 w-25">
-             <p>Total Products</p>
-            <h3>55555</h3>
+        <div class="bg-info text-center rounded-3 p-4 m-2 shadow-sm flex-fill" style="min-width: 200px;">
+          <p class="fw-bold text-white">Total Products</p>
+          {{#if products}}
+          <h3 class="text-white">{{products}}</h3>
+          {{else}}
+          <h3 class="text-white">0</h3>
+          {{/if}}
         </div>
+
+      </div>
     </div>
-
-        </div>
-
-    </div>
-    </div>
-
+  </div>
 </div>
 
-<div>
-    <select name="" id="salesCharts">
-        <option value="month">month</option>
-        <option value="Year">Year</option>
-        <option value="day">day</option>
+
+
+
+{{!-- Sales Chart --}}
+{{!-- haeding --}}
+<div class="d-flex mt-2 justify-content-between">
+  <h3 class="p-2 ms-3 " style="color: #F46F36;"> Sales Chart </h3>
+  <div class="me-5">
+    <label for="">Filters</label>
+    <select name="" style="border:2px solid; border-radius: 5px;" class="p-1" id="salesCharts">
+      <option value="day">Daily</option>
+      <option value="week">Weekly</option>
+      <option value="month">Monthly</option>
+      <option value="year">Yearly</option>
     </select>
+  </div>
 </div>
 
-<div class="mt-4 mt-md-2 p-md-3">
-<canvas id="salesChart" width="600" height="150"></canvas>
+{{!-- Download Options --}}
+<div class="d-flex justify-content-end me-5">
+  <button type="button" class="btn btn-sm btn-outline-success me-2 download-chart">Download</button>
+  <select name="" class="p-1" style="border:1px solid; border-radius: 5px;" class="p-1" id="export-options">
+    <option value="image">Export as Image</option>
+    <option value="csv">Export as CSV</option>
+  </select>
+</div>
+
+{{!-- chart --}}
+<div class="chart-div mt-4 mt-md-0 p-md-4 px-3 ">
+  <canvas id="salesChart" style="width: 100%; height: 100%;"></canvas>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-  const ctx = document.getElementById('salesChart').getContext('2d');
 
-  // Initial data
-  const salesData = [0, 0, 0, 0, 2, 0, 0, 0, 3, 5, 10, 0];
-  
-  // Create the chart
-  const salesChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      datasets: [{
-        label: 'Total Sales',
-        data: salesData,
-        fill: false,
-        backgroundColor: 'rgba(240, 110, 110, 1)',
-        borderColor: 'rgba(244, 111, 54, 1)',
-        tension: 0.4 // Set tension for smooth lines
-      }]
-    },
-    options: {
-      animations: {
-        tension: {
-          duration: 1000,
-          easing: 'linear',
-          from: 1,
-          to: 0,
-          loop: true
-        }
+  document.addEventListener('DOMContentLoaded', () => {
+    const ctx = document.getElementById('salesChart').getContext('2d');
+
+    const dailySalesData = [0, 2, 0, 0, 3, 5, 10,];
+    const weeklySalesData = [50, 120, 70, 90, 120, 60, 140];
+    const monthlySalesData = [50, 120, 70, 90, 120, 60, 140];
+    const yearlySalesData = [300, 450, 700];
+
+    // Create the chart
+    const salesChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'Total Sales',
+          data: dailySalesData,
+          fill: false,
+          backgroundColor: 'rgba(240, 110, 110, 1)',
+          borderColor: 'rgba(244, 111, 54, 1)',
+          tension: 0.4 // Set tension for smooth lines
+        }]
       },
-      scales: {
-        y: {
-          grid: {
-            display: false,
-        //    color: 'rgba(240, 110, 110, 1)'
-          },
-          ticks: {
-            color: 'rgba(255, 255, 255, 1)' 
-          },
-          beginAtZero: true 
+      options: {
+        responsive: true,
+        maintainAspectRatio: false, // Allows the chart to fill its container
+        animations: {
+          tension: {
+            duration: 1000,
+            easing: 'linear',
+            from: 1,
+            to: 0,
+            loop: true
+          }
         },
-        x: {
-          grid: {
-            display: true,
-            color: 'rgba(240, 110, 110, 1)'
+        scales: {
+          y: {
+            grid: {
+              display: false,
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 1)'
+            },
+            beginAtZero: true
           },
-          ticks: {
-            color: 'rgba(255, 255, 255, 1)' // Change x-axis labels color to orange
+          x: {
+            grid: {
+              display: true,
+              color: 'rgba(240, 110, 110, 1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 1)'
+            }
           }
         }
       }
+    });
+
+    // Handle filter change to update chart data
+    let salesChartFilters = document.querySelector('#salesCharts');
+    if (salesChartFilters) {
+      salesChartFilters.addEventListener('change', e => {
+        let filter = e.target.value
+        switch (filter) {
+          case 'day':
+            salesChart.data.datasets[0].data = dailySalesData
+            salesChart.data.labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            break;
+          case 'week':
+            salesChart.data.datasets[0].data = weeklySalesData
+            salesChart.data.labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6']
+            break;
+          case 'month':
+            salesChart.data.datasets[0].data = monthlySalesData
+            salesChart.data.labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            break;
+          case 'year':
+            salesChart.data.datasets[0].data = yearlySalesData
+            salesChart.data.labels = ['2022', '2023', '2024']
+            break;
+        }
+        salesChart.update()
+      });
     }
+  // Download Sales Chart
+  const exportOptions = document.querySelector('#export-options')
+  const downloadChart = document.querySelector('.download-chart')
+  downloadChart.addEventListener('click', (e) => {
+    console.log(exportOptions.value)
+    let option = exportOptions.value
+    if (option === 'image') {
+    // Download saleschart in Image
+      let link = document.createElement('a')
+      // Converting the object into base64
+      let base64Image = salesChart.toBase64Image()
+      link.href = base64Image
+      console.log(base64Image)
+      link.download = 'sales_chart.png'
+      link.click()
+    } else if (option === 'csv') {
+    // Download saleschart in CSV
+    const csv = "data:text/csv;charset=utf-8," +
+                  "Label,Sales\n" +
+                  salesChart.data.labels.map((label, index) => {
+                    if(salesChart.data.datasets[0].data[index]) {
+                      return `${label}, ${salesChart.data.datasets[0].data[index]}`
+                    } else {
+                      return `${label}, 0`
+                    }
+                  }).join("\n")
+    let link = document.createElement('a')
+    const csvLink = encodeURI(csv)
+    link.href = csvLink
+    link.download = 'sales_chart.csv'
+    link.click()
+    } else {
+      Swal.fire(`Select a format to Download`)
+    }
+  })
+
+
   });
+
+
+
+
 </script>

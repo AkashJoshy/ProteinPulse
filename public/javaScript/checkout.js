@@ -6,7 +6,6 @@
   const inputs = document.querySelectorAll(".order-form");
   const validClass = 'is-valid'; // Bootstrap class for valid inputs
   const invalidClass = 'is-invalid'; // Bootstrap class for invalid inputs
-  const paymentMethods = document.querySelectorAll('input[name="paymentMethod"]');
 
   // Function to validate inputs
   function validateInputs(event) {
@@ -50,13 +49,16 @@
                         contentType: false,
                         success: response => {
                             if(response.status) {
+                                    if(response.insuffient) {
+                                        Swal.fire(response.message)
+                                        return
+                                    }
                                 // fn to get Payment info
                                 if(response.razorpayStatus) {
-                                    razorPayPayment(response.order, response.RAZORPAY_KEY_ID)
+                                    razorPayPayment(response.order, response.RAZORPAY_KEY_ID, response.user)
                                 } else if (response.codStatus) {
                                     window.location.href = response.redirected
                                 } else if (response.walletStatus) {
-                                    // Add the wallet operation here
                                 } else {
                                     Swal.fire("Cant place order due to Internal error")
                                 }
@@ -79,7 +81,7 @@
   });
 
  // Razorpay payment
- function razorPayPayment(order, keyID){
+ function razorPayPayment(order, keyID, userDetails){
     var options = {
         "key": keyID, // Enter the Key ID generated from the Dashboard
         "amount": order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
@@ -89,17 +91,17 @@
         "image": "/picture/logo/logoUser.png",
         "order_id": order.id,
         // call the Handler after Payment
-        "handler": response => {
-            alert(response.razorpay_payment_id);
-            alert(response.razorpay_order_id);
-            alert(response.razorpay_signature);
+        "handler": function (response) {
+            // alert(response.razorpay_payment_id);
+            // alert(response.razorpay_order_id);
+            // alert(response.razorpay_signature);
             // calls the Fn to verify Razorpay Payment
             verifyPayment(response, order)
         },
-        "prefill": { //We recommend using the prefill parameter to auto-fill customer's contact information, especially their phone number
-            "name": "Gaurav Kumar", //your customer's name
-            "email": "gaurav.kumar@example.com", 
-            "contact": "9000090000"  //Provide the customer's phone number for better conversion rates 
+        "prefill": { 
+            "name": userDetails.firstName + " " + userDetails.lastName, 
+            "email": userDetails.email, 
+            "contact": userDetails.mobileNumber  
         },
         "notes": {
             "address": "Razorpay Corporate Office"
@@ -110,14 +112,24 @@
     };
 
     var rzp1 = new Razorpay(options);
-    rzp1.on('payment.failed', function (response){
-        alert(response.error.code);
+    rzp1.on('payment.failed', function (response) {
+        alert("Payment failed!");
         alert(response.error.description);
-        alert(response.error.source);
-        alert(response.error.step);
-        alert(response.error.reason);
-        alert(response.error.metadata.order_id);
-        alert(response.error.metadata.payment_id);
+        Swal.fire({
+            title: 'Payment Failed',
+            text: 'Your payment could not be processed. Please try again.',
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonText: 'Retry Payment',
+            cancelButtonText: 'Go to Cart'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Re-open Razorpay
+                rzp1.open();
+            } else {
+                window.location.href = '/dashboard/my-cart'; 
+            }
+        });
     });
     rzp1.open(); 
     
@@ -125,20 +137,39 @@
 
 // Verify payment (Razorpay)
 function verifyPayment(razorpay, order) {
-    $.ajax({
-        url: `/verify-payment`,
-        method: 'POST',
-        data: {
-            razorpay,
-            order
-        },
-        success: response => {
-            
-        },
-        error: (xhr, status, err) => {
-            console.error(err);
-        }
-    })
+    if(razorpay.razorpay_payment_id) {
+        $.ajax({
+            url: `/verify-payment`,
+            method: 'POST',
+            data: {
+                razorpay,
+                order
+            },
+            success: response => {
+                if(response.status) {
+                    if(response.success) {
+                        window.location.href = response.redirected
+                    } else {
+                        Swal.fire("Payment failed").then(() => window.location.href = response.redirected )
+                    }
+                }
+                else {
+                    if(!response.redirected) {
+                        window.location.href = response.redirected
+                        return
+                    }
+                    Swal.fire(response.message)
+                }
+            },
+            error: (xhr, status, err) => {
+                console.error(err);
+            }
+        })
+
+    } else {
+        // If the Payment failes
+        Swal.fire("Payment failed").then(() => window.location.href = '/dashboard/my-cart' )
+    }
 }
 
 

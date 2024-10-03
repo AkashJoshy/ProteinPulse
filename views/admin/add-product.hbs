@@ -45,12 +45,12 @@
     novalidate
   >
     <div class="col-md-6">
-      <label for="categoryName" class="form-label">Product Name</label>
+      <label for="productName" class="form-label">Product Name</label>
       <input
         type="text"
         class="form-control"
         name="name"
-        id="categoryName"
+        id="productName"
         {{!-- pattern="[A-Za-z ]+" --}}
         required
       />
@@ -60,7 +60,7 @@
     </div>
 
     <div class="col-md-6">
-      <label for="category" class="form-label">Category Name</label>
+    <label for="category" class="form-label">Category Name</label>
     <select class="form-select" name="categoryName" id="category" required>
       <option selected disabled value="">Choose...</option>
       {{#each categories}}
@@ -144,20 +144,6 @@
       </div>
     </div>
 
-    <div class="col-md-4">
-      <label for="salePrices" class="form-label">Sale Price</label>
-      <input
-        type="number"
-        class="form-control"
-        name="salePrice"
-        id="salePrices"
-        min="0"
-        required
-      />
-      <div class="valid-feedback">
-        Looks good!
-      </div>
-    </div>
 
     <div class="col-md-4">
       <label for="rating" class="form-label">Rating</label>
@@ -273,7 +259,189 @@
       </div>
     </div>
 
+   <div class="col-md-4 d-none">
+      <label for="prodID" class="form-label">Product ID</label>
+      <input
+        type="text"
+        class="form-control"
+        name="prodID"
+        value="{{product._id}}"
+        id="prodID"
+      />
+    </div>
 
+    <div class="col-md-12 d-flex">
+      <img
+        id="image"
+        class="image-display rounded-3 w-25 image-fluid mx-auto mt-3"
+        style="height: auto;"
+      />
+    </div>
+    
+    {{!-- cropped image --}}
+    <div class="col-md-12 crop-image-container" style="display: none;">
+     <img
+        class="rounded-3 w-50 mx-auto cropped-image border border-1"
+        alt="Cropped Image"
+      />
+      <p>Size:
+        <span class="view-height">
+          - -
+        </span> x
+        <span class="view-width">
+          - -
+        </span> 
+      </p>
+      
+    </div>
+    {{!-- // cropped image --}}
+
+    <div class="d-flex edit-crop-section">
+      <div class="btn btn-dark image-edit" style="display: none;">EDIT</div>
+      <div class="btn btn-success btn-sm crop-btn" style="display: none;">CROP</div>
+    </div>
+
+    <div class="col-md-12">
+      <label for="categoryImage" class="form-label"> Product Thumbnail </label>
+      <input
+        type="file"
+        name="file0"
+        class="form-control category-img"
+        aria-label="file example"
+        id="categoryImage"
+        accept="image/*"
+      />
+      <div class="invalid-feedback">Please Upload the Category Image</div>
+    </div>
+
+    <div class="col-md-12 d-flex">
+      <img
+        class="image-display rounded-3 w-25 image-fluid mx-auto mt-3"
+        style="height: auto;"
+      />
+    </div>
+
+    {{!-- cropped image --}}
+    <div class="col-md-12 crop-image-container" style="display: none;">
+     <img
+        class="rounded-3 w-50 mx-auto cropped-image border border-1"
+        alt="Cropped Image"
+      />
+      <p>Size:
+        <span class="view-height">
+          - -
+        </span> x
+        <span class="view-width">
+          - -
+        </span> 
+      </p>
+      
+    </div>
+    {{!-- // cropped image --}}
+
+    <div class="d-flex edit-crop-section">
+      <div class="btn btn-dark image-edit" style="display: none;">EDIT</div>
+      <div class="btn btn-success btn-sm crop-btn" style="display: none;">CROP</div>
+    </div>
+
+    <div class="col-md-12">
+      <label for="categoryImage" class="form-label"> Product Image 1 </label>
+      <input
+        type="file"
+        name="file1"
+        class="form-control category-img"
+        aria-label="file example"
+        id="categoryImage"
+        accept="image/*"
+      />
+      <div class="invalid-feedback">Please Upload the Category Image</div>
+    </div>
+
+    <div class="col-md-12 d-flex">
+      <img
+        class="image-display rounded-3 w-25 image-fluid mx-auto mt-3"
+        style="height: auto;"
+      />
+    </div>
+
+    {{!-- cropped image --}}
+    <div class="col-md-12 crop-image-container" style="display: none;">
+     <img
+        class="rounded-3 w-50 mx-auto cropped-image border border-1"
+        alt="Cropped Image"
+      />
+      <p>Size:
+        <span class="view-height">
+          - -
+        </span> x
+        <span class="view-width">
+          - -
+        </span> 
+      </p>
+      
+    </div>
+    {{!-- // cropped image --}}
+
+    <div class="d-flex edit-crop-section">
+      <div class="btn btn-dark image-edit" style="display: none;">EDIT</div>
+      <div class="btn btn-success btn-sm crop-btn" style="display: none;">CROP</div>
+    </div>
+
+    <div class="col-md-12">
+      <label for="categoryImage" class="form-label"> Product Image 2 </label>
+      <input
+        type="file"
+        name="file2"
+        class="form-control category-img"
+        aria-label="file example"
+        id="categoryImage"
+        accept="image/*"
+      />
+      <div class="invalid-feedback">Please Upload the Category Image</div>
+    </div>
+
+    <div class="col-md-12 d-flex">
+      <img
+        class="image-display rounded-3 w-25 image-fluid mx-auto mt-3"
+        style="height: auto;"
+      />
+    </div>
+
+    {{!-- cropped image --}}
+    <div class="col-md-12 crop-image-container" style="display: none;">
+     <img
+        class="rounded-3 w-50 mx-auto cropped-image border border-1"
+        alt="Cropped Image"
+      />
+      <p>Size:
+        <span class="view-height">
+          - -
+        </span> x
+        <span class="view-width">
+          - -
+        </span> 
+      </p>
+      
+    </div>
+    {{!-- // cropped image --}}
+
+    <div class="d-flex edit-crop-section">
+      <div class="btn btn-dark image-edit" style="display: none;">EDIT</div>
+      <div class="btn btn-success btn-sm crop-btn" style="display: none;">CROP</div>
+    </div>
+
+    <div class="col-md-12">
+      <label for="categoryImage" class="form-label"> Product Image 3 </label>
+      <input
+        type="file"
+        name="file3"
+        class="form-control category-img"
+        aria-label="file example"
+        id="categoryImage"
+        accept="image/*"
+      />
+      <div class="invalid-feedback">Please Upload the Category Image</div>
+    </div>
   
     <div class="col-12 d-flex">
       <button id="add-product" class="btn btn-success mx-auto" type="submit">Add</button>

@@ -35,7 +35,7 @@ const ProductSchema = new Schema({
     },
     offer: {
         type: Number,
-        required: true
+        default: 0,
     },
     rating: {
         type: Number,
