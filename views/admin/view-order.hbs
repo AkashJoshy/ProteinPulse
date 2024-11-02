@@ -1,7 +1,7 @@
 <style>
-  
-    .form-control.is-valid, .was-validated .form-control:valid {
-    background-image: none;
+    .form-control.is-valid,
+    .was-validated .form-control:valid {
+        background-image: none;
     }
 
     .form-control:focus {
@@ -9,7 +9,6 @@
         box-shadow: none;
         background-color: hsl(0, 0%, 100%);
     }
-
 </style>
 <div class="container">
     <h3 class="mt-5 ms-0">Order Details</h3>
@@ -17,195 +16,196 @@
     <form class="row g-3 needs-validation mt-3" novalidate>
         <div class="col-md-4">
             <label for="orderNumber" class="form-label">Order No</label>
-            <input type="text" class="form-control" id="orderNumber" value="{{order.orderNumber}}" 
-            style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
-            disabled required>
+            <input type="text" class="form-control" id="orderNumber" value="{{order.orderNumber}}"
+                style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);" disabled required>
             <div class="invalid-feedback">Please provide a valid order number.</div>
         </div>
         <div class="col-md-4">
             <label for="user" class="form-label">Customer Name</label>
-            <input type="text" class="form-control" id="user" value="{{order.address.firstName}} {{order.address.lastName}}" 
-            style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
-            disabled required>
+            <input type="text" class="form-control" id="user"
+                value="{{order.address.firstName}} {{order.address.lastName}}"
+                style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);" disabled required>
             <div class="invalid-feedback">Please provide the customer name.</div>
         </div>
         <div class="col-md-4">
             <label for="paymentMethod" class="form-label">Payment Method</label>
-            <input type="text" class="form-control" id="paymentMethod" value="{{order.paymentMethod}}" 
-            style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
-            disabled required>
+            <input type="text" class="form-control" id="paymentMethod" value="{{order.paymentMethod}}"
+                style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);" disabled required>
             <div class="invalid-feedback">Please provide the payment method.</div>
         </div>
         <div class="col-md-6">
             <label for="mobileNumber" class="form-label">Mobile</label>
-            <input type="text" class="form-control" id="mobileNumber" value="{{order.address.mobileNumber}}" 
-            style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
-            disabled required>
+            <input type="text" class="form-control" id="mobileNumber" value="{{order.address.mobileNumber}}"
+                style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);" disabled required>
             <div class="invalid-feedback">Please provide a valid mobile number.</div>
         </div>
         <div class="col-md-6">
             <label for="shippingAddress" class="form-label">Shipping Address</label>
-            <input type="text" class="form-control" id="shippingAddress" value="{{order.address.address}}, {{order.address.city}}, {{order.address.state}}, {{order.address.country}}" 
-            style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
-            disabled required>
+            <input type="text" class="form-control" id="shippingAddress"
+                value="{{order.address.address}}, {{order.address.city}}, {{order.address.state}}, {{order.address.country}}"
+                style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);" disabled required>
             <div class="invalid-feedback">Please provide a shipping address.</div>
         </div>
         <div class="col-md-6">
             <label for="shippingCost" class="form-label">Shipping Cost</label>
-            <input type="text" class="form-control" value="{{order.deliveryFee}}" id="shippingCost" 
-            style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
-            disabled required>
+            <input type="text" class="form-control" value="{{order.deliveryFee}}" id="shippingCost"
+                style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);" disabled required>
             <div class="invalid-feedback">Please provide the shipping cost.</div>
         </div>
         <div class="col-md-6">
             <label for="totalPrice" class="form-label">Total Price</label>
-            <input type="text" class="form-control" id="totalPrice" value="{{order.totalPrice}}" 
-            style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
-            disabled required>
+            <input type="text" class="form-control" id="totalPrice" value="{{order.totalPrice}}"
+                style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);" disabled required>
             <div class="invalid-feedback">Please provide the total price.</div>
         </div>
         <div class="col-md-6">
             <label for="discount" class="form-label">Discount</label>
-            <input type="text" class="form-control" value="{{order.discountPrice}}" id="discount" 
-            style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
-            disabled required>
+            <input type="text" class="form-control" value="{{order.discountPrice}}" id="discount"
+                style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);" disabled required>
             <div class="invalid-feedback">Please provide a discount value.</div>
         </div>
         <div class="col-md-6">
             <label for="deliveryDate" class="form-label">Delivery Date</label>
-            <input type="datetime" class="form-control" id="deliveryDate" value="{{order.expectedDate}}" 
-            style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
-            disabled required>
+            <input type="datetime" class="form-control" id="deliveryDate" value="{{order.expectedDate}}"
+                style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);" disabled required>
             <div class="invalid-feedback">Please provide a delivery date.</div>
         </div>
 
         <div class="col-md-3">
-        <label for="orderStatus" class="form-label">Order Status</label>
-        <select class="form-select order-status" id="validationCustom04" class="p-1"
-        style="border-radius: 5px; color: grey ;padding-left: 5px;" 
-        data-order-ID="{{order._id}}">
-        <option selected>{{order.status}}</option>
+            <label for="orderStatus" class="form-label">Order Status</label>
+            <select class="form-select order-status" id="validationCustom04" class="p-1"
+                style="border-radius: 5px; color: grey ;padding-left: 5px;" data-order-ID="{{order._id}}">
+                <option selected>{{order.status}}</option>
 
-        {{#if (isorderStatusPending order.status)}}
-        <option value="Processing">Processing</option>
-        <option value="Shipped">Shipped</option>
-        <option value="Out for Delivery">Out for Delivery</option>
-        <option value="Delivered">Delivered</option>
-        <option value="Cancelled">Cancelled</option>
-        <option value="Returned">Returned</option>
-        <option value="Refunded">Refunded</option>
-        {{else}}
-        {{#if (isorderStatusProcessing order.status)}}
-        <option value="Shipped">Shipped</option>
-        <option value="Out for Delivery">Out for Delivery</option>
-        <option value="Delivered">Delivered</option>
-        <option value="Cancelled">Cancelled</option>
-        <option value="Returned">Returned</option>
-        <option value="Refunded">Refunded</option>
-        {{else}}
-        {{#if (isorderStatusShipped order.status)}}
-        <option value="Out for Delivery">Out for Delivery</option>
-        <option value="Delivered">Delivered</option>
-        <option value="Cancelled">Cancelled</option>
-        <option value="Returned">Returned</option>
-        <option value="Refunded">Refunded</option>
-        {{else}}
-        {{#if (isorderStatusOutForDelivery order.status)}}
-        <option value="Delivered">Delivered</option>
-        <option value="Cancelled">Cancelled</option>
-        <option value="Returned">Returned</option>
-        <option value="Refunded">Refunded</option>
-        {{else}}
-        {{#if (isorderStatusDelivery order.status)}}
-        <option value="Returned">Returned</option>
-        <option value="Refunded">Refunded</option>
-        {{else}}
-        {{#if (isorderStatusCancelled order.status)}}
-        {{else}} {{#if (isorderStatusReturned
-            order.status)}} <option value="Refunded">Refunded</option>
-        {{/if}}
-        {{/if}}
-        {{/if}}
-        {{/if}}
-        {{/if}}
-        {{/if}}
-        {{/if}}
-        </select>
-        <div class="invalid-feedback">
-          Please select a valid state.
-        </div>
+                {{#if (isorderStatusPending order.status)}}
+                <option value="Processing">Processing</option>
+                <option value="Shipped">Shipped</option>
+                <option value="Out for Delivery">Out for Delivery</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Returned">Returned</option>
+                <option value="Refunded">Refunded</option>
+                {{else}}
+                {{#if (isorderStatusProcessing order.status)}}
+                <option value="Shipped">Shipped</option>
+                <option value="Out for Delivery">Out for Delivery</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Returned">Returned</option>
+                <option value="Refunded">Refunded</option>
+                {{else}}
+                {{#if (isorderStatusShipped order.status)}}
+                <option value="Out for Delivery">Out for Delivery</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Returned">Returned</option>
+                <option value="Refunded">Refunded</option>
+                {{else}}
+                {{#if (isorderStatusOutForDelivery order.status)}}
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Returned">Returned</option>
+                <option value="Refunded">Refunded</option>
+                {{else}}
+                {{#if (isorderStatusDelivery order.status)}}
+                <option value="Returned">Returned</option>
+                <option value="Refunded">Refunded</option>
+                {{else}}
+                {{#if (isorderStatusCancelled order.status)}}
+                {{else}} {{#if (isorderStatusReturned
+                order.status)}} <option value="Refunded">Refunded</option>
+                {{/if}}
+                {{/if}}
+                {{/if}}
+                {{/if}}
+                {{/if}}
+                {{/if}}
+                {{/if}}
+            </select>
+            <div class="invalid-feedback">
+                Please select a valid state.
+            </div>
         </div>
 
         <h4 class="mt-3">Product ( <span> {{productNumbercheck order.products.length}} </span> )</h4>
 
-        <div class="d-block d-md-flex">
-        {{#each order.products}}
-        <div class=" ms-2 shadow p-3 mb-4 mb-md-0">
         <div>
-            <img style="height: 6rem; width: 8rem;" src="/uploads/{{this.image}}"
-            class="card-img-top mx-auto product-image pt-1" alt="..." />
-        </div>
-        <div class="pt-0 pt-md-5" style="color: rgb(4, 120, 244)">
-           {{this.productName}}
-        </div>
-        <div class="d-flex mt-2">
-            <h6>Status: </h6>
-            <p class="ms-2">Pending</p>
+            <input type="text" class="d-none" id="order-id" value="{{order._id}}">
         </div>
 
-        <select class="form-select" id="validationCustom04" class="p-1"
-        style="border-radius: 5px; color: grey ;padding-left: 5px;" 
-        data-order-ID="{{this._id}}">
-        <option selected>{{this.status}}</option>
+        <div class="d-block d-md-flex">
+            {{#each orderProducts}}
+            <div class=" ms-2 shadow p-3 mb-4 mb-md-0">
+                <div>
+                    {{#if this.image}}
+                    <img style="height: 6rem; width: 8rem;" src="/uploads/{{this.image}}"
+                        class="card-img-top mx-auto product-image pt-1" alt="..." />
+                    {{else}}
+                    <img style="height: 6rem; width: 8rem;" src="/uploads/no-user-image-icon-0.jpg"
+                        class="card-img-top mx-auto product-image pt-1" alt="..." />
+                    {{/if}}
+                </div>
+                <div class="pt-0 pt-md-5" style="color: rgb(4, 120, 244)">
+                    {{this.productName}}
+                </div>
+                <div class="d-flex mt-2">
+                    <h6>Status: </h6>
+                    <p class="ms-2">Pending</p>
+                </div>
 
-        {{#if (isorderStatusPending this.status)}}
-        <option value="Processing">Processing</option>
-        <option value="Shipped">Shipped</option>
-        <option value="Out for Delivery">Out for Delivery</option>
-        <option value="Delivered">Delivered</option>
-        <option value="Cancelled">Cancelled</option>
-        <option value="Returned">Returned</option>
-        <option value="Refunded">Refunded</option>
-        {{else}}
-        {{#if (isorderStatusProcessing this.status)}}
-        <option value="Shipped">Shipped</option>
-        <option value="Out for Delivery">Out for Delivery</option>
-        <option value="Delivered">Delivered</option>
-        <option value="Cancelled">Cancelled</option>
-        <option value="Returned">Returned</option>
-        <option value="Refunded">Refunded</option>
-        {{else}}
-        {{#if (isorderStatusShipped this.status)}}
-        <option value="Out for Delivery">Out for Delivery</option>
-        <option value="Delivered">Delivered</option>
-        <option value="Cancelled">Cancelled</option>
-        <option value="Returned">Returned</option>
-        <option value="Refunded">Refunded</option>
-        {{else}}
-        {{#if (isorderStatusOutForDelivery this.status)}}
-        <option value="Delivered">Delivered</option>
-        <option value="Cancelled">Cancelled</option>
-        <option value="Returned">Returned</option>
-        <option value="Refunded">Refunded</option>
-        {{else}}
-        {{#if (isorderStatusDelivery this.status)}}
-        <option value="Returned">Returned</option>
-        <option value="Refunded">Refunded</option>
-        {{else}}
-        {{#if (isorderStatusCancelled this.status)}}
-        {{else}} {{#if (isorderStatusReturned
-            this.status)}} <option value="Refunded">Refunded</option>
-        {{/if}}
-        {{/if}}
-        {{/if}}
-        {{/if}}
-        {{/if}}
-        {{/if}}
-        {{/if}}
-        </select>
 
-        </div>
-        {{/each}}
+                <select class="form-select p-1 order-product-status" id="validationCustom04"
+                    style="border-radius: 5px; color: grey ;padding-left: 5px;" data-order-product-ID="{{this._id}}">
+                    <option selected>{{this.status}}</option>
+
+                    {{#if (isorderStatusPending this.status)}}
+                    <option value="Processing">Processing</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Out for Delivery">Out for Delivery</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Returned">Returned</option>
+                    <option value="Refunded">Refunded</option>
+                    {{else}}
+                    {{#if (isorderStatusProcessing this.status)}}
+                    <option value="Shipped">Shipped</option>
+                    <option value="Out for Delivery">Out for Delivery</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Returned">Returned</option>
+                    <option value="Refunded">Refunded</option>
+                    {{else}}
+                    {{#if (isorderStatusShipped this.status)}}
+                    <option value="Out for Delivery">Out for Delivery</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Returned">Returned</option>
+                    <option value="Refunded">Refunded</option>
+                    {{else}}
+                    {{#if (isorderStatusOutForDelivery this.status)}}
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Returned">Returned</option>
+                    <option value="Refunded">Refunded</option>
+                    {{else}}
+                    {{#if (isorderStatusDelivery this.status)}}
+                    <option value="Returned">Returned</option>
+                    <option value="Refunded">Refunded</option>
+                    {{else}}
+                    {{#if (isorderStatusCancelled this.status)}}
+                    {{else}} {{#if (isorderStatusReturned
+                    this.status)}} <option value="Refunded">Refunded</option>
+                    {{/if}}
+                    {{/if}}
+                    {{/if}}
+                    {{/if}}
+                    {{/if}}
+                    {{/if}}
+                    {{/if}}
+                </select>
+
+            </div>
+            {{/each}}
         </div>
 
         <div class="col-12 d-flex mt-5 mb-4">
@@ -215,32 +215,33 @@
     {{/if}}
 </div>
 
-{{!-- <script src="/javaScript/validation.js"></script> --}}
+{{!--
+<script src="/javaScript/validation.js"></script> --}}
 
 <script>
     (() => {
-  "use strict";
+        "use strict";
 
-  // Fetch all the forms we want to apply custom Bootstrap validation styles to
-  const forms = document.querySelectorAll(".needs-validation");
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        const forms = document.querySelectorAll(".needs-validation");
 
 
-  // Loop over them and prevent submission
-  Array.from(forms).forEach((form) => {
-    form.addEventListener(
-      "submit",
-      (event) => {
-        if (!form.checkValidity()) {
-          event.stopPropagation();
-          event.preventDefault();
-        }
+        // Loop over them and prevent submission
+        Array.from(forms).forEach((form) => {
+            form.addEventListener(
+                "submit",
+                (event) => {
+                    if (!form.checkValidity()) {
+                        event.stopPropagation();
+                        event.preventDefault();
+                    }
 
-        form.classList.add("was-validated");
-      },
-      false
-    );
-  });
-})();
+                    form.classList.add("was-validated");
+                },
+                false
+            );
+        });
+    })();
 
 
     //Function to change Order Status
@@ -273,6 +274,36 @@
 
     document.querySelector('.order-status').addEventListener('change', changeOrderStatus)
 
+
+    // Chnage Single Product Status
+
+    document.querySelectorAll('.order-product-status').forEach(product => {
+        product.addEventListener('change', (e) => {
+            const orderProductStatus = e.target.value
+            const orderID = document.querySelector('#order-id').value
+            const orderProductID = e.target.getAttribute('data-order-product-id')
+            console.log(`orderID: ${orderID}`)
+            $.ajax({
+                url: "/admin/orders/update-product-status",
+                method: 'PUT',
+                data: {
+                    orderID,
+                    orderProductID,
+                    orderProductStatus
+                },
+                success: response => {
+                    if (response.status) {
+                        Swal.fire(`Status Updated`)
+                            .then(() => {
+                                window.location.reload()
+                            })
+                    } else {
+                        window.location.href = response.redirected
+                    }
+                }
+            })
+        })
+    })
 
 
 </script>

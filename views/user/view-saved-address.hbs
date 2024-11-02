@@ -6,7 +6,7 @@
         </div>
 
         <div class="col-md-9 mt-5 ">
-            <a href="/dashboard/address/add-address" class="text-light" style="text-decoration: none;">
+            <a href="/user/dashboard/address/add-address" class="text-light" style="text-decoration: none;">
                 <div class="btn text-light" style="background-color: rgb(37, 203, 56);">Add Address 
                     <i class="px-2 fa-solid fa-plus text-light"></i>
                 </div>
@@ -18,7 +18,7 @@
                 <div class="d-flex justify-content-between">
                     <h6>{{this.address}}</h6>
                     <div>
-                        <a href="/address/edit-address/billingAddress/{{this._id}}" style="text-decoration: none;">
+                        <a href="/user/dashboard/address/edit-address/billingAddress/{{this._id}}" style="text-decoration: none;">
                         <div class="btn text-success">Edit</div>
                         </a>
                         <div onclick="deleteAddress(`{{this._id}}`, `Billing Address`, `billingAddress`)" class="btn text-danger">Delete</div>
@@ -26,7 +26,7 @@
                 </div>
                 <div><span> {{this.city}} </span>, <span> {{this.state}} </span></div>
                 <div> {{this.zipcode}} </div>
-                <div>+91 <span> {{this.mobile}} </span></div>
+                <div>+91 <span> {{this.mobileNumber}} </span></div>
             </div>
             {{/each}}
             {{/if}}
@@ -37,7 +37,7 @@
                 <div class="d-flex justify-content-between">
                     <h6>{{this.address}}</h6>
                     <div>
-                        <a href="/address/edit-address/shippingAddress/{{this._id}}" style="text-decoration: none;">
+                        <a href="/user/dashboard/address/edit-address/shippingAddress/{{this._id}}" style="text-decoration: none;">
                         <div class="btn text-success">Edit</div>
                         </a>
                         <div onclick="deleteAddress(`{{this._id}}`, `Shipping Address`, `shippingAddress`)"
@@ -46,7 +46,7 @@
                 </div>
                 <div><span> {{this.city}} </span>, <span> {{this.state}} </span></div>
                 <div> {{this.zipcode}} </div>
-                <div>+91 <span> {{this.mobile}} </span></div>
+                <div>+91 <span> {{this.mobileNumber}} </span></div>
             </div>
             {{/each}}
             {{/if}}
@@ -68,7 +68,7 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: '/address/delete-address',
+                    url: '/user/dashboard/address/delete-address',
                     method: "PUT",
                     data: {
                         _id: addressID,

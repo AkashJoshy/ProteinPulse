@@ -63,7 +63,11 @@
                                     Swal.fire("Cant place order due to Internal error")
                                 }
                             } else {
-                                window.location.href = response.redirected
+                                if(response.redirected) {
+                                    window.location.href = response.redirected
+                                } else {
+                                    Swal.fire(response.message)                                    
+                                }
                             }
                         },
                         error: (xhr, status, error) => {

@@ -11,6 +11,7 @@ const moment = require("moment");
 const bcrypt = require("bcrypt");
 const { OrderData } = require("../models/OrderDB");
 const path = require("path");
+const { products } = require("./userController");
 
 // Admin Login In Page
 const login = asyncHandler(async (req, res) => {
@@ -369,7 +370,7 @@ const getProducts = asyncHandler(async (req, res) => {
       totalPages,
     };
 
-    res.render("admin/view-products", {
+    return res.render("admin/view-products", {
       admin: true,
       products,
       admin1: req.session.admin,
@@ -411,15 +412,12 @@ const saveProduct = asyncHandler(async (req, res) => {
       brand,
       size,
       units,
-      quantities,
       origin,
       bestBefore,
     } = req.body;
     console.log(req.body);
     price = Number(price);
     rating = Number(rating);
-    quantities = Number(quantities);
-    quantities <= 0 ? 1 : quantities;
     // console.log(req.files);
     size = size + units;
     let imageUrl = req.files.map((file) => file.filename);
@@ -434,7 +432,6 @@ const saveProduct = asyncHandler(async (req, res) => {
       flavour,
       brand,
       size,
-      quantities,
       origin,
       bestBefore,
       imageUrl,
@@ -454,8 +451,15 @@ const editProduct = asyncHandler(async (req, res) => {
     }
     const productID = req.params.productID;
     const product = await ProductData.findById({ _id: productID }).lean();
-    const [size, unit] = product.size.split(" ");
+    // const [size, unit] = product.size.split(" ");
+    let size = parseInt(product.size)
+    // Separating the unit from size
+    let match = product.size.match(/[a-zA-Z]+/)
+    let unit = match[0]
+    console.log(`Matching Part`, match)
     const categories = await CategoryData.find({}, { name: 1 }).lean();
+    console.log(`products`)
+    console.log(product)
     res.render("admin/edit-product", {
       admin: true,
       categories,
@@ -485,7 +489,6 @@ const updateProduct = asyncHandler(async (req, res) => {
       flavour,
       size,
       unit,
-      quantities,
       origin,
       bestBefore,
       prodID,
@@ -502,8 +505,6 @@ const updateProduct = asyncHandler(async (req, res) => {
     // console.log(imageIndex);
     price = Number(price);
     rating = Number(rating);
-    quantities = Number(quantities);
-    quantities = quantities <= 0 ? 1 : quantities;
     let product = await ProductData.findById({ _id: prodID });
 
     // shallow copying of product.imageUrl
@@ -530,7 +531,7 @@ const updateProduct = asyncHandler(async (req, res) => {
     size = size + " " + unit;
     console.log(size);
 
-    let updatedProduct = await ProductData.findByIdAndUpdate(
+    await ProductData.findByIdAndUpdate(
       { _id: prodID },
       {
         name,
@@ -542,7 +543,6 @@ const updateProduct = asyncHandler(async (req, res) => {
         rating,
         flavour,
         size,
-        quantities,
         origin,
         bestBefore,
         imageUrl,
@@ -554,21 +554,86 @@ const updateProduct = asyncHandler(async (req, res) => {
   }
 });
 
+
+// Delete Product Image
+const deleteProductImage = asyncHandler(async (req, res, next) => {
+  if (!req.session.admin) {
+    return res.json({ status: false, redirected: "/admin/" });
+  }
+
+  let {
+    prodID,
+    imageUrl
+  } = req.params
+
+  console.log(imageUrl)
+  console.log(prodID)
+
+  let product = await ProductData.findById({ _id: prodID })
+
+  // if the product is not existing
+  if (!product) {
+    return res.json({ status: false, message: "Product not Found" })
+  }
+
+  let isImageExisting = product.imageUrl.some(url => url === imageUrl)
+
+  if (!isImageExisting) {
+    return res.json({ status: false, message: "Product Image not Found" })
+  }
+
+  // find index 
+  let imageIndex = product.imageUrl.findIndex(url => url === imageUrl)
+
+  // Image spliced
+  console.log(imageIndex)
+  const imageUrlsCopy = product.imageUrl.slice()
+
+  // pulling the imageUrl from DB
+  let updatedImageUrls = imageUrlsCopy.filter(async (url, index) => {
+    if (index === imageIndex) {
+      await ProductData.findByIdAndUpdate({ _id: prodID },
+        { $pull: { imageUrl: imageUrl } }
+      )
+    }
+  })
+
+  // Delete from local storage(folder)
+  let dirPath = path.dirname(__dirname)
+  console.log(path.join(dirPath, '/public/uploads', imageUrl))
+  let imgPath = path.join(dirPath, '/public/uploads', imageUrl)
+  fs.unlink(imgPath, err => {
+    if (err) {
+      return res.json({ status: false, message: "Image not deleted" })
+    }
+  })
+
+  return res.json({ status: true, message: "Image Deleted" });
+})
+
 // Upadate Stock product
-const updateProductStock = asyncHandler(async (req, res) => {
+const updateProductStock = asyncHandler(async (req, res, next) => {
   try {
     if (!req.session.admin) {
-      return res.redirect("/login");
+      return res.json({ status: false, redirected: "/admin/" });
     }
     const productID = req.body.productID;
-    console.log(productID);
     const stock = req.body.stock;
+    console.log(productID)
+
+    const product = await ProductData.findById({ _id: productID })
+    console.log(product);
+
+
+    if (!product) {
+      return res.json({ status: false, message: "Product not Found!" })
+    }
 
     await ProductData.findByIdAndUpdate(
       { _id: productID },
       { $inc: { quantities: stock } }
     );
-    return res.redirect("/admin/products");
+    return res.json({ status: true, message: `${product.name} stock updated` })
   } catch (error) {
     console.error(error);
   }
@@ -698,15 +763,26 @@ const viewOrder = asyncHandler(async (req, res, next) => {
   const orderID = req.params.orderID;
 
   // single Order Details
-  const order = await OrderData.findById({ _id: orderID }).lean();
+  let order = await OrderData.findById({ _id: orderID }).lean();
   order.createdAt = moment(order.createdAt).format("MMMM Do YYYY HH:mm:ss");
 
+  // console.log(`Order`);
   //  console.log(order)
+
+  let orderProducts = await Promise.all(order.products.map(async (product) => {
+    let prod = await ProductData.findById({ _id: product.productID })
+    if (!prod || !prod?.imageUrl) {
+      return { ...product, image: `image_not_available.png` }
+    }
+    return { ...product }
+  }))
+
 
   return res.render("admin/view-order", {
     admin: true,
     order,
     admin1: req.session.admin,
+    orderProducts
   });
 });
 
@@ -794,6 +870,20 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     console.error(error);
   }
 });
+
+
+// order product status changing
+const updateOrderProductStatus = asyncHandler(async (req, res, next) => {
+  if (!req.session.admin) {
+    return res.json({ status: false, redirected: "/admin/" });
+  }
+  const {
+    orderID,
+    orderProductID,
+    orderProductStatus
+  } = req.body
+
+})
 
 // Order Sorting
 const orderSorting = asyncHandler(async (req, res) => {
@@ -1010,9 +1100,10 @@ const getSalesReports = asyncHandler(async (req, res, next) => {
   console.log(orderSalesTotal);
 
   // calculating sales total and coupon based on the specific date
-  const totalPrice = orderSalesTotal[0].totalPrice || 0;
-  const totalSales = orderSalesTotal[0].salesCount || 0;
-  const totalCouponPrice = orderSalesTotal[0].totalCouponPrice || 0;
+  const totalPrice = orderSalesTotal && orderSalesTotal[0] ? orderSalesTotal[0].totalPrice : 0;
+  const totalSales = orderSalesTotal && orderSalesTotal[0] ? orderSalesTotal[0].salesCount : 0;
+  const totalCouponPrice = orderSalesTotal && orderSalesTotal[0] ? orderSalesTotal[0].totalCouponPrice : 0;
+
   const overallTotal = totalPrice + totalCouponPrice;
 
   return res.json({
@@ -1043,58 +1134,208 @@ const downloadSalesReport = asyncHandler(async (req, res, next) => {
   const formattedStartDate = new Date(startDate).toISOString().split('T')[0];
   const formattedEndDate = new Date(endDate).toISOString().split('T')[0];
 
-  // File Name
   const filename = `sales_report_${formattedStartDate}_to_${formattedEndDate}.pdf`
 
-  // Parent Directory
   const parentDir = path.dirname(__dirname)
 
-  // path for PDF file to save
   let filePath = path.join(parentDir, 'public', 'reports', filename)
 
-  // Ensure the directory exists
   let dir = path.dirname(filePath)
-  if(!fs.existsSync(dir)) {
+  if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true })
   }
 
-  
-  // Create a write stream to the file
   const writeStream = fs.createWriteStream(filePath);
-
-  // // Create a new PDF document
   const doc = new PDFDocument();
-
-  // // Pipe the PDF to the write stream
   doc.pipe(writeStream)
 
-  // // Add content to the PDF
-  doc.font('Helvetica').fontSize(20)
-  .text(`Sales Report - ${formattedStartDate} to ${formattedEndDate}`, { align: 'center' });
-  doc.moveDown();
 
-  // // Loop through orders and add data to the PDF
+  doc.font('Helvetica-Bold').fontSize(20).fillColor('orange')
+    .text('Sales Report', { align: 'center' })
+    .moveDown(0.5)
+    .fontSize(18)
+    .fillColor('black')
+    .text(`Coverage Period: ${formattedStartDate} to ${formattedEndDate}`, { align: 'center' })
+    .moveDown(1.5)
+
   orders.forEach(order => {
-      doc.text(`Order No: ${order.orderNumber}`);
-      doc.text(`Customer Name: ${order.customer}`);
-      doc.text(`Total Price: ${order.totalPrice}`);
-      doc.text(`Payment Method: ${order.paymentMethod}`);
-      doc.text(`Payment Status: ${order.paymentStatus}`);
-      doc.text(`Date: ${order.createdAt.toISOString().split('T')[0]}`);
-      doc.moveDown();
+    doc.font('Helvetica').fontSize(14).text(`Order No: ${order.orderNumber}`, { underline: true }).moveDown(0.2)
+    doc.font('Helvetica').fontSize(12).text(`Customer Name: ${order.customer}`)
+    doc.text(`Total Price: ${order.totalPrice}`, { continued: true }).fillColor('green')
+    doc.text(`Payment Method: ${order.paymentMethod}`, { align: 'right' }).fillColor('black');
+    doc.text(`Payment Status: ${order.paymentStatus}`);
+    doc.text(`Date: ${order.createdAt.toISOString().split('T')[0]}`, { align: "right" })
+    doc.moveDown(2);
+
+    doc.lineWidth(1)
+      .moveTo(50, doc.y) 
+      .lineTo(doc.page.width - 50, doc.y)
+      .strokeColor('#cccccc')
+      .stroke()
+
+    doc.moveDown(2);
   });
 
-  // // Finalize the PDF and end the stream
   doc.end();
 
 
-  // Handle errors during the write stream
   writeStream.on('error', (err) => {
     console.error(`Error writing PDF: ${err.message}`);
   });
 
   return res.json({ status: true, startDate: formattedStartDate, endDate: formattedEndDate })
 })
+
+
+// Sales chart
+const salesChart = asyncHandler(async (req, res, next) => {
+  const filter = req.query.filter;
+  let labels = [];
+  let startDate;
+  let endingDate;
+  let groupBy;
+  const now = new Date();
+
+  if (filter === 'day') {
+    const currentDayOfWeek = now.getDay(); // 0 (Sunday) - 6 (Saturday)
+    console.log(currentDayOfWeek)
+
+    // Calculate start date for the current week (Sunday)
+    startDate = new Date(now);
+    startDate.setDate(now.getDate() - currentDayOfWeek); // Set to the Sunday of the current week
+    startDate.setHours(0, 0, 0, 0); // Start of the week
+
+    // Calculate end date for today
+    endingDate = new Date(now);
+    endingDate.setHours(23, 59, 59, 999); // End of today
+
+    console.log("Start Date:", startDate);
+    console.log("End Date:", endingDate);
+
+    // Group by day of the week
+    groupBy = { $dayOfWeek: '$createdAt' };
+    labels.push('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat');
+  } else if (filter === 'week') {
+    startDate = new Date(now)
+    // start date is set to 6 weeks ago
+    startDate.setDate(now.getDate() - 6 * 7)
+    startDate.setHours(0, 0, 0, 0)
+    endingDate = new Date(now)
+    endingDate.setHours(23, 59, 59, 999)
+
+    groupBy = { $week: '$createdAt' };
+    labels.push('Week1', 'Week2', 'Week3', 'Week4', 'Week5', 'Week6');
+  } else if (filter === 'month') {
+    startDate = new Date(now.getFullYear(), 0, 1)
+    startDate.setHours(0, 0, 0, 0)
+    console.log(startDate)
+
+    endingDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    endingDate.setHours(23, 59, 59, 999)
+
+    // Label Month pushing
+    for (let month = 0; month < 12; month++) {
+      labels.push(new Date(now.getFullYear(), month).toLocaleString('default', { month: 'long' }))
+    }
+    groupBy = { $month: '$createdAt' }
+
+  } else {
+    const currentYear = now.getFullYear()
+    startDate = new Date(currentYear - 3, 0, 1)
+    startDate.setHours(0, 0, 0, 0);
+
+    endingDate = new Date(currentYear, 11, 31);
+    endingDate.setHours(23, 59, 59, 999);
+
+    for (let year = currentYear - 3; year <= currentYear; year++) {
+      labels.push(year.toString())
+    }
+
+    groupBy = { $year: '$createdAt' }
+
+  }
+
+  console.log(`Labelss`);
+  console.log(labels);
+
+  // Fetch the sales data for the given date range
+  const salesChartData = await OrderData.aggregate([
+    {
+      $match: {
+        createdAt: {
+          $gte: startDate,
+          $lte: endingDate
+        }
+      }
+    },
+    {
+      $group: {
+        _id: groupBy,
+        totalSales: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { _id: 1 }
+    }
+  ]);
+
+
+  let salesData = filter == 'day' ? Array(7).fill(0)
+    : (filter === 'week' ? Array(6).fill(0)
+      : (filter === 'month' ? Array(12).fill(0)
+        : (filter === 'month' ? Array(4).fill(0) : Array(4).fill(0))))
+  console.log(salesData)
+
+  // Fill in sales data based on the aggregation results
+  salesChartData.forEach(item => {
+    // item._id will be the day of the week (0 for Sunday, 1 for Monday, ...)
+    if (filter === 'day') {
+      const dayIndex = item._id - 1; // Adjust to match the index in the dailySales array
+      if (dayIndex >= 0 && dayIndex < 7) {
+        salesData[dayIndex] = item.totalSales;
+        // salesData.reverse()
+      }
+    } else if (filter === 'week') {
+      const currentWeek = now.getWeek();
+      const weekIndex = currentWeek - item._id - 1
+      if (weekIndex >= 0 && weekIndex < 6) {
+        salesData[weekIndex] = item.totalSales;
+      }
+    } else if (filter === 'month') {
+      const monthIndex = item._id - 1
+      if (monthIndex >= 0 && monthIndex < 12) {
+        salesData[monthIndex] = item.totalSales
+      }
+    } else {
+      let currentYear = now.getFullYear()
+      console.log(item._id)
+
+      let yearIndex = currentYear - item._id;
+      console.log(`yearIndex`)
+      console.log(yearIndex)
+
+      if (yearIndex >= 0 && yearIndex < 4) {
+        salesData[3 - yearIndex] = item.totalSales;
+      }
+
+    }
+  });
+
+  salesData = filter === 'week' ? salesData.reverse() : salesData
+
+  Date.prototype.getWeek = function () {
+    const firstDayOfYear = new Date(this.getFullYear(), 0, 1);
+    const pastDaysOfYear = (this - firstDayOfYear) / 86400000;
+    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+  };
+
+
+  console.log(salesData)
+
+  // Return the sales data in the response
+  res.json({ status: true, updatedSalesChartData: salesData, labels: labels });
+});
+
 
 
 // Carousal Management
@@ -1166,7 +1407,6 @@ const addOffers = asyncHandler(async (req, res, next) => {
   // Discount Price
   discountPrice = (discountPercentage * entity.price) / 100
 
-  // Checking if the offer Exist
   if (offerType == 'product') {
     let existingOffer = await OfferData.findOne({ productID: productID, isActive: true })
     if (existingOffer) {
@@ -1265,12 +1505,14 @@ module.exports = {
   saveProduct,
   editProduct,
   updateProduct,
+  deleteProductImage,
   updateProductStock,
   deleteProduct,
   sortProducts,
   getOrders,
   viewOrder,
   updateOrderStatus,
+  updateOrderProductStatus,
   orderSorting,
   couponPage,
   addCoupon,
@@ -1279,6 +1521,7 @@ module.exports = {
   salesReports,
   getSalesReports,
   downloadSalesReport,
+  salesChart,
   getCarousels,
   viewAddCarousel,
   offerPage,

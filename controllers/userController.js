@@ -23,6 +23,8 @@ let generateReferralCode = require("../utils/generateReferralCodeHelper");
 let generateTransactionID = require("../utils/generateUniqueTransactionIDHelper");
 let instance = require("../config/razorpay");
 const { off } = require("process");
+const path = require('path')
+const fs = require('fs')
 require("dotenv").config();
 
 // Company Info
@@ -162,7 +164,7 @@ async function hashedPasswordComparing(password, userPassword) {
 }
 
 //  User Home Page
-const homePage = asyncHandler(async (req, res) => {
+const homePage = asyncHandler(async (req, res, next) => {
   try {
     // Trending products list based on the rating is more than 4
     const trendingProduct = await ProductData.find({
@@ -183,7 +185,8 @@ const homePage = asyncHandler(async (req, res) => {
     if (req.user) {
       let user = await UserData.findOneAndUpdate(
         { email: req.user.email },
-        { $set: { isVerified: true } }
+        { $set: { isVerified: true } },
+        { new: true }
       );
       req.session.user = user;
     }
@@ -275,42 +278,69 @@ const googleCallback = passport.authenticate("google", {
 });
 
 // view sign up page
-const signup = asyncHandler(async (req, res) => {
+const signup = asyncHandler(async (req, res, next) => {
   res.render("user/signup-page", { loginMessage: req.session.loginMessage });
   req.session.loginMessage = false;
 });
 
 // User Sign Up
 const doSignup = asyncHandler(async (req, res, next) => {
-  const { firstName, lastName, email, password, mobileNumber, referralCode } =
+  let { firstName, lastName, email, password, mobileNumber, referralCode } =
     req.body;
   let existedUser = await UserData.findOne({ email: email });
-  console.log(existedUser);
-
-  console.log(referralCode);
-  let referredUser
-  if (referralCode) {
-    referredUser = await UserData.findOne({ referralCode: referralCode });
-  }
-  if (referralCode && !referredUser) {
-    const error = new Error("Referal Code is Invalid");
-    const redirectPath = "/login";
-    return next({ error, redirectPath });
-  }
-
+  // if (referralCode && !referredUser) {
+  //   const error = new Error("Referal Code is Invalid");
+  //   const redirectPath = "/login";
+  //   return next({ error, redirectPath });
+  // }
 
   // If the User is already an Existing User
   if (existedUser) {
     const error = new Error("User is Already existed");
-    const redirectPath = "/login";
+    const redirectPath = "/signup";
     return next({ error, redirectPath });
   } else {
+    // console.log(`refferal code used: `+ referralCode);
+    // If the new user has Refferal Code
+    console.log(`referralCode:` + " " + referralCode)
+    let referredUser
+    // referralCode = String(referralCode)
+    if (referralCode) {
+      referredUser = await UserData.findOne({ referralCode: referralCode })
+    }
+    // referredUser = referralCode ? await UserData.findOne({ referralCode: referralCode }) : null
+    let walletBalance = referredUser !== undefined ? 50 : 0
+    console.log(`referredUser`)
+    console.log(referredUser)
+    console.log(`Wallet Balance: ${walletBalance}`)
+
     // if the User is new to Protein Pulze Plaza(PZ)
     let referredBy
     if (referredUser) {
       referredBy = referredUser._id
+      console.log(`Reffered`)
+      // Give thhe reffered money to user
+      let transactionID = await generateTransactionID(referredBy)
+      console.log(`Transaction ID: ${transactionID}`)
+      await WalletData.findOneAndUpdate(
+        { userID: referredBy },
+        {
+          $inc: { balance: 100 },
+          $push:
+          {
+            transactions: {
+              amount: 100,
+              transactionID,
+              transactionType: 'referral',
+              paymentType: 'Referral',
+              description: 'The Refferal amount credited',
+              status: 'Success',
+            }
+          }
+        }
+      )
     }
-    let walletBalance = referredUser ? 50 : 0
+
     // Password Hashing for Security purpose
     const hashedPassword = await bcrypt.hash(password, 10);
     const codeReferral = await generateReferralCode();
@@ -326,46 +356,41 @@ const doSignup = asyncHandler(async (req, res, next) => {
     });
 
     // Create Wallet for the New User
-    let newUserTransactionID = await generateTransactionID(referredBy)
-    await WalletData.create({
-      userID: user._id,
-      balance: walletBalance,
-      transactions: [{
-        amount: walletBalance,
-        transactionID: newUserTransactionID,
-        transactionType: 'referral',
-        paymentType: 'Referral',
-        description: 'The Refferal amount credited',
-        status: 'Success',
-      }]
-    })
+    // let newUserTransactionID = await generateTransactionID(user._id)
+    // console.log(`Transaction Id: ${newUserTransactionID}`)
 
-    // Give thhe reffered money to user
-    let transactionID = await generateTransactionID(referredBy)
-    await WalletData.findOneAndUpdate(
-      { userID: referredBy },
-      {
-        $inc: { balance: walletBalance },
-        $push:
-        {
-          transactions: {
-            amount: walletBalance,
-            transactionID: transactionID,
-            transactionType: 'referral',
-            paymentType: 'Referral',
-            description: 'The Refferal amount credited',
-            status: 'Success',
-          }
-        }
-      }
-    )
+    if (walletBalance <= 0) {
+      await WalletData.create({
+        userID: user._id,
+        balance: walletBalance,
+        transactions: [{
+          amount: walletBalance,
+          transactionType: 'referral',
+          paymentType: 'Referral',
+          description: 'The Refferal amount credited',
+          status: 'Success',
+        }]
+      })
+    } else {
+      // await WalletData.create({
+      //   userID: user._id,
+      //   balance: walletBalance,
+      //   transactions: [{
+      //     amount: walletBalance,
+      //     transactionType: 'referral',
+      //     paymentType: 'Referral',
+      //     description: 'The Refferal amount credited',
+      //     status: 'Success',
+      //   }]
+      // })
+    }
 
     // also, sending an mail to the user for verifying the user is the same or real
     await verifyEmail(user._id);
     req.session.loginMessage =
       "User Registration successfully, Please verify Email";
     // Redirecting back to signup page after User submit the signup and also providing a message
-    res.redirect("/signup");
+    return res.redirect("/signup");
   }
 });
 
@@ -412,7 +437,7 @@ const emailVerify = asyncHandler(async (req, res, next) => {
       await OtpData.create({
         userID: user._id,
         otp,
-        expiresAt,
+        expiresAt: Date.now() + 10 * 60 * 1000
       });
 
       // OTP sending to User
@@ -446,7 +471,7 @@ const emailVerify = asyncHandler(async (req, res, next) => {
     await OtpData.create({
       userID: user._id,
       otp,
-      expiresAt,
+      expiresAt: Date.now() + 10 * 60 * 1000,
     });
 
     // OTP sending to User
@@ -462,8 +487,47 @@ const emailVerify = asyncHandler(async (req, res, next) => {
   }
 });
 
+// OTP signup resend
+const resendOtp = asyncHandler(async (req, res, next) => {
+  let token = req.query.uniqueID
+  if (!token) {
+    return res.status(400).send(`Verification Token is Required`);
+  }
+
+  // Finding the user Document with the Token
+  let user = await UserData.findOne({ verificationToken: token });
+
+  // User doesn't match the Token
+  if (!user) {
+    return res.status(400).send("Invalid Verification Token.");
+  }
+
+  if (
+    user.verificationTokenExpires &&
+    Date.now() > user.verificationTokenExpires
+  ) {
+    return res.status(400).send("Token has expired..., try getting new verification link ");
+  }
+
+  // Fn to generate OTP
+  const otp = await otpGenerate();
+
+  // Creating a OTP modal instance
+  await OtpData.create({
+    userID: user._id,
+    otp,
+    expiresAt: Date.now() + 10 * 60 * 1000,
+  });
+
+  // OTP sending to User
+  await userOtpSent(user._id, otp);
+
+  return res.json({ status: true, message: "otp resend successfully" })
+})
+
 // (Now the OTP is send we have to verify the OTP) - OTP verifying
 const otpVerify = asyncHandler(async (req, res, next) => {
+
   const token = req.body.uniqueID;
   let userOtp = req.body.userOtp;
   console.log(`Token: ${token}`);
@@ -471,12 +535,8 @@ const otpVerify = asyncHandler(async (req, res, next) => {
   const user = await UserData.findOne({ verificationToken: token });
   // If the user doesn't Exist
   if (!user) {
-    return res.status(400).send(`User is not Found!`);
+    return res.json({ status: false, message: `User is not Found!`, redirected: `/login` });
   }
-
-  // console.log(`Start`);
-  // console.log(user);
-  // console.log(`End`);
 
   let generatedOtp = await OtpData.findOne({ userID: user._id }).sort({
     createdAt: -1,
@@ -484,10 +544,9 @@ const otpVerify = asyncHandler(async (req, res, next) => {
   console.log(`Generated OTP`);
   // console.log(generatedOtp);
   userOtp = Number(userOtp);
-  // Checking the user OTP is valid
-  if (generatedOtp.otp === userOtp) {
-    // If thge OTP is correct then the make the user verfiyied
-    // and also make the token undefined, so that hackers or anyone cannot maipulate the data and access them.
+  generatedOtp.otp = Number(generatedOtp.otp);
+
+  if (generatedOtp.otp == userOtp) {
     await UserData.findByIdAndUpdate(
       { _id: user._id },
       {
@@ -500,17 +559,15 @@ const otpVerify = asyncHandler(async (req, res, next) => {
     );
     await OtpData.deleteMany({ userID: user._id });
     console.log(`User Created Successfully with verified Email`);
-    return res.redirect("/login");
+
+    return res.json({ status: true, redirected: '/login' })
   } else {
-    // If the user is Incorrect
-    const error = new Error("OTP is Incorrect");
-    const redirectPath = `/verify-email?uniqueID=${token}`;
-    return next({ error, redirectPath });
+    return res.json({ status: false, message: `Incorrect Otp` })
   }
 });
 
 // Forgot password link (Step 1: loads Forgot Password Page)
-const forgotPassword = asyncHandler(async (req, res) => {
+const forgotPassword = asyncHandler(async (req, res, next) => {
   res.render("user/forgot-password", {
     userErr: req.session.errMessage,
     userSuccess: req.session.userSuccess,
@@ -555,7 +612,7 @@ const checkEmailForPassword = asyncHandler(async (req, res, next) => {
 });
 
 // forgot password Page (Resulting when clicking on the password Reset Link )
-const resetPassword = asyncHandler(async (req, res) => {
+const resetPassword = asyncHandler(async (req, res, next) => {
   const userID = req.query.userID;
   // finding the user
   let user = await UserData.findById({ _id: userID }).lean();
@@ -564,7 +621,7 @@ const resetPassword = asyncHandler(async (req, res) => {
 });
 
 // forgot password (saving new password)
-const recoveredPassword = asyncHandler(async (req, res) => {
+const recoveredPassword = asyncHandler(async (req, res, next) => {
   const { newPassword, confirmPassword, userID } = req.body;
   console.log(req.body);
   if (newPassword == confirmPassword) {
@@ -580,647 +637,57 @@ const recoveredPassword = asyncHandler(async (req, res) => {
   }
 });
 
-// Getting all Products(!out of stock)
-const products = asyncHandler(async (req, res) => {
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
-  const userID = req.session.user._id;
-  const user = await UserData.findById({ _id: userID }).lean();
-  // Removing Out of Stock Proucts which is the quantities will be Zero
-  const products = await ProductData.find({ quantities: { $gt: 0 } }).lean();
-  const updatedProducts = await Promise.all(
-    products.map(async (prod) => {
-      let productOffer = await OfferData.findOne({ productID: prod._id, isActive: true })
-      let category = await CategoryData.findOne({ name: prod.categoryName })
-      let categoryOffer = await OfferData.findOne({ categoryID: category._id, isActive: true })
-
-      let productDiscount = 0
-      let categoryDiscount = 0
-
-      // Checking Product Offer
-      if (productOffer) {
-        productDiscount = productOffer.discount
-        prod.salePrice = prod.price - productDiscount
-        prod.offer = productOffer.discountPercentage
-      } else {
-        prod.salePrice = prod.price
-        prod.offer = 0
-      }
-
-      // Checking Category Offers
-      if (categoryOffer) {
-        let categoryDiscount = (categoryOffer.discountPercentage * prod.price) / 100
-        let bestDiscount = Math.max(categoryDiscount, productDiscount)
-        bestDiscount = Math.round(bestDiscount)
-        prod.salePrice = prod.price - bestDiscount
-        // Checks if the Category Discount is higher
-        if (categoryDiscount > productDiscount) {
-          prod.offer = categoryOffer.discountPercentage
-        }
-      }
-
-      // Update Product Price
-      await ProductData.findByIdAndUpdate({ _id: prod._id },
-        { $set: { salePrice: prod.salePrice, offer: prod.offer } },
-        { new: true })
-      return { ...prod }
-    })
-  )
-  return res.render("user/view-products", {
-    auth: true,
-    isDashboard: true,
-    user,
-    updatedProducts,
-  });
-});
-
-// view user page (Dashboard)
-const dashboard = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-    const userID = req.session.user._id;
-    const user = await UserData.findById({ _id: userID }).lean();
-    const address = await AddressData.findOne({ userID: userID }).lean();
-    const orders = await OrderData.find({ userID });
-
-    // User's Order Count and status
-    const userOrdersDetails = await OrderData.aggregate([
-      {
-        $match: { userID: new mongoose.Types.ObjectId(userID) },
-      },
-      {
-        $group: {
-          _id: null,
-          pendingOrders: {
-            // Here, if Status is "Pending", return 1 and 0 otherwise and then sum all values
-            $sum: {
-              $cond: [{ $eq: ["$status", "Pending"] }, 1, 0],
-            },
-          },
-          completedOrders: {
-            $sum: {
-              $cond: [{ $eq: ["$status", "Delivered"] }, 1, 0],
-            },
-          },
-          totalOrders: {
-            $sum: {
-              $cond: [
-                { $in: ["$status", ["Cancelled", "Returned", "Refunded"]] },
-                0,
-                1,
-              ],
-            },
-          },
-        },
-      },
-    ]);
-
-    let totalOrders;
-    let pendingOrders;
-    let completedOrders;
-
-    if (orders.length <= 0 && address) {
-      return res.render("user/user-dashboard", {
-        auth: true,
-        isDashboard: true,
-        user,
-        billingAddress: address.billingAddress[0],
-        totalOrders: 0,
-        pendingOrders: 0,
-        completedOrders: 0,
-      });
-    }
-
-    user.profilePicture =
-      user.profilePicture === undefined
-        ? "no-user-image-icon-0.jpg"
-        : user.profilePicture;
-    if (!address) {
-      return res.render("user/user-dashboard", {
-        auth: true,
-        isDashboard: true,
-        user,
-        totalOrders: 0,
-        pendingOrders: 0,
-        completedOrders: 0,
-      });
-    }
-
-    // User Order Details
-    totalOrders = orders == null ? 0 : userOrdersDetails[0].totalOrders;
-    pendingOrders = orders == null ? 0 : userOrdersDetails[0].pendingOrders;
-    completedOrders = orders == null ? 0 : userOrdersDetails[0].completedOrders;
-
-    return res.render("user/user-dashboard", {
-      auth: true,
-      isDashboard: true,
-      user,
-      billingAddress: address.billingAddress[0],
-      totalOrders,
-      pendingOrders,
-      completedOrders,
-    });
-  } catch (error) {
-    console.error(error);
-  }
-});
-
-// User Account Details
-const accountDetails = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-    const userID = req.session.user._id;
-    const user = await UserData.findById({ _id: userID }).lean();
-    // user profile pic - if the user doesn't have one , a default pic would be use
-    user.profilePicture =
-      user.profilePicture === undefined
-        ? "no-user-image-icon-0.jpg"
-        : user.profilePicture;
-    req.session.passwordErr = false;
-    return res.render("user/view-account-details", {
-      user,
-      auth: true,
-      passwordErr: req.session.passwordErr,
-    });
-  } catch (error) {
-    console.error(error);
-  }
-});
-
-// User Address
-const accountAddress = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-    const userID = req.session.user._id;
-    const user = await UserData.findById({ _id: userID }).lean();
-    const address = await AddressData.findOne({ userID }).lean();
-
-    // If the user is new to address section
-    if (!address) {
-      return res.render("user/view-account-address", {
-        auth: true,
-        isDashboard: true,
-        user,
-      });
-    }
-
-    return res.render("user/view-account-address", {
-      auth: true,
-      isDashboard: true,
-      user,
-      shippingAddress: address.shippingAddress,
-      billingAddress: address.billingAddress,
-    });
-  } catch (error) {
-    console.error(error);
-  }
-});
-
-// Saved Addresses
-const viewAddresses = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-    const userID = req.session.user._id;
-    const user = await UserData.findById({ _id: userID }).lean();
-    const address = await AddressData.findOne({ userID }).lean();
-
-    // If the user doesnt have saved address before
-    if (!address) {
-      return res.render("user/view-saved-address", {
-        auth: true,
-        isDashboard: true,
-        user,
-      });
-    }
-
-    return res.render("user/view-saved-address", {
-      auth: true,
-      isDashboard: true,
-      user,
-      billingAddress: address.billingAddress,
-      shippingAddress: address.shippingAddress,
-    });
-  } catch (error) {
-    console.error(error);
-  }
-});
-
-// Add New Address
-const addAddress = asyncHandler(async (req, res) => {
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
-  const userID = req.session.user._id;
-  const user = await UserData.findById({ _id: userID }).lean();
-  return res.render("user/add-address", {
-    auth: true,
-    isDashboard: true,
-    user,
-  });
-});
-
-// Save New Address
-const saveAddress = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-    // console.log(req.body);
-    const addressType = req.body.addressType;
-    const userID = req.session.user._id;
-    const userAddress = await AddressData.findOne({ userID });
-
-    let { address, country, state, city, zipcode, mobile } = req.body;
-
-    if (!userAddress) {
-      await AddressData.create({
-        userID,
-        billingAddress: [],
-        shippingAddress: [],
-      });
-    }
-
-    if (addressType == "billingAddress") {
-      // Updating
-      await AddressData.findOneAndUpdate(
-        {
-          userID,
-        },
-        {
-          $push: {
-            billingAddress: {
-              address,
-              country,
-              state,
-              city,
-              zipcode,
-              mobile,
-            },
-          },
-        }
-      );
-    } else {
-      await AddressData.findOneAndUpdate(
-        {
-          userID,
-        },
-        {
-          $push: {
-            shippingAddress: {
-              address,
-              country,
-              state,
-              city,
-              zipcode,
-              mobile,
-            },
-          },
-        }
-      );
-    }
-    return res.redirect("/dashboard/address/saved-address");
-  } catch (error) {
-    console.error(error);
-  }
-});
-
-// Delete Address
-const deleteAddress = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.json({
-        status: false,
-        redirected: "/login",
-      });
-    }
-    console.log(req.body);
-    let { _id, addressField } = req.body;
-    const userID = req.session.user._id;
-
-    // Shipping Address Deletion
-    if (addressField == "shippingAddress") {
-      const address = await AddressData.findOneAndUpdate(
-        { userID, "shippingAddress._id": _id },
-        {
-          $pull: { shippingAddress: { _id: _id } },
-        }
-      );
-      console.log(address);
-      return res.json({
-        status: true,
-        redirected: "/dashboard/address/saved-address",
-        message: "Successfully Deleted",
-      });
-    }
-
-    const address = await AddressData.aggregate([
-      { $match: { userID: new mongoose.Types.ObjectId(userID) } },
-      { $project: { billingAddress: 1 } },
-    ]);
-
-    // Billing Address deletion failed if it only one billing Address
-    if (address[0].billingAddress.length === 1) {
-      return res.json({
-        status: true,
-        redirected: "/dashboard/address/saved-address",
-        message: "Billing Address cannot be Deleted",
-      });
-    }
-
-    // Billing Address Deletion
-    await AddressData.findOneAndUpdate(
-      { userID, "billingAddress._id": _id },
-      {
-        $pull: { billingAddress: { _id: _id } },
-      }
-    );
-    return res.json({
-      status: true,
-      redirected: "/dashboard/address/saved-address",
-      message: "Successfully Deleted",
-    });
-  } catch (error) {
-    throw new Error("An Error occurred " + error);
-  }
-});
-
-// Edit Address
-const getAddressEdit = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-    const user = req.session.user;
-    const userID = req.session.user._id;
-    let { addressType, addressID } = req.params;
-    console.log(req.params);
-
-    // Shipping address
-    if (addressType == "shippingAddress") {
-      const address = await AddressData.aggregate([
-        {
-          $match: {
-            userID: new mongoose.Types.ObjectId(userID),
-            "shippingAddress._id": new mongoose.Types.ObjectId(addressID),
-          },
-        },
-        {
-          $unwind: "$shippingAddress",
-        },
-        {
-          $match: {
-            "shippingAddress._id": new mongoose.Types.ObjectId(addressID),
-          },
-        },
-        {
-          $project: { shippingAddress: 1 },
-        },
-      ]);
-      console.log(address);
-      return res.render("user/edit-address", {
-        auth: true,
-        isDashboard: true,
-        user,
-        address: address[0],
-      });
-    }
-
-    // Billing Address
-    if (addressType == "billingAddress") {
-      const address = await AddressData.aggregate([
-        {
-          $match: {
-            userID: new mongoose.Types.ObjectId(userID),
-            "billingAddress._id": new mongoose.Types.ObjectId(addressID),
-          },
-        },
-        {
-          $unwind: "$billingAddress",
-        },
-        {
-          $match: {
-            "billingAddress._id": new mongoose.Types.ObjectId(addressID),
-          },
-        },
-        {
-          $project: { billingAddress: 1 },
-        },
-      ]);
-      console.log(address);
-
-      return res.render("user/edit-address", {
-        auth: true,
-        isDashboard: true,
-        user,
-        billing: address[0],
-      });
-    }
-  } catch (error) {
-    throw new Error("An Error occurred" + error);
-  }
-});
-
-// Update Address
-const updateAddress = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-    console.log(req.body);
-
-    return res.redirect("/dashboard/address/saved-address");
-  } catch (error) {
-    throw new Error("An Error occurred" + error);
-  }
-});
-
-// Change Password
-const changePassword = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.json({ status: false, redirected: "/login" });
-    }
-    const { password, newPassword, confirmPassword } = req.body;
-    const userID = req.session.user._id;
-    const user = await UserData.findById({ _id: userID });
-    let isPasswordValid = await hashedPasswordComparing(
-      password,
-      user.password
-    );
-    console.log(isPasswordValid);
-    if (!isPasswordValid) {
-      req.session.passwordErr = "Password is Incorrect";
-      return res.json({
-        status: false,
-        redirected: "/dashboard/account-details",
-      });
-    }
-
-    if (newPassword != confirmPassword) {
-      req.session.passwordErr = "New Password is not Matching";
-      return res.json({
-        status: false,
-        redirected: "/dashboard/account-details",
-      });
-    }
-
-    const updatedPassword = await passwordHashing(newPassword);
-    await UserData.findByIdAndUpdate(
-      { _id: userID },
-      { password: updatedPassword }
-    );
-    return res.json({
-      status: true,
-      redirected: "/dashboard/account-details",
-    });
-  } catch (error) {
-    throw new Error("An Error occurred" + error);
-  }
-});
-
-// Update User Details
-const updateUserDetails = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.json({ status: false, redirected: "/login" });
-    }
-    const userID = req.session.user._id;
-    await UserData.findByIdAndUpdate({ _id: userID }, req.body);
-    return res.json({
-      status: true,
-      redirected: "/dashboard/account-details",
-    });
-  } catch (error) {
-    throw new Error("Error occurred " + error);
-  }
-});
-
-// Updating User Profile Picture
-const updateUserProfilePic = asyncHandler(async (req, res) => {
-  if (!req.session.user) {
-    return res.json({ status: false, redirected: "/login" });
-  }
-  console.log(req.files[0]);
-  let profilePicUrl = req.files[0].filename;
-  const userID = req.session.user._id;
-  await UserData.findByIdAndUpdate(
-    { _id: userID },
-    { profilePicture: profilePicUrl }
-  );
-  return res.json({
-    status: true,
-    redirected: "/dashboard/account-details",
-  });
-});
-
-// Wishlist
-const wishlist = async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
-    const userID = req.session.user._id;
-    const user = await UserData.findById({ _id: userID })
-      .populate("wishlist.productID")
-      .lean();
-    const wishlistProducts = user.wishlist.map((product) => {
-      let { _id, name, price, imageUrl } = product.productID;
-      let thumbnail = imageUrl[0];
-      return { _id, name, price, thumbnail };
-    });
-
-    return res.render("user/view-wishlist", {
-      auth: true,
-      isDashboard: true,
-      user,
-      wishlistProducts,
-    });
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-// My Orders
-const myOrders = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-    const userID = req.session.user._id;
-    // getting all orders by the single user
-    const user = await UserData.findById({ _id: userID }).lean();
-    const orders = await OrderData.find({ userID }).lean();
-    // console.log(orders);
-    if (!orders || orders.length === 0) {
-      return res.render("user/view-myorders", {
-        auth: true,
-        isDashboard: true,
-        user,
-        orderMessage: "No Orders has been placed",
-      });
-    }
-
-    return res.render("user/view-myorders", {
-      auth: true,
-      isDashboard: true,
-      user,
-      orders,
-    });
-  } catch (error) {
-    console.error(error);
-  }
-});
-
-// Edit orders
-const viewOrderDetails = asyncHandler(async (req, res) => {
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
-  const userID = req.session.user._id;
-  const orderID = req.params.orderID;
-  const address = await AddressData.findOne({ userID: userID }).lean();
-  const user = await UserData.findById({ _id: userID }).lean();
-  const order = await OrderData.findById({ _id: orderID }).lean();
-  // console.log(order);
-  if (!address) {
-    return res.render("user/view-myOrders-details", {
-      auth: true,
-      user,
-      order,
-      billingAddress: null,
-    });
-  }
-  return res.render("user/view-myOrders-details", {
-    auth: true,
-    user,
-    order,
-    billingAddress: address.billingAddress[0],
-  });
-});
 
 // Order cancel
-const cancelOrder = asyncHandler(async (req, res) => {
+const cancelOrder = asyncHandler(async (req, res, next) => {
   try {
     if (!req.session.user) {
       return res.json({ status: false, redirected: "/login" });
     }
     const { orderID, orderUpdate } = req.body;
-    const userID = req.session.user._id;
-    const totalPrice = 0;
+    const userID = req.session.user._id
+    const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+
+    if (!user) {
+      req.session.user = null;
+      const err = new Error("User not Found")
+      const redirectPath = "/login";
+      return next({ error: err, redirectPath });
+    }
+    let ordertotal = 0;
 
     const order = await OrderData.findById({ _id: orderID });
+    const wallet = await WalletData.findOne({ userID })
 
-    // Order Stock management
+    if (!order) {
+      return res.json({ status: false, message: `No order Found`, redirected: "/user/dashboard/orders" });
+    }
+
+    if (!wallet) {
+      return res.json({ status: false, message: `Wallet is missing from the account`, redirected: "/user/dashboard/orders" });
+    }
+
+    if (order.paymentStatus === 'Paid') {
+      ordertotal = order.totalPrice
+      console.log(`totalPrice`)
+      console.log(ordertotal)
+      let transactionID = await generateTransactionID(userID)
+      await WalletData.findOneAndUpdate({ userID }, {
+        $push: {
+          transactions:
+          {
+            transactionID,
+            amount: ordertotal,
+            transactionType: "credit",
+            paymentType: 'Wallet',
+            description: 'The amount has been credited for the product cancellation.',
+            status: 'Success',
+          }
+        }
+
+      })
+    }
+
     for (const prod of order.products) {
       let quantity = Number(prod.quantity);
       await ProductData.findByIdAndUpdate(prod.productID, {
@@ -1228,18 +695,20 @@ const cancelOrder = asyncHandler(async (req, res) => {
       });
     }
 
-    // changing order status to cancelled
+
     await OrderData.findByIdAndUpdate(
       { _id: orderID },
       {
         $set: { status: orderUpdate },
       }
     );
-    return res.json({ status: true, message: "Your order has been Cancelled" });
+
+    return res.json({ status: true, message: "Your order has been Cancelled", redirected: '/user/dashboard/orders' });
   } catch (error) {
     console.error(error);
   }
 });
+
 
 // Cancel Product(single product in the Order)
 const cancelProduct = asyncHandler(async (req, res, next) => {
@@ -1250,11 +719,21 @@ const cancelProduct = asyncHandler(async (req, res, next) => {
   let totalPrice = 0;
   let originalPrice = 0;
   let deliveryFee = 0;
-  const userID = req.session.user._id;
+  const userID = req.session.user._id
+  const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+
+  if (!user) {
+    req.session.user = null;
+    const err = new Error("User not Found")
+    const redirectPath = "/login";
+    return next({ error: err, redirectPath });
+  }
+
   let isOrderCancelled = false;
   const { orderID, productID } = req.body;
   let order = await OrderData.findById({ _id: orderID });
 
+  // If there is no order 
   if (!order) {
     return res.json({ status: false, message: `No order found` });
   }
@@ -1286,10 +765,18 @@ const cancelProduct = asyncHandler(async (req, res, next) => {
 
   let walletAmount
   if (updatedOrder.paymentMethod == 'Razorpay' || updatedOrder.paymentMethod == 'myWallet') {
-    walletAmount = updatedOrder.totalSalePrice
+
+    let productStock = updatedOrder.products.reduce((acc, product) => {
+      acc += product.quantity
+      return acc
+    }, 0)
+
+    walletAmount = productStock <= 3 ? updatedOrder.totalSalePrice / 2 : updatedOrder.totalSalePrice
+    console.log(walletAmount)
+
     let paymentType = updatedOrder.paymentMethod
     const transactionID = await generateTransactionID(userID)
-    walletAmount = updatedOrder.totalSalePrice
+    // walletAmount = updatedOrder.totalSalePrice
     walletAmount = Number(walletAmount)
     const wallet = await WalletData.findOneAndUpdate(
       { userID: userID },
@@ -1450,1145 +937,70 @@ const cancelProduct = asyncHandler(async (req, res, next) => {
 });
 
 // view categories
-const categories = asyncHandler(async (req, res) => {
+const categories = asyncHandler(async (req, res, next) => {
   if (!req.session.user) {
     return res.redirect("/login");
   }
+  const userID = req.session.user._id
+  const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+
+  if (!user) {
+    req.session.user = null;
+    const err = new Error("User not Found")
+    const redirectPath = "/login";
+    return next({ error: err, redirectPath });
+  }
   const categoryName = req.params.categoryName;
-  const products = await ProductData.find({
-    categoryName,
-  }).lean();
+
+  const products = await ProductData.find({ quantities: { $gt: 0 }, categoryName }).lean();
+  const updatedProducts = await Promise.all(
+    products.map(async (prod) => {
+      let productOffer = await OfferData.findOne({ productID: prod._id, isActive: true })
+      let category = await CategoryData.findOne({ name: prod.categoryName })
+      let categoryOffer = await OfferData.findOne({ categoryID: category._id, isActive: true })
+
+      let productDiscount = 0
+      let categoryDiscount = 0
+
+      // Checking Product Offer
+      if (productOffer) {
+        productDiscount = productOffer.discount
+        prod.salePrice = prod.price - productDiscount
+        prod.offer = productOffer.discountPercentage
+      } else {
+        prod.salePrice = prod.price
+        prod.offer = 0
+      }
+
+      // Checking Category Offers
+      if (categoryOffer) {
+        let categoryDiscount = (categoryOffer.discountPercentage * prod.price) / 100
+        let bestDiscount = Math.max(categoryDiscount, productDiscount)
+        bestDiscount = Math.round(bestDiscount)
+        prod.salePrice = prod.price - bestDiscount
+        // Checks if the Category Discount is higher
+        if (categoryDiscount > productDiscount) {
+          prod.offer = categoryOffer.discountPercentage
+        }
+      }
+
+      // Update Product Price
+      await ProductData.findByIdAndUpdate({ _id: prod._id },
+        { $set: { salePrice: prod.salePrice, offer: prod.offer } },
+        { new: true })
+      return { ...prod }
+    })
+  )
+
   res.render("user/categories-page", {
     auth: true,
     categoryName,
     products,
     user: req.session.user,
+    updatedProducts
   });
 });
 
-// view product
-const product = asyncHandler(async (req, res) => {
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
-  const productID = req.params.productID;
-  const product = await ProductData.findById({ _id: productID }).lean();
-  // let productName = product.name.split('-')[0]
-  let productName = product.name;
-  console.log(productName);
-  let similarProducts = product.name.includes("-")
-    ? await ProductData.find({ name: { $regex: productName } }).lean()
-    : await ProductData.find({ name: productName }).lean();
-  similarProducts = similarProducts.map((product) => {
-    let { flavour, size } = product;
-    return { flavour, size };
-  });
-  console.log(similarProducts);
-  const realtedProducts = await ProductData.find({
-    categoryName: product.categoryName,
-  }).lean();
-
-  res.render("user/view-product", {
-    auth: true,
-    product,
-    realtedProducts,
-    user: req.session.user,
-    similarProducts,
-  });
-});
-
-// Sort Products
-const sortProducts = asyncHandler(async (req, res, next) => {
-  if (!req.session.user) {
-    return res.json({
-      status: false,
-      redirected: "/login",
-      message: "Please login to Continue",
-    });
-  }
-
-  let sort = req.query.sortType;
-  console.log(sort);
-  let sortOpt = {};
-
-  sortOpt =
-    sort == "lowToHigh"
-      ? { price: 1 }
-      : sort == "highToLow"
-        ? { price: -1 }
-        : sort == "ascending"
-          ? { name: 1 }
-          : sort == "descending"
-            ? { name: -1 }
-            : sort == "averageRating"
-              ? { rating: -1 }
-              : sort == "newArrivals"
-                ? { createdAt: -1 }
-                : {};
-  // console.log(sortOpt);
-
-  let products = await ProductData.find({}).sort(sortOpt).lean();
-
-  return res.json({ status: true, products });
-});
-
-// Product Searching
-const searchProducts = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.json({
-        status: false,
-        redirected: "/login",
-        message: "Please login to Continue",
-      });
-    }
-    // console.log(`hlooo`);
-    let search = req.query.search.trim();
-    let products = await ProductData.find({
-      $or: [
-        { name: { $regex: search, $options: "i" } },
-        { categoryName: { $regex: search, $options: "i" } },
-      ],
-    });
-    // console.log(products);
-    req.session.products = products;
-    return res.json({ status: true, redirected: "/products", products });
-  } catch (error) {
-    console.error(error);
-  }
-});
-
-// Product Search Results
-const searchResults = asyncHandler(async (req, res) => {
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
-  const userID = req.session.user._id;
-  // req.session.products = null
-  const user = await UserData.findById({ _id: userID });
-  let products = req.session.products;
-
-  return res.render("user/view-searched-products", {
-    auth: true,
-    user,
-    products,
-  });
-});
-
-// Products Filters
-const productFilters = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.json({ status: false, redirected: "/login" });
-    }
-    const {
-      availability,
-      priceRange,
-      brands,
-      flavour,
-      discountPercentage,
-      sortType,
-    } = req.query;
-
-    console.log(req.query);
-    // Products Sorting
-    let sortOpt = {};
-    sortOpt =
-      sortType == "lowToHigh"
-        ? { price: 1 }
-        : sortType == "highToLow"
-          ? { price: -1 }
-          : sortType == "ascending"
-            ? { name: 1 }
-            : sortType == "descending"
-              ? { name: -1 }
-              : sortType == "averageRating"
-                ? { rating: -1 }
-                : sortType == "newArrivals"
-                  ? { createdAt: -1 }
-                  : {};
-
-    // Finding product Availability
-    let filters = {};
-    if (availability) {
-      filters.quantities = { $gt: 0 };
-    } else {
-      filters.quantities = { $gte: 0 };
-    }
-
-    // Filtering Price
-    if (priceRange) {
-      let amountCondt = {
-        uptoThousand: { salePrice: { $gte: 0, $lte: 999 } },
-        btwThousandAndTwoThousand: { salePrice: { $gt: 1000, $lte: 1999 } },
-        btwTwoThousandAndThreeThousand: {
-          salePrice: { $gte: 2000, $lte: 2999 },
-        },
-        btwThreeThousandAndFourThousand: {
-          salePrice: { $gte: 3000, $lte: 3999 },
-        },
-        btwFourThousandAndFiveThousand: {
-          salePrice: { $gte: 4000, $lte: 4999 },
-        },
-        aboveFiveThousand: { salePrice: { $gte: 5000 } },
-      };
-      Object.assign(filters, amountCondt[priceRange] || {});
-    }
-
-    // Filtering Based on Discount
-    if (discountPercentage) {
-      let discountCondt = {
-        tenPercentageAndBelow: { offer: { $gte: 0, $lte: 10 } },
-        tenPercentageAndAbove: { offer: { $gte: 10 } },
-        twentyPercentageAndAbove: { offer: { $gte: 20 } },
-        thirtyPercentageAndAbove: { offer: { $gte: 30 } },
-        fourthPercentageAndAbove: { offer: { $gte: 40 } },
-        fifthPercentageAndAbove: { offer: { $gte: 50 } },
-      };
-      Object.assign(filters, discountCondt[discountPercentage] || {});
-    }
-
-    // filtering Flavours
-    if (flavour && Array.isArray(flavour) && flavour.length > 0) {
-      filters.flavour = { $in: flavour };
-    } else if (flavour) {
-      filters.flavour = { $in: [flavour] };
-    }
-
-    // filtering Brands
-    if (brands && Array.isArray(brands) && brands.length > 0) {
-      filters.brand = { $in: brands };
-    } else if (brands) {
-      filters.brand = { $in: [brands] };
-    }
-
-    let filterProducts = await ProductData.find(filters).sort(sortOpt).lean();
-
-    filterProducts = filterProducts = null ? 0 : filterProducts;
-
-    return res.json({ status: true, filterProducts, redirected: "/products" });
-  } catch (error) {
-    console.error(error);
-  }
-});
-
-// Product Review
-const productReview = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-    console.log(req.body);
-    const userID = req.session.user._id;
-    let { productID, productRating, productFeedback } = req.body;
-    productRating = productRating === "" ? 0 : Number(productRating);
-    const isFeedback = await ProductFeedback.findOne({ productID });
-    if (!isFeedback) {
-      await ProductFeedback.create({
-        productID,
-        feedbacks: {
-          userID,
-          productRating,
-          productFeedback,
-        },
-      });
-      return res.redirect(`/product/${productID}`);
-    }
-
-    await ProductFeedback.findByIdAndUpdate(
-      { _id: isFeedback._id },
-      { $push: { feedbacks: { userID, productRating, productFeedback } } }
-    );
-    return res.redirect(`/product/${productID}`);
-  } catch (error) {
-    console.error(error);
-  }
-});
-
-// Add To Cart (Product)
-const addToCart = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.json({
-        status: false,
-        redirected: "/login",
-      });
-    }
-
-    const productID = req.body.productID;
-    let count = req.body.count;
-    console.log(count);
-    const userID = req.session.user._id;
-    const productLimit = 4;
-    const productDetails = await ProductData.findById({ _id: productID });
-    const cart = await CartData.findOne({ userID: userID });
-
-    // New Cart creation for the user
-    if (!cart) {
-      if (count >= productLimit) {
-        return res.json({
-          status: true,
-          message: "Max Limit is Reached for the Product",
-        });
-      } else {
-        await CartData.create({
-          userID,
-          products: {
-            productID,
-            productName: productDetails.name,
-            size: productDetails.size,
-            flavour: productDetails.flavour,
-            quantity: count,
-            price: productDetails.price,
-            salePrice: productDetails.salePrice,
-            offer: productDetails.offer,
-            image: productDetails.imageUrl[0],
-          },
-        });
-
-        return res.json({ status: true, message: "Added new Cart" });
-      }
-    }
-
-    // Checking if the product is already in the cart and also about the limit for a product to be added
-    // It will return the index if the product is already in the products array in the Cart Collection or else it will return -1
-    const cartProductIndex = cart.products.findIndex(
-      (prod) => prod.productID == productID
-    );
-    if (cartProductIndex !== -1) {
-      if (
-        cart.products[cartProductIndex].quantity >= productLimit ||
-        count >= productLimit
-      ) {
-        return res.json({
-          status: true,
-          message: "Max Limit is Reached for the Product",
-        });
-      }
-
-      // Cart Product Increment
-      cart.products[cartProductIndex].quantity++;
-      await cart.save();
-      return res.json({ status: true, message: "Cart Updated" });
-    }
-
-    // New Product adding to existing cart
-    await CartData.findOneAndUpdate(
-      { userID },
-      {
-        $push: {
-          products: {
-            productID,
-            productName: productDetails.name,
-            size: productDetails.size,
-            flavour: productDetails.flavour,
-            quantity: count,
-            price: productDetails.price,
-            salePrice: productDetails.salePrice,
-            offer: productDetails.offer,
-            image: productDetails.imageUrl[0],
-          },
-        },
-      }
-    );
-
-    return res.json({ status: true, message: "Cart Updated" });
-  } catch (error) {
-    console.error(error);
-    return res.json({
-      status: false,
-      redirected: "/",
-      message: "Product Sold Out",
-    });
-  }
-});
-
-// User Cart
-const myCart = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-    let totalPrice = 0;
-    let originalPrice;
-    let totalSalePrice;
-    let totalDiscountAmount;
-    let discountPrice;
-    let deliveryCharge = 0;
-    const userID = req.session.user._id;
-    // Get Offer
-    const offers = await CouponData.find({ isActive: true }).lean();
-    const user = await UserData.findById({ _id: userID }).lean();
-
-    // check any offer has been applied by the user
-    let availableOffers;
-    let validOffers;
-    if (user.coupons.length <= 0) {
-      availableOffers = offers;
-    } else {
-      // if the offer has been applied by the user,
-      // then check the coupon limit
-      availableOffers = offers.map((offer) => {
-        validOffers = user.coupons.filter((coupon) => {
-          if (offer._id.toString() === coupon.couponID.toString()) {
-            if (coupon.limit < offer.limit) {
-              return offer;
-            }
-          } else {
-            return offer;
-          }
-        });
-        return validOffers;
-      });
-    }
-
-    // User Cart
-    const cart = await CartData.findOne({ userID }).lean();
-
-    if (!cart || cart.length === 0) {
-      return res.render("user/view-my-cart", {
-        auth: true,
-        user: req.session.user,
-        cart: null,
-        discountPercentage: 0,
-        totalSalePrice: 0,
-        originalPrice: 0,
-        totalDiscountAmount: 0,
-        discountPrice: 0,
-        deliveryCharge,
-        totalPrice,
-      });
-    }
-
-    // Cart total Amount
-    const cartTotal = await CartData.aggregate([
-      { $match: { userID: new mongoose.Types.ObjectId(userID) } },
-      { $unwind: "$products" },
-      {
-        $group: {
-          _id: null,
-          originalPrice: {
-            $sum: { $multiply: ["$products.quantity", "$products.price"] },
-          },
-          totalSalePrice: {
-            $sum: { $multiply: ["$products.quantity", "$products.salePrice"] },
-          },
-          totalDiscountAmount: {
-            $sum: { $subtract: ["$products.price", "$products.salePrice"] },
-          },
-        },
-      },
-    ]);
-
-    if (cartTotal.length <= 0) {
-      return res.render("user/view-my-cart", {
-        auth: true,
-        user: req.session.user,
-        cart,
-        discountPercentage: 0,
-        totalSalePrice: 0,
-        originalPrice,
-        totalDiscountAmount: 0,
-        discountPrice: 0,
-        deliveryCharge,
-        totalPrice,
-      });
-    }
-
-    originalPrice = cartTotal[0].originalPrice;
-    totalSalePrice = cartTotal[0].totalSalePrice;
-    totalDiscountAmount = cartTotal[0].totalDiscountAmount;
-
-    // Price deducted from Original Price
-    discountPrice = originalPrice - totalSalePrice;
-
-    // Discount Percentage (Price deducted from OG price)
-    let discountPercentage = (discountPrice / originalPrice) * 100;
-    discountPercentage = Math.trunc(discountPercentage);
-
-    // Delivery Charge
-    deliveryCharge = originalPrice >= 4500 ? 100 : 0;
-
-    // Total Amount (includes delivery charge too)
-    totalPrice = totalSalePrice + deliveryCharge;
-    const productDetails = await CartData.find({})
-      .populate("products.productID")
-      .lean();
-
-    // If any Coupons has been applied by User
-    //  console.log(typeof user.appliedCoupons)
-    if (user.appliedCoupons) {
-      let couponDiscountPercentage = 0;
-      let coupons;
-      let couponDiscount = 0;
-      let couponPrice = 0;
-      console.log(`coupon Applyied`);
-      coupons = await Promise.all(
-        user.appliedCoupons.map(async (coupon) => {
-          if (coupon.cartID.toString() === cart._id.toString()) {
-            const existingCoupon = await CouponData.findById({
-              _id: coupon.couponID,
-            }).lean();
-            return { coupon, existingCoupon };
-          } else {
-            return null;
-          }
-        })
-      );
-      coupons = coupons.filter((coupon) => coupon !== null);
-      console.log(coupons);
-
-      // Coupon Offer applying if the user has Apply any
-      couponPrice = !coupons
-        ? 0
-        : coupons.reduce((acc, coupon) => {
-          couponDiscount =
-            originalPrice >= coupon.existingCoupon.maxDiscount
-              ? coupon.existingCoupon.maxDiscount
-              : originalPrice * (1 - discountPercentage / 100);
-          return acc + couponDiscount;
-        }, 0);
-
-      // then Deduct the Coupon price from Total Sale Price
-      totalPrice -= couponPrice;
-      // Coupon Discount Percentage
-      couponDiscountPercentage = Math.trunc(
-        (couponPrice / originalPrice) * 100
-      );
-      res.render("user/view-my-cart", {
-        auth: true,
-        user: req.session.user,
-        cart,
-        userCart: cart.products,
-        products: productDetails[0].products,
-        originalPrice,
-        discountPercentage,
-        couponDiscountPercentage,
-        totalSalePrice,
-        discountPrice: discountPrice <= 0 ? 0 : -discountPrice,
-        totalPrice,
-        deliveryCharge,
-        offers,
-        coupons,
-        couponDiscountPrice: couponPrice <= 0 ? 0 : -couponPrice,
-        loginErr: req.session.errMessage,
-      });
-
-      req.session.errMessage = false;
-      return;
-    }
-
-    res.render("user/view-my-cart", {
-      auth: true,
-      user: req.session.user,
-      cart,
-      userCart: cart.products,
-      products: productDetails[0].products,
-      originalPrice,
-      discountPercentage,
-      totalSalePrice,
-      discountPrice: discountPrice <= 0 ? 0 : -discountPrice,
-      totalPrice,
-      deliveryCharge,
-      offers,
-      loginErr: req.session.errMessage,
-    });
-
-    req.session.errMessage = false;
-  } catch (error) {
-    console.error(error);
-  }
-});
-
-
-// Add Amount to Wallet
-const addToWallet = asyncHandler(async (req, res, next) => {
-  if (!req.session.user) {
-    return res.json({ status: false, redirected: "/login" });
-  }
-  let { amount } = req.body
-  amount = Number(amount)
-  let userID = req.session.user._id
-  const user = await UserData.findById({ _id: userID }).lean()
-  let transactionID = await generateTransactionID(userID)
-  let userWallet = await WalletData.findOneAndUpdate(
-    { userID: userID, },
-    {
-      $push:
-      {
-        transactions: {
-          amount: amount,
-          transactionID: transactionID,
-          transactionType: 'credit',
-          paymentType: 'Razorpay',
-          description: 'Your wallet has been topped up'
-        }
-      }
-    }, { new: true })
-
-
-  // Razorpay instance creation
-  var options = {
-    amount: amount * 100, // amount in the smallest currency unit
-    currency: "INR",
-    receipt: transactionID,
-  };
-  let razorpayOrder = await instance.orders.create(options);
-
-  return res.json({ status: true, user, RAZORPAY_KEY_ID, order: razorpayOrder })
-})
-
-// Verify Wallet Top up using Razorpay
-const verifyWalletTopup = asyncHandler(async (req, res, next) => {
-  if (!req.session.user) {
-    return res.json({ status: false, redirected: "/login" });
-  }
-
-  let { razorpay, topUp } = req.body
-
-  console.log(topUp)
-  let topUpAmount = Number(topUp.amount)
-  topUpAmount = topUpAmount / 100
-  console.log(`Topup Amount: ${topUpAmount}`)
-  const userID = req.session.user._id
-  const user = await UserData.findById({ _id: userID })
-  const secretKey = process.env.RAZORPAY_SECRET_KEY;
-  if (!secretKey) {
-    return res.json({ success: false, message: "Internal server error" });
-  }
-
-  // hashing the razorpayOrderID and razorpayPaymentID with secretKey into SHA256
-  let hash = createHmac("sha256", secretKey).update(
-    razorpay.razorpay_order_id + "|" + razorpay.razorpay_payment_id
-  );
-
-  // then converting into hex
-  let generatedSignature = hash.digest("hex");
-
-  if (generatedSignature == razorpay.razorpay_signature) {
-    // Top-Up is Success
-    await WalletData.findOneAndUpdate(
-      { 'transactions.transactionID': topUp.receipt, userID: userID },
-      { $set: { 'transactions.$.status': "Success" }, $inc: { balance: topUpAmount } },
-      { new: true }
-    );
-
-    // Total Wallet Balance
-    let walletBalance = await WalletData.aggregate([
-      {
-        $match: { userID: new mongoose.Types.ObjectId(userID) }
-      },
-      {
-        $unwind: "$transactions"
-      },
-      {
-        $match: { "transactions.status": { $eq: "Success" } }
-      },
-      {
-        $group: {
-          _id: null,
-          creditTotal: {
-            $sum: { $cond: [{ $eq: ["$transactions.transactionType", "credit"] }, "$transactions.amount", 0] },
-          },
-          debitTotal: {
-            $sum: { $cond: [{ $eq: ["$transactions.transactionType", "debit"] }, "$transactions.amount", 0] },
-          }
-
-        }
-      }
-    ])
-
-    const totalBalance = walletBalance[0].creditTotal - walletBalance[0].debitTotal
-
-    return res.json({
-      status: true,
-      success: true,
-      totalBalance,
-      message: `Top-up successful`
-    })
-  } else {
-    return res.json({
-      status: true,
-      success: false,
-      message: `Top-up failed`
-    })
-  }
-
-})
-
-// Apply Coupon
-const applyCoupon = asyncHandler(async (req, res, next) => {
-  if (!req.session.user) {
-    return res.json({ status: false, redirected: "/login" });
-  }
-  const couponCode = req.params.couponCode;
-  const userID = req.session.user._id;
-  const user = await UserData.findById({ _id: userID });
-  const isOfferexist = await CouponData.findOne({ code: couponCode }).lean();
-  const cart = await CartData.findOne({ userID }).lean();
-  let totalPrice;
-
-  // Coupon applied by User
-  let coupons = await Promise.all(
-    user.appliedCoupons.map(async (coupon) => {
-      if (coupon.cartID.toString() === cart._id.toString()) {
-        const existingCoupon = await CouponData.findById({
-          _id: coupon.couponID,
-        }).lean();
-        return { coupon, existingCoupon };
-      } else {
-        return null;
-      }
-    })
-  );
-
-  coupons = coupons.filter((coupon) => coupon !== null);
-  console.log(coupons);
-
-  // If the code is Invalid
-  if (!isOfferexist) {
-    return res.json({
-      status: true,
-      isCoupon: false,
-      message: `Invalid coupon code`,
-    });
-  }
-
-  // Checking the coupon is Expired
-  if (isOfferexist && new Date() > isOfferexist.expiryDate) {
-    return res.json({
-      status: true,
-      isCoupon: false,
-      message: `Coupon code expired`,
-    });
-  }
-
-  // Is coupon used by User
-  const existingCoupon = user.appliedCoupons.find(
-    (coupon) =>
-      coupon.cartID.toString() === cart._id.toString() &&
-      coupon.couponID.toString() === isOfferexist._id.toString()
-  );
-  // If the Coupon is already existing in the UserDB coupons list
-  if (existingCoupon) {
-    // checking the limit
-    if (existingCoupon.limit < 1) {
-      await UserData.findOneAndUpdate(
-        {
-          _id: userID,
-          "appliedCoupons.cartID": cart._id,
-          "appliedCoupons.couponID": isOfferexist._id,
-        },
-        { $inc: { "appliedCoupons.$.limit": 1 } }
-      );
-      return res.json({
-        status: true,
-        isCoupon: true,
-        message: ``,
-        couponCode: isOfferexist.code,
-        cartID: cart._id,
-      });
-    }
-
-    // If the limit is exceeded
-    return res.json({
-      status: true,
-      isCoupon: false,
-      message: `Coupon in use`,
-    });
-  }
-
-  // Offer applying Total Cart Amount
-  const cartTotal = await CartData.aggregate([
-    {
-      $match: {
-        _id: new mongoose.Types.ObjectId(cart._id),
-        userID: new mongoose.Types.ObjectId(userID),
-      },
-    },
-    {
-      $unwind: "$products",
-    },
-    {
-      $group: {
-        _id: null,
-        totalSalePrice: {
-          $sum: { $multiply: ["$products.quantity", "$products.salePrice"] },
-        },
-        originalPrice: {
-          $sum: { $multiply: ["$products.quantity", "$products.price"] },
-        },
-      },
-    },
-  ]);
-
-  // new Coupon pushing to userDB
-  await UserData.findByIdAndUpdate(userID, {
-    $push: { appliedCoupons: { couponID: isOfferexist._id, cartID: cart._id } },
-  });
-
-  let originalPrice = cartTotal[0].originalPrice;
-  let totalSalePrice = cartTotal[0].totalSalePrice;
-
-  // applying coupon offer
-  let couponDiscount = 0;
-  let existingCouponPrice = !coupons
-    ? 0
-    : coupons.reduce((acc, coupon) => {
-      couponDiscount =
-        originalPrice >= coupon.existingCoupon.maxDiscount
-          ? coupon.existingCoupon.maxDiscount
-          : originalPrice * (1 - discountPercentage / 100);
-      return acc + couponDiscount;
-    }, 0);
-
-  let couponPrice =
-    originalPrice >= isOfferexist.maxDiscount
-      ? isOfferexist.maxDiscount
-      : originalPrice * (1 - discountPercentage / 100);
-
-  let couponDiscountPrice = couponPrice + existingCouponPrice;
-  totalSalePrice = totalSalePrice - couponDiscountPrice;
-
-  // Delivery Charge
-  deliveryCharge = originalPrice >= 4500 ? 100 : 0;
-
-  totalPrice = totalSalePrice + deliveryCharge;
-
-  // Discount Price
-  let discountPrice = originalPrice - totalSalePrice;
-
-  // Discount Percentage
-  let discountPercentage = Math.trunc((discountPrice / originalPrice) * 100);
-  let couponDiscountPercentage = Math.trunc(
-    (couponDiscountPrice / originalPrice) * 100
-  );
-  console.log(couponDiscountPercentage);
-
-  //  console.log(`Total Sale Price: ${totalSalePrice}`);
-  //  console.log(`%: ${discountPercentage} && Amount: ${discountAmount}`)
-
-  return res.json({
-    status: true,
-    isCoupon: true,
-    message: ``,
-    couponCode: isOfferexist.code,
-    cartID: cart._id,
-    totalPrice,
-    coupons,
-    couponDiscountPercentage:
-      couponDiscountPercentage == null ? 0 : couponDiscountPercentage,
-    couponDiscountPrice: couponDiscountPrice <= 0 ? 0 : -couponDiscountPrice,
-  });
-});
-
-// Remove Coupon
-const removeCoupon = asyncHandler(async (req, res, next) => {
-  if (!req.session.user) {
-    return res.json({ status: false, redirected: "/login" });
-  }
-  const { couponCode, cartID } = req.params;
-  const userID = req.session.user._id;
-  const cart = await CartData.findById({ _id: cartID }).lean();
-  const user = await UserData.findById({ _id: userID }).lean();
-  const couponToRemove = await CouponData.findOne({ code: couponCode });
-  let totalPrice = 0;
-
-  // Coupon applied by User
-  let coupons = await Promise.all(
-    user.appliedCoupons.map(async (coupon) => {
-      if (coupon.cartID.toString() === cart._id.toString()) {
-        const existingCoupon = await CouponData.findById({
-          _id: coupon.couponID,
-        }).lean();
-        return { coupon, existingCoupon };
-      } else {
-        return null;
-      }
-    })
-  );
-
-  coupons = coupons.filter((coupon) => coupon !== null);
-  console.log(coupons);
-
-  // Cart Total
-  const cartTotal = await CartData.aggregate([
-    {
-      $match: {
-        _id: new mongoose.Types.ObjectId(cart._id),
-        userID: new mongoose.Types.ObjectId(userID),
-      },
-    },
-    {
-      $unwind: "$products",
-    },
-    {
-      $group: {
-        _id: null,
-        totalSalePrice: {
-          $sum: { $multiply: ["$products.quantity", "$products.salePrice"] },
-        },
-        originalPrice: {
-          $sum: { $multiply: ["$products.quantity", "$products.price"] },
-        },
-      },
-    },
-  ]);
-
-  // Getting OG price and sales price
-  let originalPrice = cartTotal[0].originalPrice;
-  let totalSalePrice = cartTotal[0].totalSalePrice;
-
-  // Discount Amount
-  let discountAmount = originalPrice - totalSalePrice;
-
-  // applying coupon offer
-  let couponDiscount = 0;
-  let existingCouponPrice = !coupons
-    ? 0
-    : coupons.reduce((acc, coupon) => {
-      couponDiscount =
-        originalPrice >= coupon.existingCoupon.maxDiscount
-          ? coupon.existingCoupon.maxDiscount
-          : originalPrice * (1 - discountPercentage / 100);
-      return acc + couponDiscount;
-    }, 0);
-
-  // Price of the coupon to reduct from applied coupon price
-  let priceTodeduct =
-    originalPrice >= couponToRemove.maxDiscount
-      ? couponToRemove.maxDiscount
-      : originalPrice * (1 - discountPercentage / 100);
-
-  console.log(priceTodeduct);
-
-  let couponDiscountPrice = existingCouponPrice - priceTodeduct;
-  totalSalePrice = totalSalePrice - couponDiscountPrice;
-  // Discount Percentage
-  let discountPercentage = Math.trunc((discountAmount / originalPrice) * 100);
-  let couponDiscountPercentage = Math.trunc(
-    (couponDiscountPrice / originalPrice) * 100
-  );
-
-  // Delivery Charge
-  deliveryCharge = originalPrice >= 3500 ? 100 : 0;
-
-  totalPrice = totalSalePrice + deliveryCharge;
-
-  // Pulling coupon from applied Coupons
-  await UserData.findOneAndUpdate(
-    {
-      _id: userID,
-      "appliedCoupons.cartID": cart._id,
-      "appliedCoupons.couponID": couponToRemove._id,
-    },
-    {
-      $pull: {
-        appliedCoupons: { cartID: cart._id, couponID: couponToRemove._id },
-      },
-    }
-  );
-
-  return res.json({
-    status: true,
-    isCoupon: true,
-    message: `coupon removed`,
-    originalPrice,
-    totalPrice,
-    couponDiscountPrice,
-    couponDiscountPercentage,
-    discountPercentage,
-    discountAmount,
-  });
-});
-
-// Removing a product from Cart
-const deleteCartProduct = asyncHandler(async (req, res) => {
-  if (!req.session.user) {
-    return res.json({ status: false, redirected: "/login" });
-  }
-  const cartProductID = req.body.cartProductID;
-  const userID = req.session.user._id;
-  const productID = req.body.productID;
-
-  const cart = await CartData.findOne({ userID });
-
-  // Removing the product completely from the cart
-  await CartData.findOneAndUpdate(
-    { userID, "products._id": cartProductID },
-    {
-      $pull: { products: { _id: cartProductID } },
-    }
-  );
-
-  if (cart.products.length <= 1) {
-    await CartData.findOneAndDelete({ userID });
-  }
-
-  return res.json({
-    status: true,
-    message: "Product Removed from Cart",
-    redirected: "/dashboard/my-cart",
-  });
-});
-
-// Cart product quantity
-const updateCartProductQuantity = asyncHandler(async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.json({ status: false, redirected: "/login" });
-    }
-
-    let originalPrice = 0;
-    let totalPrice = 0;
-    let totalSalePrice = 0;
-    let totalDiscountAmount;
-    let discountPrice = 0;
-
-    const userID = req.session.user._id;
-    const productID = req.body.productID;
-    let count = req.body.count;
-    count = Number(count);
-    let quantity = req.body.quantity;
-    quantity = Number(quantity);
-    let productQuantity;
-    const productLimit = 4;
-    const product = await ProductData.findById({ _id: productID });
-
-    let user = await UserData.findById({ _id: userID }).lean();
-
-    let cart = await CartData.findOne({
-      userID,
-      products: { $elemMatch: { productID } },
-    });
-
-    // Finding the index, so that it's easy to find the product in the cart
-    const cartProductIndex = cart.products.findIndex(
-      (prod) => prod.productID == productID
-    );
-
-    if (
-      cart.products[cartProductIndex].quantity >= productLimit &&
-      count === 1
-    ) {
-      return res.json({
-        status: false,
-        message: "Max Limit is Reached for the Product",
-      });
-    }
-    if (cart.products[cartProductIndex].quantity === 1 && count === -1) {
-      return res.json({
-        status: false,
-        message: "Minimum Limit is Reached for the Product",
-      });
-    }
-
-    if (cartProductIndex !== -1) {
-      if (product.quantities >= 1 && count == 1) {
-        cart.products[cartProductIndex].quantity += count;
-        await cart.save();
-      } else if (count == -1) {
-        cart.products[cartProductIndex].quantity += count;
-        await cart.save();
-      } else {
-        return res.json({
-          status: false,
-          message: "Product Sold Out",
-        });
-      }
-    }
-
-    // Coupon applied by User
-    let coupons = await Promise.all(
-      user.appliedCoupons.map(async (coupon) => {
-        if (coupon.cartID.toString() === cart._id.toString()) {
-          const existingCoupon = await CouponData.findById({
-            _id: coupon.couponID,
-          }).lean();
-          return { coupon, existingCoupon };
-        } else {
-          return null;
-        }
-      })
-    );
-
-    coupons = coupons.filter((coupon) => coupon !== null);
-    console.log(coupons);
-
-    // Cart total Amount
-    const cartTotal = await CartData.aggregate([
-      { $match: { userID: new mongoose.Types.ObjectId(userID) } },
-      { $unwind: "$products" },
-      {
-        $group: {
-          _id: null,
-          originalPrice: {
-            $sum: { $multiply: ["$products.quantity", "$products.price"] },
-          },
-          totalSalePrice: {
-            $sum: { $multiply: ["$products.quantity", "$products.salePrice"] },
-          },
-          totalDiscountAmount: {
-            $sum: { $subtract: ["$products.price", "$products.salePrice"] },
-          },
-        },
-      },
-    ]);
-
-    originalPrice = cartTotal[0].originalPrice;
-    totalSalePrice = cartTotal[0].totalSalePrice;
-    totalDiscountAmount = cartTotal[0].totalDiscountAmount;
-
-    let deliveryCharge = 0;
-    discountPrice = originalPrice - totalSalePrice;
-
-    // Coupon Offer applying
-    let couponDiscount = 0;
-    let couponPrice = !coupons
-      ? 0
-      : coupons.reduce((acc, coupon) => {
-        couponDiscount =
-          originalPrice >= coupon.existingCoupon.maxDiscount
-            ? coupon.existingCoupon.maxDiscount
-            : originalPrice * (1 - discountPercentage / 100);
-        return acc + couponDiscount;
-      }, 0);
-    totalSalePrice -= couponPrice;
-
-    // Discount Percentage
-    let discountPercentage = (discountPrice / originalPrice) * 100;
-    discountPercentage = Math.trunc(discountPercentage);
-    let couponDiscountPercentage = Math.trunc(
-      (couponPrice / originalPrice) * 100
-    );
-    console.log(`Coupon Discount Percentage: ${couponPrice}`);
-
-    // Delivery Charge
-    deliveryCharge = originalPrice >= 4500 ? 100 : 0;
-
-    // Total Amount (includes delivery charge too)
-    totalPrice = totalSalePrice + deliveryCharge;
-    console.log(`Discount Percentage: ${discountPercentage}`);
-
-    productQuantity = cart.products[cartProductIndex].quantity;
-    return res.json({
-      status: true,
-      productQuantity,
-      cartProductIndex,
-      redirected: "/dashboard/my-cart",
-      discountPercentage,
-      totalSalePrice,
-      couponDiscountPercentage,
-      discountPrice: discountPrice <= 0 ? 0 : -discountPrice,
-      couponPrice: couponPrice <= 0 ? 0 : -couponPrice,
-      totalPrice,
-      originalPrice,
-      deliveryCharge,
-    });
-  } catch (error) {
-    console.error(error);
-  }
-});
 
 // Order Checkout
 const orderPreCheckout = asyncHandler(async (req, res, next) => {
@@ -2596,27 +1008,50 @@ const orderPreCheckout = asyncHandler(async (req, res, next) => {
     if (!req.session.user) {
       return res.redirect("/login");
     }
-    console.log(req.body);
-    const userID = req.session.user._id;
+
+    const userID = req.session.user._id
+    const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+
+    // if the user is not found
+    if (!user) {
+      req.session.user = null;
+      const err = new Error("User not Found")
+      const redirectPath = "/login";
+      return next({ error: err, redirectPath });
+    }
+
     const cartID = req.body.cartID;
     let originalPrice = 0;
     let totalPrice = 0;
     let totalSalePrice = 0;
     let totalDiscountPrice = 0;
-    const user = await UserData.findById({ _id: userID }).lean();
     const address = await AddressData.findOne({ userID }).lean();
     const cart = await CartData.findOne({ _id: cartID, userID }).lean();
     // const userAddress = await AddressData.findOne({ userID });
 
+    // check if cart is empty or not
+    if (cart.products.length <= 0) {
+      const error = new Error("Cart is Empty");
+      const redirectPath = "/dashboard/my-cart";
+      return next({ error, redirectPath });
+    }
+
     // product Quantity(Stock) check
     for (const prod of cart.products) {
       const product = await ProductData.findById({
-        _id: prod.productID,
+        _id: prod.productID
       }).lean();
+
+      // If the product is not existed or not found
       if (!product) {
-        return res.status(404).send("Product not found");
+        const error = new Error(
+          "Some products do not exist or were not found"
+        );
+        const redirectPath = "/dashboard/my-cart";
+        return next({ error, redirectPath });
       }
 
+      // if the product quantity exceeds
       if (prod.quantity > product.quantities) {
         const error = new Error(
           "The quantity of some products exceeds the available stock. Please adjust the quantities to match the available stock levels"
@@ -2706,6 +1141,9 @@ const orderPreCheckout = asyncHandler(async (req, res, next) => {
     let taxRate = (taxAmount / totalDiscountPrice) * 100;
     console.log(taxAmount, taxRate, totalPrice);
 
+    // Wallet Amount 
+    const wallet = await WalletData.findOne({ userID: userID }).lean()
+
     if (!address) {
       return res.render("user/view-checkout", {
         auth: true,
@@ -2721,15 +1159,14 @@ const orderPreCheckout = asyncHandler(async (req, res, next) => {
         originalPrice,
         deliveryCharge,
         taxPrice,
+        wallet,
         cart,
         user,
       });
     }
 
-    // Wallet Amount 
-    const wallet = await WalletData.findOne({ userID: userID }).lean()
 
-    return res.render("user/view-checkout", {
+    res.render("user/view-checkout", {
       auth: true,
       products: cart.products,
       user: req.session.user,
@@ -2749,17 +1186,30 @@ const orderPreCheckout = asyncHandler(async (req, res, next) => {
       address,
       billingAddress: address.billingAddress[0],
       shippingAddress: address.shippingAddress,
+      errMessage: req.session.errMessage
     });
+    req.session.errMessage = false;
+    return
   } catch (error) {
     console.error(error);
   }
 });
 
 // Order Checkout Page
-const orderCheckout = asyncHandler(async (req, res) => {
+const orderCheckout = asyncHandler(async (req, res, next) => {
   try {
     if (!req.session.user) {
       return res.redirect("/login");
+    }
+
+    const userID = req.session.user._id
+    const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+
+    if (!user) {
+      req.session.user = null;
+      const err = new Error("User not Found")
+      const redirectPath = "/login";
+      return next({ error: err, redirectPath });
     }
 
     return res.render("user/post-checkout-page", {});
@@ -2769,12 +1219,28 @@ const orderCheckout = asyncHandler(async (req, res) => {
 });
 
 // Order placing
-const placeOrder = asyncHandler(async (req, res) => {
+const placeOrder = asyncHandler(async (req, res, next) => {
   try {
     if (!req.session.user) {
       return res.json({ status: false, redirected: "/login" });
     }
     // console.log(req.body)
+    const userID = req.session.user._id
+    const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+    const totalProducts = await ProductData.find({ isActive: true })
+
+    // if the user is not found
+    if (!user) {
+      req.session.user = null;
+      // const err = new Error("User not Found")
+      // const redirectPath = "/login";
+      return res.json({ status: false, redirected: '/login' })
+    }
+
+    if (!totalProducts) {
+      return res.json({ status: false, message: "No product Found" })
+    }
+
     let {
       firstName,
       lastName,
@@ -2792,11 +1258,9 @@ const placeOrder = asyncHandler(async (req, res) => {
       cartID,
     } = req.body;
 
-    console.log(req.body);
-    console.log(shippingAddressID);
+    // console.log(req.body);
+    // console.log(shippingAddressID);
 
-    const userID = req.session.user._id;
-    const user = await UserData.findById({ _id: userID }).lean();
     let customer = user.firstName + " " + user.lastName;
 
     orderNotes = orderNotes == "" ? "Nill" : orderNotes;
@@ -2945,8 +1409,9 @@ const placeOrder = asyncHandler(async (req, res) => {
           $project: { shippingAddress: 1, userID: 1 },
         },
       ]);
-
+      console.log(`Shipping order Address`);
       orderAddress = addressData[0].shippingAddress;
+      console.log(orderAddress);
     } else if (!userAddress) {
       orderAddress = {
         firstName,
@@ -3079,14 +1544,7 @@ const placeOrder = asyncHandler(async (req, res) => {
 
     }
 
-    // After the Order is Successfully Created then,
-    // Order Stock management
-    // for (const prod of cart.products) {
-    //   let quantity = -Number(prod.quantity);
-    //   await ProductData.findByIdAndUpdate(prod.productID, {
-    //     $inc: { quantities: quantity },
-    //   });
-    // }
+
 
     console.log(`appliedCoupons`);
     console.log(appliedCoupons);
@@ -3096,19 +1554,32 @@ const placeOrder = asyncHandler(async (req, res) => {
         return await CouponData.findOne({ code: coupn.code })
       })
     )
+    console.log(`couponsID: ${couponsID}`)
 
-    console.log(couponsID)
 
     let userAppliedCoupons
-    if(couponsID.length > 0) {
+    if (couponsID.length > 0) {
       userAppliedCoupons = await Promise.all(
-         couponsID.map(async (coupn) => {
-          await UserData.findByIdAndUpdate({ _id: userID }, 
-            { 
-              $push: { coupons: { couponID: coupn._id, limit: 1 } },
-              $pull: { appliedCoupons: { couponID: coupn._id} },
-             }
-          )
+        couponsID.map(async (coupn) => {
+          let existedCoupon = await UserData.findOne({ _id: userID, 'coupons.couponID': coupn._id })
+
+          if (existedCoupon) {
+            await UserData.findOneAndUpdate({ _id: userID, 'coupons.couponID': coupn._id },
+              {
+                $inc: { 'coupons.$.limit': 1 },
+                $pull: { appliedCoupons: { couponID: coupn._id } },
+              }
+            )
+
+          } else {
+            await UserData.findByIdAndUpdate({ _id: userID },
+              {
+                $push: { coupons: { couponID: coupn._id } },
+                $pull: { appliedCoupons: { couponID: coupn._id } },
+              }
+            )
+
+          }
         })
       )
     }
@@ -3157,10 +1628,18 @@ const placeOrderRazorpay = asyncHandler(async (req, res, next) => {
     return res.json({ status: false, redirected: "/login" });
   }
 
+  const userID = req.session.user._id
+  const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+
+  if (!user) {
+    req.session.user = null;
+    const err = new Error("User not Found")
+    const redirectPath = "/login";
+    return next({ error: err, redirectPath });
+  }
+
   const cartID = req.body.cartID;
   const cart = await CartData.findById({ _id: cartID });
-  const userID = req.session.user._id;
-  const user = await UserData.findById({ _id: userID });
 
   // Cart Total
   const cartTotal = await CartData.aggregate([
@@ -3209,6 +1688,16 @@ const placeOrderRazorpay = asyncHandler(async (req, res, next) => {
 const verifyPaymentRazorpay = asyncHandler(async (req, res, next) => {
   if (!req.session.user) {
     return res.json({ status: false, redirected: "/login" });
+  }
+
+  const userID = req.session.user._id
+  const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+
+  if (!user) {
+    req.session.user = null;
+    const err = new Error("User not Found")
+    const redirectPath = "/login";
+    return next({ error: err, redirectPath });
   }
 
   const { razorpay, order } = req.body;
@@ -3264,138 +1753,15 @@ const verifyPaymentRazorpay = asyncHandler(async (req, res, next) => {
   }
 });
 
-// Wallet viewing
-const wallet = asyncHandler(async (req, res) => {
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
-
-  const userID = req.session.user._id
-  let wallet = await WalletData.findOne({ userID: userID }).lean()
-  let walletTransactions
-  if (wallet.transactions.length <= 0) {
-    walletTransactions = null
-  } else {
-    walletTransactions = wallet.transactions.map(transaction => {
-      transaction.createdAt = moment(transaction.createdAt).format('Do MMMM YYYY')
-      transaction.statusColor = transaction.status == 'Pending' ? '#FF9800'
-        : (transaction.status == 'Success' ? '#388E3C' : '#F44336')
-      return transaction
-    })
-  }
-
-  // Total Wallet Balance
-  let walletBalance = await WalletData.aggregate([
-    {
-      $match: { userID: new mongoose.Types.ObjectId(userID) }
-    },
-    {
-      $unwind: "$transactions"
-    },
-    {
-      $match: { "transactions.status": { $eq: "Success" } }
-    },
-    {
-      $group: {
-        _id: null,
-        creditTotal: {
-          $sum: { $cond: [{ $eq: ["$transactions.transactionType", "credit"] }, "$transactions.amount", 0] },
-        },
-        debitTotal: {
-          $sum: { $cond: [{ $eq: ["$transactions.transactionType", "debit"] }, "$transactions.amount", 0] },
-        }
-
-      }
-    }
-  ])
-
-  const totalBalance = walletBalance[0].creditTotal - walletBalance[0].debitTotal
-
-  return res.render("user/view-wallet", {
-    auth: true,
-    user: req.session.user,
-    wallet,
-    totalBalance,
-    walletTransactions
-  });
-});
-
-// User Wishlist
-const updateWishlist = asyncHandler(async (req, res, next) => {
-  if (!req.session.user) {
-    return res.json({
-      status: false,
-      redirected: "/login",
-      message: "Please Login to continue",
-    });
-  }
-  let productID = req.params.productID;
-  let userID = req.session.user._id;
-  const user = await UserData.findById({ _id: userID }).lean();
-
-  let productIndex = user.wishlist.findIndex(
-    (product) => product.productID == productID
-  );
-
-  if (productIndex == -1) {
-    // checking limit for adding Wishlist
-    if (user.wishlist.length >= 4) {
-      return res.json({
-        status: true,
-        isFavourate: false,
-        message: "Maximum wishlist limit exceeded",
-      });
-    } else {
-      // if the limit is not over, thn add to wishlist
-      await UserData.findByIdAndUpdate(
-        { _id: userID },
-        { $push: { wishlist: { productID: productID } } }
-      );
-      return res.json({
-        status: true,
-        isFavourate: true,
-        message: "Product added to Wishlist",
-      });
-    }
-  } else {
-    await UserData.findByIdAndUpdate(
-      { _id: userID },
-      { $pull: { wishlist: { productID: productID } } }
-    );
-    return res.json({
-      status: true,
-      isFavourate: false,
-      message: "Product Removed from the Wishlist",
-    });
-  }
-});
-
-// Remove Wishlist Product
-const removeWishlistProduct = asyncHandler(async (req, res, next) => {
-  if (!req.session.user) {
-    return res.json({
-      status: false,
-      redirected: "/login",
-    });
-  }
-
-  let productID = req.params.productID;
-  let userID = req.session.user._id;
-  const user = await UserData.findById({ _id: userID }).lean();
-
-  let removedProduct = await UserData.findOneAndUpdate(
-    { _id: userID, "wishlist.productID": productID },
-    { $pull: { wishlist: { productID: productID } } }
-  );
-  //  console.log(removedProduct)
-
-  return res.json({ status: true, message: `Product removed` });
-});
 
 // Logout
 const logout = asyncHandler(async (req, res) => {
   try {
     const user = req.session.user;
+    if (!user) {
+      return res.redirect("/login");
+    }
+
     if (user) {
       req.session.user = null;
       return res.redirect("/login");
@@ -3419,51 +1785,19 @@ module.exports = {
   signup,
   doSignup,
   emailVerify,
+  resendOtp,
   otpVerify,
   forgotPassword,
   checkEmailForPassword,
   resetPassword,
   recoveredPassword,
-  products,
-  dashboard,
-  accountDetails,
-  accountAddress,
-  viewAddresses,
-  addAddress,
-  saveAddress,
-  deleteAddress,
-  getAddressEdit,
-  updateAddress,
-  changePassword,
-  updateUserDetails,
-  updateUserProfilePic,
-  wishlist,
-  myOrders,
-  viewOrderDetails,
   cancelOrder,
   cancelProduct,
   categories,
   sample,
-  product,
-  sortProducts,
-  searchProducts,
-  searchResults,
-  productFilters,
-  productReview,
-  addToCart,
-  myCart,
-  addToWallet,
-  verifyWalletTopup,
-  applyCoupon,
-  removeCoupon,
-  deleteCartProduct,
-  updateCartProductQuantity,
   orderPreCheckout,
   orderCheckout,
   placeOrder,
   verifyPaymentRazorpay,
-  wallet,
-  updateWishlist,
-  removeWishlistProduct,
   logout,
 };

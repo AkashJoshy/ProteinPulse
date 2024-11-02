@@ -21,6 +21,10 @@ const SECRET = process.env.SECRET
 
 const userRouter = require('./routes/user')
 const adminRouter = require('./routes/admin')
+const cartRouter = require('./routes/cart')
+const userDashboardRouter = require('./routes/userDashboard')
+const userProductsRouter = require('./routes/userProducts')
+
 
 const app = express()
 
@@ -90,7 +94,10 @@ app.engine('hbs', engine({
         isorderStatusOutForDelivery: value => value == 'Out for Delivery' ? true : false,
         isorderStatusDelivery: value => value == 'Delivered' ? true : false,
         isorderStatusReturned: value => value == 'Returned' ? true : false,
-        isWalletEnough: (walletBalance, totalPrice) => walletBalance < totalPrice ,
+        isWalletEnough: (walletBalance, totalPrice) => walletBalance < totalPrice,
+        isEmpty: length => length > 0 ? true : false,
+        isCreditedOrNot: paymentType => paymentType === 'debit' ? true : false,
+        isSamePrice: (salesPrice, price) => salesPrice !== price ? true : false,
         orderCount: products => products.reduce((acc, product) => {
            if(product.status !== 'Cancelled'){
             acc++
@@ -141,6 +148,9 @@ app.use(upload.any())
 // request handling
 app.use('/', userRouter)
 app.use('/admin', adminRouter)
+app.use('/cart', cartRouter) 
+app.use('/user/dashboard', userDashboardRouter)
+app.use('/user/products', userProductsRouter)
 
 
 // Error Middlewares

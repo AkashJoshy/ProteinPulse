@@ -7,22 +7,26 @@
   .active {
     background-color: #F46F36;
   }
-
 </style>
 
 <div class="div">
   <ul id="dashboard-lists" class="user-dashboard-ul shadow-lg rounded-3 table-responsive">
-    <a href="/dashboard">
-      <li id="dashboard">
+    <a href="/user/dashboard">
+      <li id="dashboard" 
+      {{!-- class="d-none d-md-none d-xl-block" --}}
+      >
         Dashboard
       </li>
+      {{!-- <li id="dashboard" class="d-md-block d-xl-none">
+        <i class="fa-solid fa-tachograph-digital"></i>
+      </li> --}}
     </a>
-    <a href="/dashboard/account-details">
+    <a href="/user/dashboard/account-details">
       <li id="account-details">
         Account Details
       </li>
     </a>
-    <a href="/dashboard/orders">
+    <a href="/user/dashboard/orders">
       <li id="orders">
         Order History
       </li>
@@ -32,17 +36,17 @@
         Track Order
       </li>
     </a>
-    <a href="/dashboard/wishlist">
+    <a href="/user/dashboard/wishlist">
       <li id="wishlist">
         Wishlist
       </li>
     </a>
-    <a href="/dashboard/address">
+    <a href="/user/dashboard/address">
       <li id="address">
         Address
       </li>
     </a>
-    <a href="/dashboard/wallet">
+    <a href="/user/dashboard/wallet">
       <li id="wallet">
         Wallet
       </li>
@@ -58,28 +62,66 @@
 
 <script>
 
+  /*
   document.addEventListener('DOMContentLoaded', () => {
-    const lists = document.querySelectorAll('.user-dashboard-ul li')
-
-    // retreving the localStorage date , here it's an ID
+    const lists = document.querySelectorAll('.user-dashboard-ul li');
+    const dashboardId = 'dashboard'; // ID of the Dashboard item
     const activeItemId = localStorage.getItem('activeliID');
 
-  if (activeItemId) {
-    const activeItem = document.getElementById(activeItemId);
-    if (activeItem) {
-      activeItem.classList.add('active');
-    }
-  }
+    // Check if we're on the dashboard page based on URL path
+    const isDashboardPage = window.location.pathname === '/user/dashboard'; // Replace '/dashboard' with your dashboard path
 
+    // If on dashboard, set the dashboard item as active
+    if (isDashboardPage) {
+      lists.forEach(li => li.classList.remove('active'));
+      const dashboardItem = document.getElementById(dashboardId);
+      if (dashboardItem) {
+        dashboardItem.classList.add('active');
+      }
+    } else if (activeItemId) {
+      // Otherwise, use the last active item from localStorage
+      const activeItem = document.getElementById(activeItemId);
+      if (activeItem) {
+        activeItem.classList.add('active');
+      }
+    }
+
+    // Update active class on click and store the active ID
     lists.forEach(list => {
       list.addEventListener('click', (e) => {
-        lists.forEach(li => li.classList.remove('active'))
-        e.target.classList.add('active')
+        lists.forEach(li => li.classList.remove('active'));
+        e.target.classList.add('active');
+        localStorage.setItem('activeliID', e.target.id);
+      });
+    });
+  });
+  */
 
-        // Storing the active class ID to localStorage
-        localStorage.setItem('activeliID', e.target.id)
+  document.addEventListener('DOMContentLoaded', () => {
+     const lists = document.querySelectorAll('.user-dashboard-ul li');
+    //alert(location.pathname)
+    const dashboardId = 'dashboard'
+    const activeItemId = localStorage.getItem('activeItemId')
+    let initialPathName = window.location.pathname == '/user/dashboard'
+
+    if(initialPathName) {
+      lists.forEach(list => {
+        list.classList.remove('active')
       })
+      let dashboard = document.getElementById(dashboardId)
+      if(dashboard) dashboard.classList.add('active')
+    } else {
+      let activeItem = document.getElementById(activeItemId)
+      activeItem.classList.add('active')
+    }
+
+  lists.forEach(list => {
+    list.addEventListener('click', (e) => {
+    lists.forEach(li => li.classList.remove('active'))
+      list.classList.add('active')
+      localStorage.setItem('activeItemId', e.target.id)
     })
+  })
 
   })
 

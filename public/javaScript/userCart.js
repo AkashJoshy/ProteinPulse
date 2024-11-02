@@ -47,7 +47,7 @@ function deleteCartProduct(cartProductID, productID, productName) {
     }).then(result => {
         if(result.isConfirmed) {
             $.ajax({
-                url: `/delete-cart-product`,
+                url: `/cart/delete-product`,
                 method: "PUT",
                 data: {
                     productID,
@@ -70,7 +70,7 @@ function deleteCartProduct(cartProductID, productID, productName) {
 // Manage Cart Product Quantities
 function manageCartProductQuantity(quantity, count, productID, cartProductID) {
     $.ajax({
-        url: `/update-cart-product-quantity`,
+        url: `/cart/update-product-quantity`,
         method: "PUT",
         data: {
             quantity,
@@ -102,7 +102,7 @@ function applyCoupon() {
     if (inputOffer.value.length > 0) {
         console.log(inputOffer.value);
         $.ajax({
-            url: `/dashboard/cart/apply-coupon/${inputOffer.value}`,
+            url: `/cart/apply-coupon/${inputOffer.value}`,
             method: 'PATCH',
             success: response => {
                 if (response.status) {
@@ -151,14 +151,13 @@ function applyCoupon() {
 }
 
 
-
     // Remove Coupon
     function removeCoupon(cartID, couponCode, element) {
         console.log(cartID)
         console.log(couponCode)
         console.log(element)
         $.ajax({
-            url: `/dashboard/cart/remove-coupon/${couponCode}/${cartID}`,
+            url: `/cart/remove-coupon/${couponCode}`,
             method: 'PATCH',
             success: response => {
                 if(response.status) {

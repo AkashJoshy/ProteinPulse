@@ -21,7 +21,7 @@
         // update User Details
         if(clickedButton === 'updateUserDetails') {
           $.ajax({
-            url: '/dashboard/account-details/update-user-details',
+            url: '/user/dashboard/account-details/update-user-details',
             type: 'PUT',
             data: new FormData(form),
             processData: false, 
@@ -30,7 +30,7 @@
               if (response.status) {
                 Swal.fire('User Details Updated').then(() => window.location.href = response.redirected )
               } else {
-                Swal.fire('Failed to change password. Please try again.').then(() => window.location.href = response.redirected )
+                Swal.fire('User not found!').then(() => window.location.href = response.redirected )
               }
             },
             error: (error) => {
@@ -40,7 +40,7 @@
         } else if (clickedButton == 'changeProfilePic' || clickedButton == 'changeProfilePicSm') {
           // Change Profile Pic
           $.ajax({
-            url: '/dashboard/account-details/change-profile-picture',
+            url: '/user/dashboard/account-details/change-profile-picture',
             type: 'PUT',
             data: new FormData(form),
             processData: false, 
@@ -56,7 +56,7 @@
       } else {
         // Change Password
           $.ajax({
-            url: '/dashboard/account-details/change-password',
+            url: '/user/dashboard/account-details/change-password',
             type: 'PUT',
             data: new FormData(form),
             processData: false, 

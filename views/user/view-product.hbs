@@ -79,12 +79,11 @@
         animation: glowup 0.5s ease;
     }
 
-/*    .custom-toast {
+    /*    .custom-toast {
         color: black;
         border: 2px ridge white;
     }
 */
-
 </style>
 
 <div class="container">
@@ -119,7 +118,6 @@
                     <div class="d-flex rounded-1 border border-2 shadow-lg" id="imageZoom"
                         style="background-color: rgba(255, 254, 254, 0.461);">
 
-                        <!-- Wrap the image in the zoom container -->
                         <div class="image-zoom-container">
                             <img class="img-fluid mx-auto main-image rounded-3 p-2" id="zoom_01"
                                 src="/uploads/{{product.imageUrl.[0]}}" alt="main-image">
@@ -178,7 +176,7 @@
                     {{product.name}}
                 </h3>
                 <div class="mt-3 d-flex">
-                    <div class="ms-auto">
+                    <div class="ms-auto" id="rating-star">
                         <span class="fa fa-star checked"></span>
                         <span class="fa fa-star checked"></span>
                         <span class="fa fa-star checked"></span>
@@ -222,6 +220,7 @@
 
                     <div class="ms-4 py-1">
                         <i class="fs-2 fa-heart wishlist" style=""></i>
+                        <input type="text" id="isWishlisted" value="{{isWishlisted}}" class="d-none">
                     </div>
                 </div>
 
@@ -269,6 +268,9 @@
             </div>
 
             <div id="tab1" class="tab-content active">
+                <h5>Description</h5>
+                <p class="ms-3">{{product.description}}</p>
+
             </div>
             <div id="tab2" class="tab-content">
                 <div class="d-flex mt-3">
@@ -414,7 +416,7 @@
                 <h1 class="modal-title fs-5" id="exampleModalLabel"> Write a Review </h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="/product/review" method="post" class="needs-validation" novalidate>
+            <form action="/user/product/review" method="post" class="needs-validation" novalidate>
                 <div class="modal-body">
                     <div>
                         <div class="review-star">
@@ -542,8 +544,12 @@
     function addToCart(productID) {
         let count = Number(productCount.innerHTML)
         $.ajax({
-            url: `/product/add-to-cart/${productID}/${count}`,
-            method: 'GET',
+            url: `/cart/add-product`,
+            method: 'PUT',
+            data: {
+                productID,
+                count
+            },
             success: response => {
                 if (response.status) {
                     Swal.fire(response.message).then(() => productCount.innerHTML = 1)
@@ -574,16 +580,17 @@
 
     // Wishlist
     const wishlist = document.querySelector('.wishlist')
+    let isWishlisted = document.querySelector('#isWishlisted').value === 'true'
     const productID = document.querySelector('.productID').value
 
     async function getwishlist() {
         try {
-            const response = await fetch(`/product/wishlist/${productID}`, {
+            const response = await fetch(`/user/products/wishlist/${productID}`, {
                 method: 'PATCH'
             })
             const data = await response.json()
             const { status, isFavourate, message } = data
-            console.log(data)
+            //    console.log(data)
 
             if (!status) {
                 Swal.fire(
@@ -596,18 +603,20 @@
             }
 
 
-            if (!isFavourate) {
-            Toastify({
-                text: message,
-                duration: 3000,
-                close: true,
-                gravity: "bottom", 
-                position: "right",
-                style: {
-                    background: "linear-gradient(to right, #F46F36, #F36F8F)"
-                }
-            }).showToast();
 
+            if (!isFavourate) {
+                Toastify({
+                    text: message,
+                    duration: 3000,
+                    close: true,
+                    gravity: "bottom",
+                    position: "right",
+                    style: {
+                        background: "linear-gradient(to right, #F46F36, #F36F8F)"
+                    }
+                }).showToast();
+
+    
                 return data;
             }
 
@@ -615,12 +624,12 @@
                 text: message,
                 duration: 3000,
                 close: true,
-                gravity: "bottom", 
+                gravity: "bottom",
                 position: "right",
                 style: {
                     background: "linear-gradient(to right, #F46F36, #F36F8F)"
                 }
-            //    className: "custom-toast"
+                //    className: "custom-toast"
             }).showToast();
 
             return data
@@ -640,19 +649,19 @@
             wishlist.style.color = "red"
             wishlist.style.transform = "scale(1)"
             wishlist.classList.add('animating')
-            localStorage.setItem(`${productID}_wishlisted`, 'true')
-        } else {
+        }
+        else {
             wishlist.classList.add('fa-regular')
             wishlist.classList.remove('fa-solid')
             wishlist.style.color = "black"
             wishlist.style.transform = "scale(.9)"
             wishlist.classList.remove('animating')
-            localStorage.removeItem(`${productID}_wishlisted`)
         }
     }
 
     wishlist.addEventListener('click', async () => {
         let { status, isFavourate } = await getwishlist()
+
         if (status) {
             updateWishlistBtn(isFavourate)
         }
@@ -660,8 +669,9 @@
 
     // Initialize the wishlist Btn (whether its favourate or not) 
     function wishlistBtninitailse() {
-        let favourate = localStorage.getItem(`${productID}_wishlisted`) || false
-        updateWishlistBtn(favourate)
+        console.log(`isWishlisted ${isWishlisted}`)
+        updateWishlistBtn(isWishlisted)
+
     }
 
 

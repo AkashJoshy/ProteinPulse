@@ -21,7 +21,7 @@ const BillingAddressSchema = new Schema({
         type: Number,
         required: true
     },
-    mobile: {
+    mobileNumber: {
         type: Number,
         required: true
     },
@@ -53,7 +53,7 @@ const ShippingAddressSchema = new Schema({
         type: Number,
         required: true
     },
-    mobile: {
+    mobileNumber: {
         type: Number,
         required: true
     },
