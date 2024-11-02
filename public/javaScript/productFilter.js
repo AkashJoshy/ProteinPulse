@@ -15,15 +15,16 @@
         event.preventDefault()
 
         const clickedButton = event.submitter.id
-        const formData = $('form').serialize();
+        const formData = $('form').serializeArray();
         const searchSort = document.querySelector('.search-sort');
         let sortType = searchSort.value
+        formData.push({ name: 'sortType', value: sortType })
         // update User Details
         if(clickedButton == 'applyFilters') {
           $.ajax({
-            url: '/products/filters',
+            url: '/user/products/filters',
             type: 'GET',
-            data: formData + '&' + `sortType` + `=` + sortType,
+            data: formData,
             success: response => {
               if (response.status) {
                 console.log(`Arrived`);

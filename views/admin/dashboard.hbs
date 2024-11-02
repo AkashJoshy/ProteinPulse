@@ -96,22 +96,43 @@
 
 <script>
 
+  // When pages loads
   document.addEventListener('DOMContentLoaded', () => {
+    let salesChartFilters = document.querySelector('#salesCharts');
+    // 
+    // api calling using ajax
+    let salesData = []
+    let labels
+    let chartFilter = salesChartFilters.value
+
     const ctx = document.getElementById('salesChart').getContext('2d');
 
-    const dailySalesData = [0, 2, 0, 0, 3, 5, 10,];
-    const weeklySalesData = [50, 120, 70, 90, 120, 60, 140];
-    const monthlySalesData = [50, 120, 70, 90, 120, 60, 140];
-    const yearlySalesData = [300, 450, 700];
+
+    $.ajax({
+      url: '/admin/sales-chart',
+      method: 'get',
+      data: {
+        filter: chartFilter
+      },
+      success: response => {
+        if (response.status) {
+          salesChart.data.datasets[0].data = response.updatedSalesChartData
+          salesChart.data.labels = response.labels
+          salesChart.update()
+        } else {
+          location.href = response.redirected
+        }
+      }
+    })
 
     // Create the chart
     const salesChart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        labels: labels,
         datasets: [{
           label: 'Total Sales',
-          data: dailySalesData,
+          data: salesData,
           fill: false,
           backgroundColor: 'rgba(240, 110, 110, 1)',
           borderColor: 'rgba(244, 111, 54, 1)',
@@ -133,7 +154,8 @@
         scales: {
           y: {
             grid: {
-              display: false,
+              display: true,
+              color: 'rgba(120, 10, 10, 1)'
             },
             ticks: {
               color: 'rgba(255, 255, 255, 1)'
@@ -153,71 +175,71 @@
       }
     });
 
+
+
+
     // Handle filter change to update chart data
-    let salesChartFilters = document.querySelector('#salesCharts');
     if (salesChartFilters) {
       salesChartFilters.addEventListener('change', e => {
         let filter = e.target.value
-        switch (filter) {
-          case 'day':
-            salesChart.data.datasets[0].data = dailySalesData
-            salesChart.data.labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-            break;
-          case 'week':
-            salesChart.data.datasets[0].data = weeklySalesData
-            salesChart.data.labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6']
-            break;
-          case 'month':
-            salesChart.data.datasets[0].data = monthlySalesData
-            salesChart.data.labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-            break;
-          case 'year':
-            salesChart.data.datasets[0].data = yearlySalesData
-            salesChart.data.labels = ['2022', '2023', '2024']
-            break;
-        }
-        salesChart.update()
+        $.ajax({
+          url: '/admin/sales-chart',
+          method: 'get',
+          data: {
+            filter: filter
+          },
+          success: response => {
+            if (response.status) {
+              salesData = response.updatedSalesChartData
+              salesChart.data.datasets[0].data = salesData
+              salesChart.data.labels = response.labels
+              salesChart.update()
+            } else {
+              location.href = response.redirected
+            }
+          }
+        })
+
       });
     }
-  // Download Sales Chart
-  const exportOptions = document.querySelector('#export-options')
-  const downloadChart = document.querySelector('.download-chart')
-  downloadChart.addEventListener('click', (e) => {
-    console.log(exportOptions.value)
-    let option = exportOptions.value
-    if (option === 'image') {
-    // Download saleschart in Image
-      let link = document.createElement('a')
-      // Converting the object into base64
-      let base64Image = salesChart.toBase64Image()
-      link.href = base64Image
-      console.log(base64Image)
-      link.download = 'sales_chart.png'
-      link.click()
-    } else if (option === 'csv') {
-    // Download saleschart in CSV
-    const csv = "data:text/csv;charset=utf-8," +
-                  "Label,Sales\n" +
-                  salesChart.data.labels.map((label, index) => {
-                    if(salesChart.data.datasets[0].data[index]) {
-                      return `${label}, ${salesChart.data.datasets[0].data[index]}`
-                    } else {
-                      return `${label}, 0`
-                    }
-                  }).join("\n")
-    let link = document.createElement('a')
-    const csvLink = encodeURI(csv)
-    link.href = csvLink
-    link.download = 'sales_chart.csv'
-    link.click()
-    } else {
-      Swal.fire(`Select a format to Download`)
-    }
-  })
 
+    // Download Sales Chart
+    const exportOptions = document.querySelector('#export-options')
+    const downloadChart = document.querySelector('.download-chart')
+    downloadChart.addEventListener('click', (e) => {
+      console.log(exportOptions.value)
+      let option = exportOptions.value
+      if (option === 'image') {
+        // Download saleschart in Image
+        let link = document.createElement('a')
+        // Converting the object into base64
+        let base64Image = salesChart.toBase64Image()
+        link.href = base64Image
+        console.log(base64Image)
+        link.download = 'sales_chart.png'
+        link.click()
+      } else if (option === 'csv') {
+        // Download saleschart in CSV
+        const csv = "data:text/csv;charset=utf-8," +
+          "Label,Sales\n" +
+          salesChart.data.labels.map((label, index) => {
+            if (salesChart.data.datasets[0].data[index]) {
+              return `${label}, ${salesChart.data.datasets[0].data[index]}`
+            } else {
+              return `${label}, 0`
+            }
+          }).join("\n")
+        let link = document.createElement('a')
+        const csvLink = encodeURI(csv)
+        link.href = csvLink
+        link.download = 'sales_chart.csv'
+        link.click()
+      } else {
+        Swal.fire(`Select a format to Download`)
+      }
+    })
 
   });
-
 
 
 

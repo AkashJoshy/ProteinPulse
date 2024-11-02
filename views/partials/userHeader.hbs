@@ -18,7 +18,8 @@
     <div class="collapse navbar-collapse me-5" id="navbarTogglerDemo03">
       <ul class="navbar-nav ms-auto mb-2 mt-lg-0 mt-2">
 
-        <input class="form-control me-2 me-lg-2" onclick="searchProduct()" id="searchBtn" placeholder="Search" aria-label="Search">
+        <input class="form-control me-2 me-lg-2" onclick="searchProduct()" id="searchBtn" placeholder="Search"
+          aria-label="Search">
 
         <li class="nav-item">
           {{#if user}}
@@ -28,13 +29,13 @@
           {{/if}}
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/dashboard/my-cart">
+          <a class="nav-link" href="/cart">
             <i class="fa-solid fa-cart-shopping"></i>
           </a>
         </li>
         <li class="nav-item">
 
-          <a class="nav-link" href="/dashboard">
+          <a class="nav-link" id="dashboard-btn" href="/user/dashboard">
             <i class="fa-solid fa-circle-user"></i>
           </a>
         </li>
@@ -57,7 +58,7 @@
       </a>
     </li>
     <li style="margin-left: 20px;">
-      <a href="/products" class="" style="text-decoration: none; color: black;">
+      <a href="/user/products" class="" style="text-decoration: none; color: black;">
         Products
       </a>
     </li>
@@ -93,10 +94,13 @@
 
 
 <script>
-  
+
   // Sign up Banner
   const closeBtn = document.querySelector('.banner-close')
   const signUpBanner = document.querySelector('.sign-up-banner')
-  if(signUpBanner) closeBtn.addEventListener("click", ()=> signUpBanner.style.display = 'none')
+  if (signUpBanner) closeBtn.addEventListener("click", () => signUpBanner.style.display = 'none')
+
+
   
+
 </script>

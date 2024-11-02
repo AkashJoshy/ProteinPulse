@@ -2,34 +2,35 @@
   span {
     cursor: pointer;
   }
+
   img {
-  display: block;
-  /* This rule is very important, please don't ignore this */
-  max-width: 100%;
-}
+    display: block;
+    /* This rule is very important, please don't ignore this */
+    max-width: 100%;
+  }
 
-.invalid {
-  border: 2px solid red;
-}
-
-
-.form-select.is-invalid:not([multiple]):not([size]), 
-.form-select.is-invalid:not([multiple])[size="1"], 
-.was-validated .form-select:invalid:not([multiple]):not([size]),
- .was-validated .form-select:invalid:not([multiple])[size="1"] 
- {
-  --bs-form-select-bg-icon: url(none)
-  
- }
+  .invalid {
+    border: 2px solid red;
+  }
 
 
-.form-select.is-valid:not([multiple]):not([size]), .form-select.is-valid:not([multiple])[size="1"], .was-validated .form-select:valid:not([multiple]):not([size]), .was-validated .form-select:valid:not([multiple])[size="1"] {
+  .form-select.is-invalid:not([multiple]):not([size]),
+  .form-select.is-invalid:not([multiple])[size="1"],
+  .was-validated .form-select:invalid:not([multiple]):not([size]),
+  .was-validated .form-select:invalid:not([multiple])[size="1"] {
+    --bs-form-select-bg-icon: url(none)
+  }
+
+
+  .form-select.is-valid:not([multiple]):not([size]),
+  .form-select.is-valid:not([multiple])[size="1"],
+  .was-validated .form-select:valid:not([multiple]):not([size]),
+  .was-validated .form-select:valid:not([multiple])[size="1"] {
     --bs-form-select-bg-icon: url(none);
     padding-right: 4.125rem;
     background-position: right .75rem center, center right 2.25rem;
     background-size: 16px 12px, calc(.75em + .375rem) calc(.75em + .375rem);
-}
-
+  }
 </style>
 
 <div class="mt-5">
@@ -37,108 +38,77 @@
 </div>
 
 <div class="container shadow-lg p-3 mb-5 mt-4 rounded">
-  <form
-    action="/admin/add-product"
-    class="row g-3 needs-validation"
-    method="post"
-    enctype="multipart/form-data"
-    novalidate
-  >
+  <form action="/admin/add-product" class="row g-3 needs-validation" method="post" enctype="multipart/form-data"
+    novalidate>
     <div class="col-md-6">
       <label for="productName" class="form-label">Product Name</label>
-      <input
-        type="text"
-        class="form-control"
-        name="name"
-        id="productName"
-        {{!-- pattern="[A-Za-z ]+" --}}
-        required
-      />
+      <input type="text" class="form-control" name="name" id="productName" {{!-- pattern="[A-Za-z ]+" --}} required />
       <div class="valid-feedback">
         Looks good!
       </div>
     </div>
 
     <div class="col-md-6">
-    <label for="category" class="form-label">Category Name</label>
-    <select class="form-select" name="categoryName" id="category" required>
-      <option selected disabled value="">Choose...</option>
-      {{#each categories}}
-      <option > {{this.name}} </option>
-      {{/each}}
-    </select>
-    <div class="invalid-feedback">
-      Please select a Category.
+      <label for="category" class="form-label">Category Name</label>
+      <select class="form-select" name="categoryName" id="category" required>
+        <option selected disabled value="">Choose...</option>
+        {{#each categories}}
+        <option> {{this.name}} </option>
+        {{/each}}
+      </select>
+      <div class="invalid-feedback">
+        Please select a Category.
+      </div>
     </div>
-  </div>
 
     <div class="col-md-12">
       <label for="categoryDescription" class="form-label">Description</label>
-      <input
-        type="text"
-        class="form-control"
-        name="description"
-        id="categoryDescription"
-        {{!-- pattern="[A-Za-z ]+" --}}
-        required
-      />
+      <input type="text" class="form-control" name="description" id="categoryDescription" {{!-- pattern="[A-Za-z ]+"
+        --}} required />
       <div class="valid-feedback">
         Looks good!
       </div>
     </div>
 
     <div class="col-md-4">
-    <label for="category" class="form-label">Brands</label>
-    <select class="form-select" name="brand" id="brand" required>
-      <option selected disabled value="" class="text-danger">Select Brand...</option>
-      <option value="BPI Sports">BPI Sports</option>
-      <option value="Dragon Pharma">Dragon Pharma</option>
-      <option value="Dymatize">Dymatize</option>
-      <option value="BNC">BNC</option>
-      <option value="GNC">GNC</option>
-      <option value="Muscleblaze">Muscleblaze</option>
-      <option value="Muscle Science">Muscle Science</option>
-      <option value="One Science">One Science</option>
-      <option value="Optimum Nutrition">Optimum Nutrition</option>
-      <option value="QNT">QNT</option>
-      <option value="Ritebite">Ritebite</option>
-    </select>
-    <div class="invalid-feedback">
-      Please select a Brand 
+      <label for="category" class="form-label">Brands</label>
+      <select class="form-select" name="brand" id="brand" required>
+        <option selected disabled value="" class="text-danger">Select Brand...</option>
+        <option value="BPI Sports">BPI Sports</option>
+        <option value="Dragon Pharma">Dragon Pharma</option>
+        <option value="Dymatize">Dymatize</option>
+        <option value="BNC">BNC</option>
+        <option value="GNC">GNC</option>
+        <option value="Muscleblaze">Muscleblaze</option>
+        <option value="Muscle Science">Muscle Science</option>
+        <option value="One Science">One Science</option>
+        <option value="Optimum Nutrition">Optimum Nutrition</option>
+        <option value="QNT">QNT</option>
+        <option value="Ritebite">Ritebite</option>
+      </select>
+      <div class="invalid-feedback">
+        Please select a Brand
+      </div>
     </div>
-  </div>
 
     <div class="col-md-4">
       <label for="highlights" class="form-label">Highlights
         <span class="add-highlight-input border rounded-2 border-success px-2">
-        +
-      </span>
+          +
+        </span>
       </label>
       <div class="highlights">
-      <input
-        type="text"
-        class="form-control"
-        name="highlights"
-        id="highlights"
-        {{!-- pattern="[A-Za-z ]+" --}}
-        required
-      />
-      <div class="valid-feedback">
-        Looks good!
-      </div>
+        <input type="text" class="form-control" name="highlights" id="highlights" {{!-- pattern="[A-Za-z ]+" --}}
+          required />
+        <div class="valid-feedback">
+          Looks good!
+        </div>
       </div>
     </div>
 
     <div class="col-md-4">
       <label for="prices" class="form-label">Price</label>
-      <input
-        type="number"
-        class="form-control"
-        name="price"
-        id="prices"
-        min="0"
-        required
-      />
+      <input type="number" class="form-control" name="price" id="prices" min="0" required />
       <div class="valid-feedback">
         Looks good!
       </div>
@@ -147,98 +117,59 @@
 
     <div class="col-md-4">
       <label for="rating" class="form-label">Rating</label>
-      <input
-        type="number"
-        class="form-control"
-        name="rating"
-        id="rating"
-        step="0.5"
-        min="0.5"
-        max="5"
-        required
-      />
+      <input type="number" class="form-control" name="rating" id="rating" step="0.5" min="0.5" max="5" required />
       <div class="valid-feedback">
         Looks good!
       </div>
     </div>
 
     <div class="col-md-4">
-    <label for="flavour" class="form-label">Flavour</label>
-    <select class="form-select" name="flavour" id="flavour" required>
-      <option selected disabled value="">Select Flavour...</option>
-      <option value="Chocolate" >Chocolate</option>
-      <option value="Chocolate Charge" >Chocolate Charge</option>
-      <option value="Double Rich Chocolate" >Double Rich Chocolate</option>
-      <option value="Unflavoured" >Unflavoured</option>
-      <option value="Strawberry" >Strawberry</option>
-      <option value="Vanilla" >Vanilla</option>
-    </select>
-    <div class="invalid-feedback">
-      Please select a Flavour
+      <label for="flavour" class="form-label">Flavour</label>
+      <select class="form-select" name="flavour" id="flavour" required>
+        <option selected disabled value="">Select Flavour...</option>
+        <option value="Chocolate">Chocolate</option>
+        <option value="Chocolate Charge">Chocolate Charge</option>
+        <option value="Double Rich Chocolate">Double Rich Chocolate</option>
+        <option value="Unflavoured">Unflavoured</option>
+        <option value="Strawberry">Strawberry</option>
+        <option value="Vanilla">Vanilla</option>
+      </select>
+      <div class="invalid-feedback">
+        Please select a Flavour
+      </div>
     </div>
-  </div>
 
     <div class="d-flex col-md-4">
 
-    <div class="col-8">
-      <label for="ProductSize" class="form-label">Size
-      </label>
-      <div class="sizes">
-      <input
-        type="number"
-        class="form-control"
-        name="size"
-        id="ProductSize"
-        min="1"
-        required
-      />
-      <div class="valid-feedback">
-        Looks good!
-      </div>
-    </div>
+      <div class="col-8">
+        <label for="ProductSize" class="form-label">Size
+        </label>
+        <div class="sizes">
+          <input type="number" class="form-control" name="size" id="ProductSize" min="1" required />
+          <div class="valid-feedback">
+            Looks good!
+          </div>
+        </div>
       </div>
 
-    <div class="ms-1 col-4" style="margin-top: 30px;">
-    <select class="form-select" name="units" required>
-      <option selected disabled value=""> </option>
-      <option value="kg">Kg</option>
-      <option value="Gm">Gm</option>
-      <option value="Lbs">Lbs</option>
-      <option value="Units">Unit</option>
-      <option value="Capsules">Capsules</option>
-      <option value="Tablets">Tablets</option>
-    </select>
-  </div>
-
-    </div>
-    
-
-    <div class="col-md-4">
-      <label for="quantity" class="form-label">Quantities</label>
-      <input
-        type="number"
-        class="form-control"
-        name="quantities"
-        id="quantity"
-        min="1"
-        required
-      />
-      <div class="valid-feedback">
-        Looks good!
+      <div class="ms-1 col-4" style="margin-top: 30px;">
+        <select class="form-select" name="units" required>
+          <option selected disabled value=""> </option>
+          <option value="kg">Kg</option>
+          <option value="Gm">Gm</option>
+          <option value="Lbs">Lbs</option>
+          <option value="Units">Unit</option>
+          <option value="Capsules">Capsules</option>
+          <option value="Tablets">Tablets</option>
+        </select>
       </div>
+
     </div>
+
     <div class="col-md-4">
       <label for="originCountry" class="form-label">Origin(Country)</label>
-      <input
-        type="text"
-        class="form-control"
-        name="origin"
-        id="originCountry"
-        min="1"
-        max="5"
-        {{!-- pattern="[A-Za-z ]+" --}}
-        required
-      />
+      <input type="text" class="form-control" name="origin" id="originCountry" min="1" max="5" {{!--
+        pattern="[A-Za-z ]+" --}} required />
       <div class="valid-feedback">
         Looks good!
       </div>
@@ -246,203 +177,142 @@
 
     <div class="col-md-4">
       <label for="bestBefore" class="form-label">Best Before</label>
-      <input
-        type="date"
-        class="form-control "
-        name="bestBefore"
-        id="bestBefore"
-        min="1"
-        required
-      />
+      <input type="date" class="form-control " name="bestBefore" id="bestBefore" min="1" required />
       <div class="invalid-feedback">
         The date must not be a Past date
       </div>
     </div>
 
-   <div class="col-md-4 d-none">
+    <div class="col-md-4 d-none">
       <label for="prodID" class="form-label">Product ID</label>
-      <input
-        type="text"
-        class="form-control"
-        name="prodID"
-        value="{{product._id}}"
-        id="prodID"
-      />
+      <input type="text" class="form-control" name="prodID" value="{{product._id}}" id="prodID" />
     </div>
 
     <div class="col-md-12 d-flex">
-      <img
-        id="image"
-        class="image-display rounded-3 w-25 image-fluid mx-auto mt-3"
-        style="height: auto;"
-      />
+      <img id="image" class="image-display rounded-3 w-25 image-fluid mx-auto mt-3" style="height: auto;" />
     </div>
-    
+
     {{!-- cropped image --}}
     <div class="col-md-12 crop-image-container" style="display: none;">
-     <img
-        class="rounded-3 w-50 mx-auto cropped-image border border-1"
-        alt="Cropped Image"
-      />
+      <img class="rounded-3 w-50 mx-auto cropped-image border border-1" alt="Cropped Image"
+        style="object-fit: contain; max-width: 100%;" />
       <p>Size:
         <span class="view-height">
           - -
         </span> x
         <span class="view-width">
           - -
-        </span> 
+        </span>
       </p>
-      
+
     </div>
     {{!-- // cropped image --}}
 
-    <div class="d-flex edit-crop-section">
+    <div class="d-flex edit-crop-section" style="gap: 3px">
       <div class="btn btn-dark image-edit" style="display: none;">EDIT</div>
       <div class="btn btn-success btn-sm crop-btn" style="display: none;">CROP</div>
     </div>
 
     <div class="col-md-12">
       <label for="categoryImage" class="form-label"> Product Thumbnail </label>
-      <input
-        type="file"
-        name="file0"
-        class="form-control category-img"
-        aria-label="file example"
-        id="categoryImage"
-        accept="image/*"
-      />
+      <input type="file" name="file0" class="form-control category-img" aria-label="file example" id="categoryImage"
+        accept="image/*" required />
       <div class="invalid-feedback">Please Upload the Category Image</div>
     </div>
 
     <div class="col-md-12 d-flex">
-      <img
-        class="image-display rounded-3 w-25 image-fluid mx-auto mt-3"
-        style="height: auto;"
-      />
+      <img class="image-display rounded-3 w-25 image-fluid mx-auto mt-3" style="height: auto;" />
     </div>
 
     {{!-- cropped image --}}
     <div class="col-md-12 crop-image-container" style="display: none;">
-     <img
-        class="rounded-3 w-50 mx-auto cropped-image border border-1"
-        alt="Cropped Image"
-      />
+      <img class="rounded-3 w-50 mx-auto cropped-image border border-1" alt="Cropped Image" />
       <p>Size:
         <span class="view-height">
           - -
         </span> x
         <span class="view-width">
           - -
-        </span> 
+        </span>
       </p>
-      
+
     </div>
     {{!-- // cropped image --}}
 
-    <div class="d-flex edit-crop-section">
+    <div class="d-flex edit-crop-section" style="gap: 3px">
       <div class="btn btn-dark image-edit" style="display: none;">EDIT</div>
       <div class="btn btn-success btn-sm crop-btn" style="display: none;">CROP</div>
     </div>
 
     <div class="col-md-12">
       <label for="categoryImage" class="form-label"> Product Image 1 </label>
-      <input
-        type="file"
-        name="file1"
-        class="form-control category-img"
-        aria-label="file example"
-        id="categoryImage"
-        accept="image/*"
-      />
+      <input type="file" name="file1" class="form-control category-img" aria-label="file example" id="categoryImage"
+        accept="image/*" required />
       <div class="invalid-feedback">Please Upload the Category Image</div>
     </div>
 
     <div class="col-md-12 d-flex">
-      <img
-        class="image-display rounded-3 w-25 image-fluid mx-auto mt-3"
-        style="height: auto;"
-      />
+      <img class="image-display rounded-3 w-25 image-fluid mx-auto mt-3" style="height: auto;" />
     </div>
 
     {{!-- cropped image --}}
     <div class="col-md-12 crop-image-container" style="display: none;">
-     <img
-        class="rounded-3 w-50 mx-auto cropped-image border border-1"
-        alt="Cropped Image"
-      />
+      <img class="rounded-3 w-50 mx-auto cropped-image border border-1" alt="Cropped Image" />
       <p>Size:
         <span class="view-height">
           - -
         </span> x
         <span class="view-width">
           - -
-        </span> 
+        </span>
       </p>
-      
+
     </div>
     {{!-- // cropped image --}}
 
-    <div class="d-flex edit-crop-section">
+    <div class="d-flex edit-crop-section" style="gap: 3px">
       <div class="btn btn-dark image-edit" style="display: none;">EDIT</div>
       <div class="btn btn-success btn-sm crop-btn" style="display: none;">CROP</div>
     </div>
 
     <div class="col-md-12">
       <label for="categoryImage" class="form-label"> Product Image 2 </label>
-      <input
-        type="file"
-        name="file2"
-        class="form-control category-img"
-        aria-label="file example"
-        id="categoryImage"
-        accept="image/*"
-      />
+      <input type="file" name="file2" class="form-control category-img" aria-label="file example" id="categoryImage"
+        accept="image/*" />
       <div class="invalid-feedback">Please Upload the Category Image</div>
     </div>
 
     <div class="col-md-12 d-flex">
-      <img
-        class="image-display rounded-3 w-25 image-fluid mx-auto mt-3"
-        style="height: auto;"
-      />
+      <img class="image-display rounded-3 w-25 image-fluid mx-auto mt-3" style="height: auto;" />
     </div>
 
     {{!-- cropped image --}}
     <div class="col-md-12 crop-image-container" style="display: none;">
-     <img
-        class="rounded-3 w-50 mx-auto cropped-image border border-1"
-        alt="Cropped Image"
-      />
+      <img class="rounded-3 w-50 mx-auto cropped-image border border-1" alt="Cropped Image" />
       <p>Size:
         <span class="view-height">
           - -
         </span> x
         <span class="view-width">
           - -
-        </span> 
+        </span>
       </p>
-      
+
     </div>
     {{!-- // cropped image --}}
 
-    <div class="d-flex edit-crop-section">
+    <div class="d-flex edit-crop-section" style="gap: 3px">
       <div class="btn btn-dark image-edit" style="display: none;">EDIT</div>
       <div class="btn btn-success btn-sm crop-btn" style="display: none;">CROP</div>
     </div>
 
     <div class="col-md-12">
       <label for="categoryImage" class="form-label"> Product Image 3 </label>
-      <input
-        type="file"
-        name="file3"
-        class="form-control category-img"
-        aria-label="file example"
-        id="categoryImage"
-        accept="image/*"
-      />
+      <input type="file" name="file3" class="form-control category-img" aria-label="file example" id="categoryImage"
+        accept="image/*" />
       <div class="invalid-feedback">Please Upload the Category Image</div>
     </div>
-  
+
     <div class="col-12 d-flex">
       <button id="add-product" class="btn btn-success mx-auto" type="submit">Add</button>
     </div>
@@ -451,8 +321,8 @@
 
 
 <script src="/javaScript/addProduct.js"></script>
- <script>
-    // Image Checking While Uploading
+<script>
+  // Image Checking While Uploading
   const images = document.querySelectorAll('.image-display')
   const categoryImages = document.querySelectorAll('.category-img')
   const editCropSection = document.querySelectorAll('.edit-crop-section')
@@ -464,96 +334,97 @@
   const croppedImageWidth = document.querySelectorAll('.view-width');
   const croppedImgContainer = document.querySelectorAll('.crop-image-container');
 
-  
+
   categoryImages.forEach((categoryImage, index) => {
-  categoryImage.addEventListener('change', (e) => {
-    
+    categoryImage.addEventListener('change', (e) => {
 
-    images[index].src = URL.createObjectURL(e.target.files[0])
-    cropBtn[index].style.display = "block" 
-    imageEdit[index].style.display = "block" 
-    //
 
+      images[index].src = URL.createObjectURL(e.target.files[0])
+      cropBtn[index].style.display = "none"
+      imageEdit[index].style.display = "block"
+      //
+
+    })
   })
+
+  /***************************** Flavour and size ************************************************/
+  const addFlavourInputField = document.querySelector('.add-flavour-input');
+  const addSizeInputField = document.querySelector('.add-size-input');
+  const addHighlightInputField = document.querySelector('.add-highlight-input');
+  const sizesInput = document.querySelector('.sizes');
+  const highlightsInput = document.querySelector('.highlights');
+
+
+  const addInputWithDeleteBtn = (inputType, inputName, inputField) => {
+    let input = document.createElement('input')
+    input.type = inputType
+    input.name = inputName
+    input.required = true
+    //input.pattern = "[A-Za-z ]+"
+    input.classList.add('form-control', 'mt-1')
+    inputField.appendChild(input)
+
+    //delete btn
+    let deleteBtn = document.createElement('button')
+    deleteBtn.innerText = "Delete"
+    deleteBtn.classList.add('btn', 'btn-danger', 'btn-sm',)
+    inputField.appendChild(deleteBtn)
+
+    //delete the input 
+    deleteBtn.addEventListener('click', () => {
+      inputField.removeChild(input)
+      inputField.removeChild(deleteBtn)
+    })
+  }
+
+
+  // Flavour 
+  /*
+  addFlavourInputField.addEventListener('click', ()=> {
+    addInputWithDeleteBtn('text', 'flavours', flavoursInput)
+  })
+  
+  // Size
+  addSizeInputField.addEventListener('click', ()=> {
+    addInputWithDeleteBtn('number', 'sizes', sizesInput)
+  })
+  */
+
+
+  // Highlights
+  addHighlightInputField.addEventListener('click', () => {
+    addInputWithDeleteBtn('text', 'highlights', highlightsInput)
   })
 
-/***************************** Flavour and size ************************************************/
-const addFlavourInputField = document.querySelector('.add-flavour-input');
-const addSizeInputField = document.querySelector('.add-size-input');
-const addHighlightInputField = document.querySelector('.add-highlight-input');
-const sizesInput = document.querySelector('.sizes');
-const highlightsInput = document.querySelector('.highlights');
+  /***************************** Flavour and size ************************************************/
 
 
-const addInputWithDeleteBtn = (inputType, inputName, inputField) => {
-  let input = document.createElement('input')
-  input.type = inputType
-  input.name = inputName
-  input.required = true
-  //input.pattern = "[A-Za-z ]+"
-  input.classList.add('form-control', 'mt-1')
-  inputField.appendChild(input)
-
-  //delete btn
-  let deleteBtn = document.createElement('button')
-  deleteBtn.innerText = "Delete"
-  deleteBtn.classList.add('btn', 'btn-danger', 'btn-sm',)
-  inputField.appendChild(deleteBtn)
-
-  //delete the input 
-  deleteBtn.addEventListener('click', ()=> {
-    inputField.removeChild(input)
-    inputField.removeChild(deleteBtn)
-  })
-}
-
-
-// Flavour 
-/*
-addFlavourInputField.addEventListener('click', ()=> {
-  addInputWithDeleteBtn('text', 'flavours', flavoursInput)
-})
-
-// Size
-addSizeInputField.addEventListener('click', ()=> {
-  addInputWithDeleteBtn('number', 'sizes', sizesInput)
-})
-*/
-
-
-// Highlights
-addHighlightInputField.addEventListener('click', ()=> {
-  addInputWithDeleteBtn('text', 'highlights', highlightsInput)
-})
-
-/***************************** Flavour and size ************************************************/
-
-
-// Cropping Product Images
-window.addEventListener('DOMContentLoaded', () => {
-imageEdit.forEach((btn, index) => {
-    btn.addEventListener('click', ()=> {
-          let cropper = new Cropper(images[index], {
+  // Cropping Product Images
+  window.addEventListener('DOMContentLoaded', () => {
+    imageEdit.forEach((btn, index) => {
+      btn.addEventListener('click', () => {
+        let cropper = new Cropper(images[index], {
           //  aspectRatio: 0,
-          aspectRatio: 0 ,  
+          aspectRatio: 1,
           cropBoxResizable: false,
-          });
-          console.log(cropper)
-          cropBtn[index].addEventListener('click', ()=> {
-            console.log(`Cropped`)
-            croppedImgContainer[index].style.display = "block"
-            let croppedImgValues = cropper.getCroppedCanvas()
-            console.log(croppedImgValues)
-            croppedImageWidth[index].innerHTML = croppedImgValues.width
-            croppedImageHeight[index].innerHTML = croppedImgValues.height
-            let croppedImageURL = cropper.getCroppedCanvas().toDataURL('image/png')
-            console.log(croppedImageURL)
-            croppedImages[index].src = croppedImageURL
-          })
+        });
+        cropBtn[index].style.display = "block"
+        cropBtn[index].addEventListener('click', () => {
+          console.log(`Cropped`)
+          croppedImgContainer[index].style.display = "block"
+          let croppedImgValues = cropper.getCroppedCanvas()
+          console.log(croppedImgValues)
+          croppedImageWidth[index].innerHTML = croppedImgValues.width
+          croppedImageHeight[index].innerHTML = croppedImgValues.height
+          let croppedImageURL = cropper.getCroppedCanvas().toDataURL('image/png')
+        //  console.log(croppedImageURL)
+          croppedImages[index].src = croppedImageURL
+          cropper.destroy()
+        //  images[index].style.display = "none"
+        })
       })
+    })
   })
-})
-// // DOMContentLoaded
+  // // DOMContentLoaded
 
-</script> 
-
+</script>

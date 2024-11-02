@@ -56,13 +56,11 @@ module.exports = {
     OfferData
 }
 
-// Cron Job to check if the Offer is expired.
+
 cron.schedule('* * * * *', async () => {
    try {
-     // Current Date 
      const dateNow = new Date()
 
-     // Fetch all Expired Offers where isActive is true
      const expiredOffers = await OfferData.find({ expiryDate: { $lt: dateNow }, isActive: true })
  
      if(expiredOffers.length > 0) {

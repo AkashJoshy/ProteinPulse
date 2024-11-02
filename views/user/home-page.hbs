@@ -63,7 +63,7 @@
     {{! products list }}
     {{#each trendingProduct}}
     <div class="col-sm-6 col-md-6 col-lg-4 col-xl-3 mt-3 products-container">
-      <a href="/product/{{this._id}}" style="text-decoration: none;">
+      <a href="/user/products/{{this._id}}" style="text-decoration: none;">
         <div class="card mx-auto shadow-lg" style="width: 18rem;cursor: pointer;">
           {{#if (isOffer this.offer)}}
           <div class="offer-section px-2 text-center">
@@ -78,7 +78,9 @@
               {{this.name}}
             </h6>
             <h5 class="card-text text-black">₹{{this.salePrice}}
+              {{#if (isSamePrice this.salePrice this.price)}}
               <span class="px-2 text-decoration-line-through text-secondary">₹{{this.price}}</span>
+              {{/if}}
             </h5>
             <span class="fa fa-star checked"></span>
             <span class="fa fa-star checked"></span>
@@ -118,7 +120,7 @@
     {{! products list }}
     {{#each bestSelling}}
     <div class="col-sm-6 col-md-6 col-lg-4 col-xl-3 mt-3 products-container">
-      <a href="/product/{{this._id}}" style="text-decoration: none;">
+      <a href="/user/products/{{this._id}}" style="text-decoration: none;">
         <div class="card mx-auto shadow-lg" style="width: 18rem;cursor: pointer;">
           {{#if (isOffer this.offer)}}
           <div class="offer-section px-2 text-center">
@@ -132,7 +134,9 @@
               {{this.name}}
             </h6>
             <h5 class="card-text text-black">₹{{this.salePrice}}
+              {{#if (isSamePrice this.salePrice this.price)}}
               <span class="px-2 text-decoration-line-through text-secondary">₹{{this.price}}</span>
+              {{/if}}
             </h5>
             <span class="fa fa-star checked"></span>
             <span class="fa fa-star checked"></span>
@@ -206,7 +210,7 @@
     let count = 1
     console.log(`Clicked`)
     $.ajax({
-      url: `/product/add-to-cart`,
+      url: `/cart/add-product`,
       method: 'PUT',
       data: {
         productID,

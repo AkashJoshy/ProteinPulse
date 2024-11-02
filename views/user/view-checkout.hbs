@@ -108,7 +108,7 @@
 
                 <div class="col-md-6 col-lg-6">
                     <label for="mobileNumber" class="form-label">MOBILE</label>
-                    <input type="tel" name="mobileNumber" value="{{billingAddress.mobile}}"
+                    <input type="tel" name="mobileNumber" value="{{billingAddress.mobileNumber}}"
                         class="form-control order-form" id="mobileNumber" minlength="10" maxlength="10" required>
                     <div class="valid-feedback">
                         Mobile number is valid
@@ -139,7 +139,7 @@
                                 <div><span class="user-details-more"> {{this.city}} </span>, <span
                                         class="user-details-more"> {{this.state}} </span></div>
                                 <div class="user-details-more"> {{this.zipcode}} </div>
-                                <div>+91 <span class="user-details-more"> {{this.mobile}} </span></div>
+                                <div>+91 <span class="user-details-more"> {{this.mobileNumber}} </span></div>
                             </div>
                             {{/each}}
                             {{else}}
@@ -183,9 +183,8 @@
                     </div>
                 </div>
                 <!-- Modal -->
-                <div class="modal fade" style="margin-top: 200px;" id="staticBackdrop"
-                    data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-                    aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal fade" style="margin-top: 200px;" id="staticBackdrop" data-bs-backdrop="static"
+                    data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header" style="background-color: #F46F36; color: #ffffff;">
@@ -195,13 +194,16 @@
                             </div>
                             <div class="modal-body d-flex">
                                 My Current Balance: ₹ <span>{{wallet.balance}}</span>
-                                <a class="btn btn-outline-dark ms-auto">
+                                <a class="btn btn-outline-dark ms-auto" href="/dashboard/wallet">
                                     ADD CASH
                                 </a>
                             </div>
                             <div class="modal-footer">
-                                <h5 class="me-auto btn" style="color: #ffffff; background-color: black;">₹ <span>{{totalPrice}}</span></h5>
-                                {{!-- <button type="button" class="btn" style="background-color: #F46F36; color: white;">PAY</button> --}}
+                                <h5 class="me-auto btn" style="color: #ffffff; background-color: black;">₹
+                                    <span>{{totalPrice}}</span>
+                                </h5>
+                                {{!-- <button type="button" class="btn"
+                                    style="background-color: #F46F36; color: white;">PAY</button> --}}
                                 {{#if (isWalletEnough wallet.balance totalPrice)}}
                                 <h5 class="text-danger">Insuffient Money</h5>
                                 {{else}}
@@ -306,6 +308,10 @@
     </div>
 </div>
 
+{{#if errMessage}}
+<div class="err-message d-none">{{errMessage}}</div>
+{{/if}}
+
 {{!-- Modal --}}
 
 
@@ -358,5 +364,9 @@
             }
         })
     })
+      const errMessage = document.querySelector('.err-message');
+    if (errMessage) {
+        Swal.fire(errMessage.innerHTML);
+    }
 
 </script>

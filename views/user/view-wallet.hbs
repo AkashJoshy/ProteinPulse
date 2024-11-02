@@ -78,76 +78,183 @@
                         <div class="d-md-flex">
                             <!-- Amount Crediting -->
                             <div class="input-group me-3 w-100 w-md-auto">
-                                <input type="number" id="topUpAmount" class="form-control" name="amount" min="1" required>
+                                <input type="number" id="topUpAmount" class="form-control" name="amount" min="1"
+                                    required>
                                 <div class="invalid-feedback">
-                                Please Enter a Amount more than 0
+                                    Please Enter a Amount more than 0
+                                </div>
+                            </div>
+                            <!-- Add Money Btn -->
+                            <div class="mt-2 mt-md-0 d-flex">
+                                <button id="addCashToWallet" type="submit"
+                                    class="btn btn-dark ms-auto px-5">ADD</button>
                             </div>
                         </div>
-                        <!-- Add Money Btn -->
-                        <div class="mt-2 mt-md-0 d-flex">
-                            <button id="addCashToWallet" type="submit" class="btn btn-dark ms-auto px-5">ADD</button>
-                        </div>
+                    </form>
+
+
                 </div>
-                </form>
-
-
             </div>
-        </div>
-        {{!-- // Wallet Money Crediting --}}
+            {{!-- // Wallet Money Crediting --}}
 
-        <div class="mt-3 shadow-sm rounded-2">
-            <div class="table-responsive">
-                <table class="table table-borderless">
-                    <h6 class="p-2 px-3 mt-1 text-uppercase">Transaction Details</h6>
-                    <thead class="table-dark">
-                        <tr>
-                            <th scope="col" class="px-4">TRANSACTION ID</th>
-                            <th scope="col">DESCRIPTION</th>
-                            <th scope="col">DATE</th>
-                            <th scope="col">DEPOSIT</th>
-                            <th scope="col">STATUS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{#if walletTransactions}}
-                        {{#each walletTransactions}}
-                        <tr>
-                            <th scope="row" class="px-4"> {{this.transactionID}} </th>
-                            <td> {{this.description}} </td>
-                            <td> {{this.createdAt}} </td>
-                            <td>₹ <span> {{this.amount}} </span> </td>
-                            <td style="color: {{this.statusColor}};"> {{this.status}} </td>
-                        </tr>
-                        {{/each}}
-                        {{else}}
-                        <tr>
-                            <td>No Transaction History</td>
-                        </tr>
-                        {{/if}}
+            <div class="mt-3 shadow-sm rounded-2">
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <h6 class="p-2 px-3 mt-1 text-uppercase">Transaction Details</h6>
+                        <thead class="table-dark">
+                            <tr>
+                                <th scope="col" class="px-4">TRANSACTION ID</th>
+                                <th scope="col">DESCRIPTION</th>
+                                <th scope="col">DATE</th>
+                                <th scope="col">DEPOSIT</th>
+                                <th scope="col">STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#if walletTransactions}}
+                            {{#each walletTransactions}}
+                            <tr>
+                                <th scope="row" class="px-4"> {{this.transactionID}} </th>
+                                <td> {{this.description}} </td>
+                                <td> {{this.createdAt}} </td>
+                                <td> {{#if (isCreditedOrNot this.transactionType)}}
+                                    <span class="text-danger">-</span>
+                                    {{else}}
+                                    <span></span>
+                                    {{/if}}
+                                    ₹ <span> {{this.amount}} </span>
+                                </td>
+                                <td style="color: {{this.statusColor}};"> {{this.status}} </td>
+                            </tr>
+                            {{/each}}
+                            {{else}}
+                            <tr>
+                                <td>No Transaction History</td>
+                            </tr>
+                            {{/if}}
 
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
 
-                <nav aria-label="Page navigation example">
-                    <ul class="pagination wallet-pagination justify-content-center">
-                        <li class="page-item">
-                            <a class="page-link " href="#"><i class="fa-solid fa-arrow-left"></i></a>
-                        </li>
-                        <li class="page-item"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#"><i class="fa-solid fa-arrow-right"></i></a>
-                        </li>
-                    </ul>
-                </nav>
 
+
+                </div>
             </div>
-        </div>
 
+            <nav aria-label="Page navigation example" class="mt-3">
+                <ul class="pagination wallet-pagination justify-content-center">
+                    {{#if pagination.isPrevious}}
+                    <li class="page-item">
+                        <a class="page-link" style="background-color: #F46F36;" href="#"><i class="fa-solid fa-arrow-left"></i></a>
+                    </li>
+                    {{/if}}
+
+                    {{#each (paginationNumbers 1 pagination.totalPages)}}
+                    <li class="page-item"><a class="page-link" style="background-color: #000000; color: #F46F36;" href='/dashboard/wallet?page={{this}}'>{{this}}</a></li>
+                    {{/each }}
+
+                    {{#if pagination.isNext}}
+                    <li class="page-item">
+                        <a class="page-link" style="background-color: #F46F36;"
+                            href="/dashboard/wallet?page={{paginationManipulation pagination.currentPage 1}}"><i
+                                class="fa-solid fa-arrow-right"></i></a>
+                    </li>
+                    {{/if}}
+                </ul>
+            </nav>
+
+        </div>
     </div>
-</div>
 </div>
 
 
 <script src="/javaScript/wallet.js"></script>
+
+
+<script>
+
+    $(document).ready(function () {
+        $('.wallet-pagination').on('click', 'a', function (e) {
+            e.preventDefault()
+            let page = $(this).attr('href').split('=')[1]
+            //    Swal.fire($(this).attr('href').split('=')[1])
+            $.ajax({
+                url: `/user/dashboard/wallet/page`,
+                method: 'GET',
+                data: { page: page },
+                success: response => {
+                    if (response.status) {
+                        const pagination = response.pagination
+                        const walletTransactions = response.walletTransactions
+                        console.log(response.walletTransactions)
+                        let transactionsHtml = ''
+                        let paginationHtml = ''
+                        walletTransactions.forEach(transaction => {
+                            if (transaction) {
+                                transactionsHtml += `
+                                <tr>
+                                    <th scope="row" class="px-4"> ${transaction.transactionID} </th>
+                                    <td> ${transaction.description} </td>
+                                    <td> ${transaction.createdAt} </td>
+                                    <td> 
+                                
+                                         <span> ${transaction.amount} </span>
+                                    </td>
+                                    <td style="color: ${transaction.statusColor};"> ${transaction.status} </td>
+                                </tr>
+                                `
+                            } else {
+                                transactionsHtml += `
+                                 <tr>
+                                    <td>No Transaction History</td>
+                                </tr>
+                                `
+                            }
+                        })
+
+                        document.querySelector('tbody').innerHTML = transactionsHtml
+
+                        if (pagination) {
+
+                            if (pagination.isPrevious) {
+                                paginationHtml += `
+                                    <li class="page-item">
+                                        <a class="page-link" style="background-color: #F46F36;" 
+                                        href="/user/dashboard/wallet/page?page=${pagination.currentPage - 1}">
+                                        <i class="fa-solid fa-arrow-left"></i></a>
+                                    </li>
+                                `
+                            }
+
+                            for (let i = 1; i <= pagination.totalPages; i++) {
+                                paginationHtml += `
+                                <li class="page-item"><a class="page-link" 
+                                style="background-color: #000000; color: #F46F36;" 
+                                href="/user/dashboard/wallet/page?page=${i}">
+                                ${i}
+                                </a></li>
+                                `
+                            }
+
+                            if (pagination.isNext) {
+                                paginationHtml += `
+                                    <li class="page-item">
+                                        <a class="page-link" style="background-color: #F46F36;"
+                                        href="/user/dashboard/wallet/page?page=${pagination.currentPage + 1}"><i
+                                        class="fa-solid fa-arrow-right"></i></a>
+                                    </li>
+                                `
+                            }
+                        }
+
+                        document.querySelector('.pagination').innerHTML = paginationHtml
+
+                    } else {
+                        window.location.href = response.redirected
+                    }
+                }
+            })
+        })
+    })
+
+</script>

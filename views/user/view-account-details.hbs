@@ -106,9 +106,8 @@
                         <div class="col-md-6 col-lg-6 ">
                             <label for="firstName" class="form-label">FIRSTNAME</label>
                             <input type="text" name="firstName" class="form-control user-details" id="firstName"
-                            style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
-                            pattern = "[A-Za-z]+"
-                            value="{{user.firstName}}" disabled required>
+                                style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
+                                pattern="[A-Za-z]+" value="{{user.firstName}}" disabled required>
                             <div class="invalid-feedback">
                                 Should not be Empty
                             </div>
@@ -117,9 +116,8 @@
                         <div class="col-md-6 col-lg-6">
                             <label for="lastName" class="form-label">LASTNAME</label>
                             <input type="text" name="lastName" class="form-control user-details" id="lastName"
-                            style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
-                            pattern = "[A-Za-z]+"
-                            value="{{user.lastName}}" disabled required>
+                                style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
+                                pattern="[A-Za-z]+" value="{{user.lastName}}" disabled required>
                             <div class="invalid-feedback">
                                 Should not be Empty
                             </div>
@@ -136,13 +134,28 @@
 
                         <div class="col-md-12 col-lg-12">
                             <label for="mobileNumber" class="form-label">MOBILE</label>
-                            <input type="tel" name="mobileNumber" class="form-control user-details" id="mobileNumber" 
-                            style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
-                            pattern="[1-9]{1}[0-9]{9}" minlength="10" maxlength="10" value="{{user.mobileNumber}}" disabled required>
+                            <input type="tel" name="mobileNumber" class="form-control user-details" id="mobileNumber"
+                                style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
+                                pattern="[1-9]{1}[0-9]{9}" minlength="10" maxlength="10" value="{{user.mobileNumber}}"
+                                disabled required>
                             <div class="invalid-feedback">
                                 Please enter a valid 10-digit mobile number
                             </div>
                         </div>
+
+                        <div class="col-md-12 col-lg-12">
+                            <label for="mobileNumber" class="form-label">REFFERAL CODE</label>
+                            <div class="input-group has-validation">
+                                <input type="text" name="refferalCode" class="form-control rounded-2" id="refferalCode"
+                                    style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);"
+                                    aria-describedby="inputGroupPrepend" value="{{user.referralCode}}" disabled
+                                    required>
+                                <i class="fa-regular fa-copy px-2 mt-2" id="copy-referalcode"
+                                    style="font-size: 1.2rem; cursor: pointer;"></i>
+                            </div>
+                        </div>
+
+
                         <div>
                             <div class="col-12 d-flex">
                                 <button id="updateUserDetails" class="btn mt-2 mt-lg-2 mt-xl-4 bg-dark"
@@ -170,7 +183,8 @@
                             <label for="newPassword" class="form-label">NEW PASSWORD</label>
                             <div class="d-flex">
                                 <input type="password" name="newPassword" class="form-control passwords password-value"
-                                    id="newPassword" minlength="8" placeholder="Re-enter Your New Password" pattern = "[A-Za-z]+" required>
+                                    id="newPassword" minlength="8" placeholder="Re-enter Your New Password"
+                                    pattern="[A-Za-z]+" required>
                                 <div class="toggle-password toggle-icon">
                                     <i class="fa-solid fa-eye ms-3 mt-2"></i>
                                 </div>
@@ -189,7 +203,7 @@
                             <div class="d-flex">
                                 <input type="password" name="confirmPassword"
                                     class="form-control passwords password-value" id="confirmPassword" minlength="8"
-                                    placeholder="Re-enter Your New Password" pattern = "[A-Za-z]+" required>
+                                    placeholder="Re-enter Your New Password" pattern="[A-Za-z]+" required>
                                 <div class="toggle-password toggle-icon">
                                     <i class="fa-solid fa-eye ms-3 mt-2"></i>
                                 </div>
@@ -281,30 +295,54 @@
         }
     })
 
-const userDetailsInputs = document.querySelectorAll('.user-details')
-const btn = document.querySelector('#updateUserDetails')
-const editBtn = document.querySelector('#edit-btn')
+    const userDetailsInputs = document.querySelectorAll('.user-details')
+    const btn = document.querySelector('#updateUserDetails')
+    const editBtn = document.querySelector('#edit-btn')
 
-editBtn.addEventListener('click', () => {
-    userDetailsInputs.forEach(input => {
-        if(input.disabled) {
-        input.disabled = false
-        input.style.backgroundColor = "white"
-        input.style.cursor = "text"
-        } else {
-        input.disabled = true
-        input.style.backgroundColor = "rgba(227, 223, 223, 0.587)"
-        input.style.cursor = "not-allowed"
-        }
+    editBtn.addEventListener('click', () => {
+        userDetailsInputs.forEach(input => {
+            if (input.disabled) {
+                input.disabled = false
+                input.style.backgroundColor = "white"
+                input.style.cursor = "text"
+            } else {
+                input.disabled = true
+                input.style.backgroundColor = "rgba(227, 223, 223, 0.587)"
+                input.style.cursor = "not-allowed"
+            }
+        })
     })
-})
 
-userDetailsInputs.forEach(userDetailsInput => {
-    userDetailsInput.addEventListener('input', () => {
-        btn.style.display = "block"
+    userDetailsInputs.forEach(userDetailsInput => {
+        userDetailsInput.addEventListener('input', () => {
+            btn.style.display = "block"
+        })
     })
-})
 
+    let isClicked = false
+    document.querySelector('#copy-referalcode').addEventListener('click', () => {
+        const refferalCode = document.querySelector('#refferalCode').value
+    if(!isClicked) {
+        isClicked = true
+        navigator.clipboard.writeText(refferalCode)
+        .then(() => {
+             Toastify({
+                    text: `Refferal Copied`,
+                    duration: 3000,
+                    close: true,
+                    gravity: "bottom",
+                    position: "right",
+                    style: {
+                        background: "linear-gradient(to right, #F46F36, #F36F8F)"
+                    }
+                }).showToast();
+            setTimeout(() => {
+                isClicked = false
+            }, 1100)
+        })
+        .catch(err => console.error(err))
 
+    }
+    })
 
 </script>

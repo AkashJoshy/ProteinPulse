@@ -19,7 +19,7 @@
         } else {
           event.preventDefault()
           $.ajax({
-            url: `/dashboard/add-wallet-amount`,
+            url: `/user/dashboard/add-wallet-amount`,
             method: 'POST',
             data: $(form).serialize(),
             success: response => {
@@ -75,6 +75,12 @@
               rzp1.open();
               
               } else {
+                if (response.message) {
+                  Swal.fire(response.message)
+                  .then(() => window.location.href = response.redirected)
+                  .catch(err => window.location.reload())
+                  return
+                }
                 window.location.href = response.redirected
               }
             }
@@ -92,7 +98,7 @@
   // Verify Payment
   function verifyWalletPayment(razorpay, topUp) {
     $.ajax({
-      url: `/dashboard/verify-wallet-topup`,
+      url: `/user/dashboard/verify-wallet-topup`,
       method: 'PUT',
       data: {
         razorpay,
@@ -119,6 +125,7 @@
               form.classList.remove("was-validated");
             })
           }
+          
           Toastify({
             text: topupMsg,
             duration: 3000,

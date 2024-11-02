@@ -5,47 +5,176 @@
             {{>dashboard}}
         </div>
 
-        <div class="col-md-9 mt-4 p-2">
+        <div class="col-md-9 mt-5 p-2">
 
             <h4 class="shadow-lg p-2 bg-secondary text-light">Order History</h4>
             <div class="table-responsive shadow-lg">
-            <table class="table rounded-4 table-borderless">
-                <thead class="table-dark border border-2">
-                    <tr>
-                        <th scope="col">Order No</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Date</th>
-                        <th scope="col">Total</th>
-                        <th scope="col">Payment status</th>
-                        <th scope="col">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#if orders}}
-                    {{#each orders}}
-                    <tr>
-                        <th scope="row" class="px-3 fs-bw">{{this.orderNumber}}</th>
-                        <td>{{this.status}}</td>
-                        <td>{{this.createdAt}}</td>
-                        <td><span>₹ </span>{{this.totalPrice}}</td>
-                        <td class="text-center">{{this.paymentStatus}}</td>
-                        <td>
-                            <a href="/dashboard/orders/edit-orders/{{this._id}}" style="text-decoration: none;">
-                            View Details <i class="fa-solid fa-arrow-right"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {{/each}}
-                 {{else}}
-                 <tr>
-                    <td colspan="7" style="font-size: 1.3rem;" class="text-center text-danger"> {{orderMessage}} </td>
-                 </tr>
-                    {{/if}}
-                </tbody>
-            </table>
+                <table class="table rounded-4 table-borderless">
+                    <thead class="table-dark border border-2">
+                        <tr>
+                            <th scope="col">Order No</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Total</th>
+                            <th scope="col">Payment status</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#if orders}}
+                        {{#each orders}}
+                        <tr>
+                            <th scope="row" class="px-3 fs-bw">{{this.orderNumber}}</th>
+                            <td>{{this.status}}</td>
+                            <td>{{this.createdAt}}</td>
+                            <td><span>₹ </span>{{this.totalPrice}}</td>
+                            <td class="text-center">{{this.paymentStatus}}</td>
+                            <td>
+                                <a href="/user/dashboard/orders/edit-orders/{{this._id}}"
+                                    style="text-decoration: none; color: #F46F36;">
+                                    View Details <i class="fa-solid fa-arrow-right"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {{/each}}
+                        {{else}}
+                        <tr>
+                            <td colspan="7" style="font-size: 1.3rem;" class="text-center text-danger"> {{orderMessage}}
+                            </td>
+                        </tr>
+                        {{/if}}
+                    </tbody>
+                </table>
             </div>
-            
+
+            <nav aria-label="Page navigation example" class="mt-3 ">
+                {{#if pagination}}
+                <ul class="pagination wallet-pagination justify-content-center">
+                    {{#if pagination.isPrevious}}
+                    <li class="page-item">
+                        <a class="page-link " style="background-color: #F46F36;" href="#"><i
+                                class="fa-solid fa-arrow-left"></i></a>
+                    </li>
+                    {{/if}}
+
+                    {{#each (paginationNumbers 1 pagination.totalPages)}}
+                    <li class="page-item"><a class="page-link" style="background-color: #000000; color: #F46F36;"
+                            href='/dashboard/orders?page={{this}}'>
+                            {{this}}
+                        </a></li>
+                    {{/each }}
+
+                    {{#if pagination.isNext}}
+                    <li class="page-item">
+                        <a class="page-link" style="background-color: #F46F36;"
+                            href="/dashboard/orders?page={{paginationManipulation pagination.currentPage 1}}"><i
+                                class="fa-solid fa-arrow-right"></i></a>
+                    </li>
+                    {{/if}}
+                </ul>
+                {{/if}}
+            </nav>
+
+
         </div>
 
     </div>
 </div>
+
+
+<script>
+
+    $(document).ready(function () {
+        $('.wallet-pagination').on('click', 'a', function (e) {
+            e.preventDefault()
+            let page = $(this).attr('href').split('=')[1]
+            $.ajax({
+                url: `/user/dashboard/orders/page`,
+                method: 'GET',
+                data: { page: page },
+                success: response => {
+                    if (response.status) {
+                        const pagination = response.pagination
+                        console.log(pagination)
+                        const orders = response.orders
+                        let ordersHtml = ''
+                        let paginationHtml = ''
+                        orders.forEach(order => {
+                            if (order) {
+                                ordersHtml += `
+                            <tr>
+                                <th scope="row" class="px-3 fs-bw">${order.orderNumber}</th>
+                                <td>${order.status}</td>
+                                <td>${order.createdAt}</td>
+                                <td><span>₹ </span>${order.totalPrice}</td>
+                                <td class="text-center">${order.paymentStatus}</td>
+                                <td>
+                                <a href="/user/dashboard/orders/edit-orders/${order._id}"
+                                    style="text-decoration: none; color: #F46F36;">
+                                    View Details <i class="fa-solid fa-arrow-right"></i>
+                                </a>
+                                </td>
+                            </tr>
+                                `
+                            } else {
+                                ordersHtml += 
+                                `
+                                <tr>
+                                    <td colspan="7" style="font-size: 1.3rem;" class="text-center text-danger">
+                                        No Orders
+                                    </td>
+                                </tr>
+                                `
+                            }
+                        })
+
+                        document.querySelector('tbody').innerHTML = ordersHtml
+
+                        if (pagination) {
+
+                            if (pagination.isPrevious) {
+                                paginationHtml += `
+                                    <li class="page-item">
+                                        <a class="page-link" style="background-color: #F46F36;" 
+                                        href="/dashboard/orders/page?page=${pagination.currentPage - 1}">
+                                        <i class="fa-solid fa-arrow-left">
+                                        </i></a>
+                                    </li> 
+                                `
+                            }
+
+                            for (let i = 1; i <= pagination.totalPages; i++) {
+                                paginationHtml += `
+                                <li class="page-item">
+                                <a class="page-link" style="background-color: #000000; color: #F46F36;" 
+                                href="/dashboard/orders/page?page=${i}">
+                                    ${i}
+                                </a>
+                                </li>
+                                `
+                            }
+
+                            if (pagination.isNext) {
+                                paginationHtml += `
+                                    <li class="page-item">
+                                        <a class="page-link" style="background-color: #F46F36;"
+                                        href="/dashboard/orders/page?page=${pagination.currentPage + 1}"><i
+                                        class="fa-solid fa-arrow-right"></i></a>
+                                    </li>
+                                `
+                            }
+                        } else {
+                            paginationHtml = ``
+                        }
+
+                        document.querySelector('.pagination').innerHTML = paginationHtml
+
+                    } else {
+                        window.location.href = response.redirected
+                    }
+                }
+            })
+        })
+    })
+
+</script>

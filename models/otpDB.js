@@ -7,12 +7,13 @@ const OtpSchema = new Schema({
         required: true
     },
     otp: {
-        type: Number,
+        type: String,
         required: true
     },
     expiresAt: {
         type: Date,
-        required: true
+        required: true,
+        index: { expires: 0 }
     },
 },{ timestamps: true })
 

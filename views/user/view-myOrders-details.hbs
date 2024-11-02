@@ -31,7 +31,7 @@
                                     <span>Order Placed on <span>{{order.createdAt}}</span></span>
                                 </p>
                             </div>
-                            <div class="ms-auto px-0">
+                            <div class="ms-auto px-0">• 
                                 <h4 class="order-details-total-amount">
                                     ₹ <span id="total-price-{{order._id}}">{{order.totalPrice}}</span>.00
                                 </h4>
@@ -168,7 +168,7 @@
                             </thead>
                             <tbody>
                                 {{!-- Products --}}
-                                {{#each order.products}}
+                                {{#each products}}
                                 <tr>
                                     <td>
                                         <div class="d-flex">
@@ -393,6 +393,17 @@
                     success: response => {
                         if (response.status) {
                             Swal.fire(response.message)
+                            setTimeout(() => {
+                                window.location.href = response.redirected
+                            }, 500)
+                        } else {
+                            if(response.message) {
+                                Swal.fire(response.message)
+                                .then(() => location.href = response.redirected)
+                                .catch(err => Swal.fire('Error while cancelling order'))
+                                return
+                            }
+                            window.location.href = response.redirected
                         }
                     }
                 })

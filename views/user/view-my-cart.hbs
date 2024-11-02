@@ -223,8 +223,8 @@
                 <div class="px-4 mt-3">
                     <select class="form-select offer" aria-label="Default select example">
                         <option class="options" value="2 Offers available" selected>Offers available</option>
-                        {{#if offers}}
-                        {{#each offers}}
+                        {{#if validoffers}}
+                        {{#each validoffers}}
                         <option class="options" value="{{this.code}}">{{this.code}}({{this.description}})</option>
                         {{/each}}
                         {{else}}

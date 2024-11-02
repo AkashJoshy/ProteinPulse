@@ -1,16 +1,19 @@
 const { Schema, model } = require('mongoose')
 const cron = require('node-cron')
+const { v4: uuidv4 } = require('uuid')
 
 // User Transactions Schema - Money
 const WalletTransactionSchema = new Schema({
     transactionID: {
         type: String,
-        unique: true,
-        required: true
+        default: () => {
+            let transactionID = `#TD` + uuidv4().replace(/-/g, '')
+            transactionID = transactionID.slice(0, 16)
+            return transactionID
+        } 
     },
     amount: {
         type: Number,
-        required: true
     },
     transactionType: {
         type: String,
@@ -19,11 +22,9 @@ const WalletTransactionSchema = new Schema({
     paymentType: {
         type: String,
         enum: ['Razorpay', 'PayPal', 'Referral', 'Wallet'],
-        required: true
     },
     description: {
         type: String,
-        required: true
     },
     status: {
         type: String,

@@ -1,3 +1,10 @@
+{{!-- <style>
+    .card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+</style> --}}
+
 <div class="container">
     <div class="row">
 
@@ -6,33 +13,43 @@
         </div>
 
         <div class="col-md-9 mt-3">
+            <h3 class="p-2">Dashboard
+            </h3>
             {{!-- Orders, pending, completed list --}}
-            <div class="d-flex" style="justify-content: space-evenly;">
-                <div class="card" style="width: 18rem;
-                background-color: rgba(38, 146, 255, 0.998)">
-                    <i class="fa-brands fa-space-awesome p-1 mx-auto mt-2" style="font-size: 3rem;"></i>
-                    <div class="card-body">
-                        <h5 class="card-title"> {{productNumbercheck totalOrders}} </h5>
+            <div class="d-flex justify-content-evenly flex-wrap mt-3" style="gap: 1rem;">
+                <!-- Total Orders Card (Vibrant Purple) -->
+                <div class="card text-center shadow-lg"
+                    style="width: 18rem; background-color: #6C5CE7; border: none; border-radius: 15px; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                    <i class="fa-solid fa-cart-arrow-down p-2 mx-auto mt-3 text-white" style="font-size: 3.5rem;"></i>
+                    <div class="card-body text-white">
+                        <h5 class="card-title">{{productNumbercheck totalOrders}}</h5>
                         <p class="card-text">Total Orders</p>
                     </div>
                 </div>
-                <div class="card" style="width: 18rem;
-                background-color: rgba(233, 36, 10, 0.879)">
-                    <i class="fa-solid fa-receipt p-1 mx-auto mt-2" style="font-size: 3rem;"></i>
-                    <div class="card-body">
+
+                <!-- Pending Orders Card (Muted Teal) -->
+                <div class="card text-center shadow-lg"
+                    style="width: 18rem; background-color: #4ECDC4; border: none; border-radius: 15px; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                    <i class="fa-solid fa-clock p-2 mx-auto mt-3 text-white" style="font-size: 3.5rem;"></i>
+                    <div class="card-body" style="color: white;">
                         <h5 class="card-title">{{productNumbercheck pendingOrders}}</h5>
                         <p class="card-text">Pending Orders</p>
                     </div>
                 </div>
-                <div class="card" style="width: 18rem;
-                    background-color: rgb(158, 242, 162)">
-                    <i class="fa-solid fa-box p-1 mx-auto mt-2" style="font-size: 3rem;"></i>
-                    <div class="card-body">
-                        <h5 class="card-title"> {{productNumbercheck completedOrders}} </h5>
+
+                <!-- Completed Orders Card (Subtle Green) -->
+                <div class="card text-center shadow-lg"
+                    style="width: 18rem; background-color: #28A745; border: none; border-radius: 15px; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                    <i class="fa-solid fa-check p-2 mx-auto mt-3 text-white" style="font-size: 3.5rem;"></i>
+                    <div class="card-body text-white">
+                        <h5 class="card-title">{{productNumbercheck completedOrders}}</h5>
                         <p class="card-text">Completed Orders</p>
                     </div>
                 </div>
             </div>
+
+
+
             {{!-- // Orders, pending, completed list --}}
             {{!-- Greeting to user --}}
             <div class="p-5">
@@ -45,83 +62,79 @@
             {{!-- Account info and Billing Address --}}
             <div class="dashboard-edits">
                 {{!-- Account info --}}
-            <div class="card mx-auto mb-3" style="width: 18rem;">
-                <h5 class="card-header bg-dark" 
-                style="color: #F46F36;">Account Info</h5>
-                <img src="/uploads/{{user.profilePicture}}" 
-                style="width: 100px; height: 100px; object-fit: cover;" class="rounded-circle mx-auto mt-2"
-                class="card-img-top mx-auto mt-2" alt="...">
-                <div class="card-body">
-                    <h5 class="card-title"> {{user.firstName}} {{user.lastName}} </h5>
-                    <p></p>
-                    <p class="card-text">
-                        Email: <span>
-                            {{user.email}}
-                        </span>
-                    </p>
-                    <p class="card-text">
-                        Phone: <span>
-                            {{user.mobileNumber}}
-                        </span>
-                    </p> 
-                            <a href="/dashboard/account-details" class="btn d-flex" 
+                <div class="card mx-auto mb-3 shadow" style="width: 18rem; border: none;">
+                    <h5 class="card-header bg-dark" style="color: #F46F36;">Account Info</h5>
+                    <img src="/uploads/{{user.profilePicture}}" style="width: 100px; height: 100px; object-fit: cover;"
+                        class="rounded-circle mx-auto mt-2" class="card-img-top mx-auto mt-2" alt="...">
+                    <div class="card-body">
+                        <h5 class="card-title"> {{user.firstName}} {{user.lastName}} </h5>
+                        <p></p>
+                        <p class="card-text">
+                            Email: <span>
+                                {{user.email}}
+                            </span>
+                        </p>
+                        <p class="card-text">
+                            Phone: <span>
+                                {{user.mobileNumber}}
+                            </span>
+                        </p>
+                        <a href="/dashboard/account-details" class="btn d-flex"
                             style="background-color: black; color: whitesmoke;">
                             <h6 class="text-center">
-                            Edit Account
+                                Edit Account
                             </h6>
                             <i class="fa-solid fa-arrow-right ms-auto py-1"></i>
-                            </a>
+                        </a>
+                    </div>
                 </div>
-            </div>
                 {{!-- // Account info --}}
                 {{!-- Billing Address --}}
-            <div class="card mx-auto mb-3" style="width: 18rem;">
-                <h5 class="card-header bg-dark" 
-                style="color: #F46F36; ;">
-                Billing Address</h5>
-                <div class="card-body mt-1">
-                    <h6 class="card-title"> {{user.firstName}} {{user.lastName}} </h6>
-                    <p class="card-text"> {{billingAddress.address}} </p>
-                    <span class="card-text"> {{billingAddress.city}} </span> <br>
-                    <span class="card-text"> {{billingAddress.state}} </span>
-                    <span class="card-text"> {{billingAddress.country}} </span>
-                    <p class="card-text"> {{billingAddress.zipcode}} </p>
-                    <span class="card-text">
-                        Email: <span>
-                            {{user.email}}
+                <div class="card mx-auto mb-3 shadow" style="width: 18rem; border: none;">
+                    <h5 class="card-header bg-dark" style="color: #F46F36; ;">
+                        Billing Address</h5>
+                    <div class="card-body mt-1">
+                        <h6 class="card-title"> {{user.firstName}} {{user.lastName}} </h6>
+                        <p class="card-text"> {{billingAddress.address}} </p>
+                        <span class="card-text"> {{billingAddress.city}} </span> <br>
+                        <span class="card-text"> {{billingAddress.state}} </span>
+                        <span class="card-text"> {{billingAddress.country}} </span>
+                        <p class="card-text"> {{billingAddress.zipcode}} </p>
+                        <span class="card-text">
+                            Email: <span>
+                                {{user.email}}
+                            </span>
                         </span>
-                    </span>
-                    
-                    <p class="card-text mt-2">
-                        Phone: <span>
-                            {{user.mobileNumber}}
-                        </span>
-                    </p>
+
+                        <p class="card-text mt-2">
+                            Phone: <span>
+                                {{user.mobileNumber}}
+                            </span>
+                        </p>
 
                         {{#if billingAddress}}
-                        <a href="/dashboard/address" class="btn d-flex " 
-                            style="background-color: black; color: white;">
+                        <a href="/dashboard/address" class="btn d-flex " style="background-color: black; color: white;">
                             <h6 class="text-center ">
-                            Edit Address
+                                Edit Address
                             </h6>
                             <i class="fa-solid fa-arrow-right ms-auto py-1"></i>
-                            </a>
+                        </a>
                         {{else}}
-                        <a href="/dashboard/address" class="btn d-flex " 
+                        <a href="/dashboard/address" class="btn d-flex "
                             style="background-color: black; color: white; margin-top: 90px;">
                             <h6 class="text-center ">
-                            Edit Address
+                                Edit Address
                             </h6>
                             <i class="fa-solid fa-arrow-right ms-auto py-1"></i>
-                            </a>
-    
+                        </a>
+
                         {{/if}}
+                    </div>
                 </div>
-            </div>
                 {{!-- // Billing Address --}}
             </div>
             {{!-- // Account info and Billing Address --}}
-            
+
         </div>
 
     </div>

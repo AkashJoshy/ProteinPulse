@@ -9,64 +9,68 @@
 
             <h4 class="shadow-lg p-2 bg-secondary text-light">Wishlist</h4>
             <div class="table-responsive shadow-lg">
-            <table class="table rounded-4 table-borderless">
-                <thead class="table-dark border border-2">
-                    <tr>
-                        <th scope="col">Products</th>
-                        <th scope="col">Price</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#if wishlistProducts.length }}
-                                {{#each wishlistProducts}}
-                                    <tr>
-                                    <td>
-                                        <div class="d-flex">
-                                            <div>
-                                                <img style="height: 6rem; width: 8rem;"
-                                                    src="/uploads/{{this.thumbnail}}"
-                                                    class="card-img-top mx-auto product-image pt-1" alt="..." />
-                                            </div>
-                                            <div class="pt-0 pt-md-3" 
-                                            style="color: rgb(4, 120, 244); width: 6.5rem; font-size: .95rem;">
-                                                {{this.name}}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="mt-4">
-                                            ₹<span> {{this.price}} </span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="mt-4 px-3">
-                                            x<span> 1 </span>
-                                        </div>
-                                    </td>
-                                    <td class="d-flex">
-                                        <div class="mt-4">
-                                        <div class=" text-light">
-                                            <a onclick="addToCart(`{{this._id}}`)"
-                                               class="btn" style="background-color: black; color: white;">ADD TO CART</a>
-                                            Add to Cart
-                                        </div>
-                                        </div>
+                <table class="table rounded-4 table-borderless">
+                    <thead class="table-dark border border-2">
+                        <tr>
+                            <th scope="col">Products</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#if wishlistProducts.length }}
+                        {{#each wishlistProducts}}
+                        <tr>
+                            <td>
+                                <div class="d-flex">
+                                    <div>
+                                        <img style="height: 6rem; width: 8rem;" src="/uploads/{{this.thumbnail}}"
+                                            class="card-img-top mx-auto product-image pt-1" alt="..." />
+                                    </div>
+                                    <div class="pt-0 pt-md-3"
+                                        style="color: rgb(4, 120, 244); width: 6.5rem; font-size: .95rem;">
+                                        {{this.name}}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="mt-4">
+                                    ₹<span> {{this.price}} </span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="mt-4 px-3">
+                                    x<span> 1 </span>
+                                </div>
+                            </td>
+                            <td class="d-flex">
+                                <div class="mt-4">
+                                    <div class=" text-light">
+                                        <a onclick="addToCart(`{{this._id}}`)" class="btn"
+                                            style="background-color: black; color: white;">ADD TO CART</a>
+                                        Add to Cart
+                                    </div>
+                                </div>
 
-                                        <div class=" mt-4">
-                                            <i class="fa-solid fa-trash" onclick="removeProduct(`{{this._id}}`, `{{this.name}}`, this.parentElement.parentElement.parentElement)" style="color: red;"></i>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {{/each}}
-                 {{else}}
-                        <h4 class="text-danger text-center"> No products in Wishlist </h4>
-                    {{/if}} 
-                </tbody>
-            </table>
+                                <div class=" mt-4">
+                                    <i class="fa-solid fa-trash"
+                                        onclick="removeProduct(`{{this._id}}`, `{{this.name}}`, this.parentElement.parentElement.parentElement)"
+                                        style="color: red;"></i>
+                                </div>
+                            </td>
+                        </tr>
+                        {{/each}}
+                        {{else}}
+                        <h4 class="text-danger text-center select-disabled"> No products in
+                            Wishlist </h4>
+                        {{/if}}
+                        <h4 class="text-danger text-center select-disabled" id="wishlist-message">
+                        </h4>
+                    </tbody>
+                </table>
             </div>
-            
+
         </div>
 
     </div>
@@ -74,82 +78,87 @@
 
 <script>
 
-// Add To Cart
-  function addToCart(productID) {
-    console.log(productID)
-    let count = 1
-    console.log(`Clicked`)
-    $.ajax({
-      url: `/product/add-to-cart`,
-      method: 'PUT',
-      data: {
-        productID,
-        count
-      },
-      success: response => {
-        if (response.status) {
-            // Product Added to cart Message
-            Toastify({
-                      text: response.message,
-                      duration: 3000,
-                      close: true,
-                      gravity: "bottom", 
-                      position: "right",
-                      style: {
-                          background: "black",
-                          color: "white",
-                          borderRadius: "10px"
-                      }
-                  }).showToast();
-        } else {
-          window.location.href = response.redirected
-        }
-      }
-    })
-  }
-
-
-   // Delete Wishlisted Product
-    function removeProduct(productID, productName, element) {
-    //    console.log(element)
-        Swal.fire({
-        title: 'Are you sure?',
-        text: `Do you want to remove ${productName} from Wishlist ?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: `Yes, Delete it!`,
-        cancelButtonText: 'No, cancel!',
-    }).then(result => {
-        if(result.isConfirmed) {
+    // Add To Cart
+    function addToCart(productID) {
+        console.log(productID)
+        let count = 1
+        console.log(`Clicked`)
         $.ajax({
-            url: `/product/wishlist/remove/${productID}`,
-            method: 'PATCH',
+            url: `/cart/add-product`,
+            method: 'PUT',
+            data: {
+                productID,
+                count
+            },
             success: response => {
-                if(response.status) {
-                      Toastify({
-                      text: response.message,
-                      duration: 3000,
-                      close: true,
-                      gravity: "bottom", 
-                      position: "right",
-                      style: {
-                          background: "black",
-                          color: "white",
-                          borderRadius: "10px"
-                      }
-                  }).showToast();
-                    if(element) {
-                        $(element).remove()
-                    }
+                if (response.status) {
+                    // Product Added to cart Message
+                    Toastify({
+                        text: response.message,
+                        duration: 3000,
+                        close: true,
+                        gravity: "bottom",
+                        position: "right",
+                        style: {
+                            background: "black",
+                            color: "white",
+                            borderRadius: "10px"
+                        }
+                    }).showToast();
                 } else {
                     window.location.href = response.redirected
                 }
             }
         })
-        }
-    })
+    }
+
+
+    // Delete Wishlisted Product
+    function removeProduct(productID, productName, element) {
+        //    console.log(element)
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `Do you want to remove ${productName} from Wishlist ?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: `Yes, Delete it!`,
+            cancelButtonText: 'No, cancel!',
+        }).then(result => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/user/dashboard/wishlist/remove/${productID}`,
+                    method: 'PATCH',
+                    success: response => {
+                        if (response.status) {
+                            Toastify({
+                                text: response.message,
+                                duration: 3000,
+                                close: true,
+                                gravity: "bottom",
+                                position: "right",
+                                style: {
+                                    background: "black",
+                                    color: "white",
+                                    borderRadius: "10px"
+                                }
+                            }).showToast();
+                            if (element) {
+                                $(element).remove()
+                            }
+
+                            let wishlistMessage = document.getElementById('wishlist-message')
+                            if (response.text) {
+                                wishlistMessage.innerText = response.text
+                            }
+                        } else {
+                            window.location.href = response.redirected
+                        }
+                    }
+                })
+            }
+        })
     }
 
 </script>

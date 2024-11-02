@@ -22,6 +22,7 @@ router.get("/orders/view-details/:orderID", adminController.viewOrder);
 router.get("/orders/:filter", adminController.orderSorting);
 router.get("/coupon-management", adminController.couponPage);
 router.get("/sale-reports", adminController.salesReports);
+router.get("/sales-chart", adminController.salesChart);
 router.get("/get-sales-reports", adminController.getSalesReports);
 router.get("/download-sales-reports", adminController.downloadSalesReport);
 router.get("/carousel-management", adminController.getCarousels);
@@ -35,7 +36,7 @@ router.get("/logout/:adminID", adminController.logout);
 router.post("/", adminController.doLogin);
 router.post("/add-category", adminController.saveAddCategory);
 router.post("/add-product", adminController.saveProduct);
-router.post("/product/update-stock", adminController.updateProductStock);
+router.put("/product/update-stock", adminController.updateProductStock);
 router.post("/add-coupon", adminController.addCoupon);
 router.post("/add-offers", adminController.addOffers);
 router.post("/edit-category", adminController.saveEditCategory);
@@ -43,9 +44,11 @@ router.post("/edit-category", adminController.saveEditCategory);
 
 // PUT REQUESTS
 router.put("/edit-product", adminController.updateProduct);
+router.put("/product/delete-image/:prodID/:imageUrl", adminController.deleteProductImage);
 router.put("/delete-customer", adminController.softDeleteCustomer);
 router.put("/restore-customer", adminController.restoreCustomer);
 router.put("/orders/update-status", adminController.updateOrderStatus);
+router.put("/orders/update-product-status", adminController.updateOrderProductStatus);
 
 
 // DELETE REQUESTS
