@@ -743,12 +743,15 @@ const getOrders = asyncHandler(async (req, res) => {
     });
     console.log(orders);
 
-    return res.render("admin/view-orders", {
+    res.render("admin/view-orders", {
       admin: true,
       orders,
       admin1: req.session.admin,
       pagination,
+      errMsg: req.session.errMessage
     });
+    req.session.errMessage = false
+    return
   } catch (error) {
     console.error(error);
   }
@@ -766,8 +769,11 @@ const viewOrder = asyncHandler(async (req, res, next) => {
   let order = await OrderData.findById({ _id: orderID }).lean();
   order.createdAt = moment(order.createdAt).format("MMMM Do YYYY HH:mm:ss");
 
-  // console.log(`Order`);
-  //  console.log(order)
+  if(!order) {
+    const err = new Error("Order not found!")
+    const redirectPath = '/admin/orders'
+    return next({ error: err, redirectPath });
+  }
 
   let orderProducts = await Promise.all(order.products.map(async (product) => {
     let prod = await ProductData.findById({ _id: product.productID })
@@ -782,7 +788,7 @@ const viewOrder = asyncHandler(async (req, res, next) => {
     admin: true,
     order,
     admin1: req.session.admin,
-    orderProducts
+    orderProducts,
   });
 });
 

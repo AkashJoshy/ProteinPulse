@@ -39,8 +39,7 @@
                                     </h6>
                                     <h5 class="card-text text-black">₹{{this.salePrice}}
                                         {{#if (isSamePrice this.salePrice this.price)}}
-                                        <span
-                                            class="px-2 text-decoration-line-through text-secondary">₹{{this.price}}
+                                        <span class="px-2 text-decoration-line-through text-secondary">₹{{this.price}}
                                         </span>
                                         {{/if}}
                                     </h5>
@@ -68,7 +67,12 @@
                 {{/each}}
             </div>
 
-            <h2 class="product-err-msg text-center" style="color: rgb(165, 161, 161);"></h2>
+            {{#if message}}
+            <div style="color: rgb(165, 161, 161); font-size: 1.7rem;" class="text-center mt-5 select-disabled">
+                {{message}}</div>
+            {{/if}}
+
+            <h2 class="product-err-msg text-center select-disabled" style="color: rgb(165, 161, 161);"></h2>
 
         </div>
 
@@ -76,8 +80,8 @@
     </div>
 </div>
 
-{{!--
-<script src="/javaScript/productFilter.js"></script> --}}
+
+<script src="/javaScript/productFilter.js"></script>
 <script>
 
     // Add To Cart
@@ -108,11 +112,12 @@
     searchSort.addEventListener('change', (e) => {
         let sortType = searchSort.value
         Array.from(forms).forEach(form => {
-            const formData = $('form').serialize();
+            const formData = $('form').serializeArray();
+            const encodedFormData = encodeURIComponent(JSON.stringify(formData));
             $.ajax({
                 url: `/user/products/sort`,
                 method: 'GET',
-                data: { formData, sortType },
+                data: { formData: encodedFormData, sortType },
                 success: response => {
                     if (response.status) {
                         console.log(`Arrived`);
@@ -121,8 +126,9 @@
 
                         let html = ``
                         if (productFilters == 0) {
-                            document.querySelector('#all-products-container').innerHTML = null;
-                            document.querySelector('.product-err-msg').innerHTML = "No Product Available";
+                            let messageErr = document.querySelector('.product-err-msg')
+                            document.querySelector('#all-products-container').innerHTML = null
+                            messageErr.innerHTML = "No Product Available"
                             return
                         }
 
@@ -155,8 +161,13 @@
                                       ${productFilter.name}
                                   </h6>
                                   <h5 class="card-text text-black">₹${productFilter.salePrice}
-                                      <span
-                                          class="px-2 text-decoration-line-through text-secondary">₹${productFilter.price}</span>
+                                  ${productFilter.salePrice != productFilter.price ? 
+                                    `<span
+                                        class="px-2 text-decoration-line-through text-secondary">₹${productFilter.price}
+                                    </span>`
+                                    :
+                                    ``
+                                  }
                                   </h5>
                                   <span class="fa fa-star checked"></span>
                                   <span class="fa fa-star checked"></span>

@@ -6,7 +6,7 @@ const { CategoryData } = require('../models/categoryDB')
 const { CouponData } = require('../models/CouponDB')
 const { OfferData } = require('../models/OfferDB')
 const { ProductFeedback } = require('../models/productFeedbackDB')
-
+const productSortAndFilters = require('../utils/productSortAndFiltersHelper')
 
 
 const products = asyncHandler(async (req, res, next) => {
@@ -24,8 +24,17 @@ const products = asyncHandler(async (req, res, next) => {
         return next({ error: err, redirectPath });
     }
 
-    const products = await ProductData.find({ quantities: { $gt: 0 } }).lean();
-    
+    const products = await ProductData.find({ quantities: { $gt: 0 }, isActive: true }).lean()
+    if (products.length <= 0) {
+        return res.render("user/view-products", {
+            auth: true,
+            isDashboard: true,
+            user,
+            message: 'No products available',
+            products,
+        });
+    }
+
     return res.render("user/view-products", {
         auth: true,
         isDashboard: true,
@@ -105,75 +114,12 @@ const productFilters = asyncHandler(async (req, res, next) => {
         } = req.query;
 
         console.log(req.query);
-        let sortOpt = {};
-        sortOpt =
-            sortType == "lowToHigh"
-                ? { price: 1 }
-                : sortType == "highToLow"
-                    ? { price: -1 }
-                    : sortType == "ascending"
-                        ? { name: 1 }
-                        : sortType == "descending"
-                            ? { name: -1 }
-                            : sortType == "averageRating"
-                                ? { rating: -1 }
-                                : sortType == "newArrivals"
-                                    ? { createdAt: -1 }
-                                    : {};
-
-        // Finding product Availability
-        let filters = {};
-        if (availability) {
-            filters.quantities = { $gt: 0 };
-        } else {
-            filters.quantities = { $gte: 0 };
-        }
-
-        // Filtering Price
-        if (priceRange) {
-            let amountCondt = {
-                uptoThousand: { salePrice: { $gte: 0, $lte: 999 } },
-                btwThousandAndTwoThousand: { salePrice: { $gt: 1000, $lte: 1999 } },
-                btwTwoThousandAndThreeThousand: {
-                    salePrice: { $gte: 2000, $lte: 2999 },
-                },
-                btwThreeThousandAndFourThousand: {
-                    salePrice: { $gte: 3000, $lte: 3999 },
-                },
-                btwFourThousandAndFiveThousand: {
-                    salePrice: { $gte: 4000, $lte: 4999 },
-                },
-                aboveFiveThousand: { salePrice: { $gte: 5000 } },
-            };
-            Object.assign(filters, amountCondt[priceRange] || {});
-        }
-
-        // Filtering Based on Discount
-        if (discountPercentage) {
-            let discountCondt = {
-                tenPercentageAndBelow: { offer: { $gte: 0, $lte: 10 } },
-                tenPercentageAndAbove: { offer: { $gte: 10 } },
-                twentyPercentageAndAbove: { offer: { $gte: 20 } },
-                thirtyPercentageAndAbove: { offer: { $gte: 30 } },
-                fourthPercentageAndAbove: { offer: { $gte: 40 } },
-                fifthPercentageAndAbove: { offer: { $gte: 50 } },
-            };
-            Object.assign(filters, discountCondt[discountPercentage] || {});
-        }
-
-        // filtering Flavours
-        if (flavour && Array.isArray(flavour) && flavour.length > 0) {
-            filters.flavour = { $in: flavour };
-        } else if (flavour) {
-            filters.flavour = { $in: [flavour] };
-        }
-
-        // filtering Brands
-        if (brands && Array.isArray(brands) && brands.length > 0) {
-            filters.brand = { $in: brands };
-        } else if (brands) {
-            filters.brand = { $in: [brands] };
-        }
+        let { sortOpt, filters } = productSortAndFilters(availability,
+            priceRange,
+            brands,
+            flavour,
+            discountPercentage,
+            sortType,)
 
         let filterProducts = await ProductData.find(filters).sort(sortOpt).lean();
 
@@ -205,29 +151,35 @@ const sortProducts = asyncHandler(async (req, res, next) => {
         return next({ error: err, redirectPath });
     }
 
-    let sort = req.query.sortType;
-    console.log(sort);
-    let sortOpt = {};
+    let sort = req.query.sortType
+    let data = JSON.parse(decodeURIComponent(req.query.formData));
+    let allFilters = data.reduce((acc, current) => {
+        if (current.name === 'brands') {
+            if (!acc[current.name]) {
+                acc[current.name] = []
+            }
+            acc[current.name].push(current.value)
+        } else if (current.name === 'flavour') {
+            if (!acc[current.name]) {
+                acc[current.name] = []
+            }
+            acc[current.name].push(current.value)
+        } else {
+            acc[current.name] = current.value
+        }
+        return acc
+    }, {})
+    let { availability, priceRange, brands, flavour, discountPercentage } = allFilters
 
-    sortOpt =
-        sort == "lowToHigh"
-            ? { price: 1 }
-            : sort == "highToLow"
-                ? { price: -1 }
-                : sort == "ascending"
-                    ? { name: 1 }
-                    : sort == "descending"
-                        ? { name: -1 }
-                        : sort == "averageRating"
-                            ? { rating: -1 }
-                            : sort == "newArrivals"
-                                ? { createdAt: -1 }
-                                : {};
-    // console.log(sortOpt);
-    delete sortOpt._id;
-    let products = await ProductData.find({}).sort(sortOpt).lean();
+    let { sortOpt, filters } = productSortAndFilters(availability, priceRange, brands, flavour, discountPercentage, sort)
+    console.log(sortOpt)
+    console.log(filters)
 
-    return res.json({ status: true, products });
+    let filterProducts = await ProductData.find(filters).sort(sortOpt).lean();
+
+    filterProducts = filterProducts = null ? 0 : filterProducts;
+
+    return res.json({ status: true, products: filterProducts });
 });
 
 const searchResults = asyncHandler(async (req, res, next) => {
@@ -244,7 +196,7 @@ const searchResults = asyncHandler(async (req, res, next) => {
         const redirectPath = "/login";
         return next({ error: err, redirectPath });
     }
-    
+
     let products
     products = req.session.products
 
@@ -294,7 +246,7 @@ const searchProducts = asyncHandler(async (req, res, next) => {
             });
         }
 
-        req.session.products = products ;
+        req.session.products = products;
         return res.json({
             status: true,
             redirected: "/user/products/search-results",

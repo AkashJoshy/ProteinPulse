@@ -396,26 +396,23 @@ const doSignup = asyncHandler(async (req, res, next) => {
 
 // email verification
 const emailVerify = asyncHandler(async (req, res, next) => {
-  // User ID
   console.log(req.query);
   const token = req.query.uniqueID;
   const resend = req.query.otp;
-  // Check If the user has Token
 
   console.log(`Recieved`);
   if (!token) {
     return res.status(400).send(`Verification Token is Required`);
   }
 
-  // Finding the user Document with the Token
   let user = await UserData.findOne({ verificationToken: token });
 
-  // User doesn't match the Token
+
   if (!user) {
     return res.status(400).send("Invalid Verification Token.");
   }
 
-  // Checking the token is Expired or not
+
   if (
     user.verificationTokenExpires &&
     Date.now() > user.verificationTokenExpires
@@ -423,9 +420,9 @@ const emailVerify = asyncHandler(async (req, res, next) => {
     return res.status(400).send("Verification Token has expired..");
   }
 
-  // Finding the user from the collection
+
   if (user) {
-    // Fn to generate OTP
+
     const otp = await otpGenerate();
 
     // setting expire time , here i have set to 10 Minutes
@@ -453,7 +450,6 @@ const emailVerify = asyncHandler(async (req, res, next) => {
       return;
     }
 
-    // If the OTP is Incorrect
     const userOtp = await OtpData.findOne({ userID: user._id }).sort({
       createdAt: -1,
     });
@@ -467,17 +463,17 @@ const emailVerify = asyncHandler(async (req, res, next) => {
       return;
     }
 
-    // Creating a OTP modal instance
+
     await OtpData.create({
       userID: user._id,
       otp,
       expiresAt: Date.now() + 10 * 60 * 1000,
     });
 
-    // OTP sending to User
+
     await userOtpSent(user._id, otp, expiresAt);
 
-    // Rendering the OTP page for Email Verification
+
     res.render("user/signup-otp-page", {
       userID: user._id,
       errMessage: req.session.errMessage,
@@ -509,17 +505,14 @@ const resendOtp = asyncHandler(async (req, res, next) => {
     return res.status(400).send("Token has expired..., try getting new verification link ");
   }
 
-  // Fn to generate OTP
   const otp = await otpGenerate();
 
-  // Creating a OTP modal instance
   await OtpData.create({
     userID: user._id,
     otp,
     expiresAt: Date.now() + 10 * 60 * 1000,
   });
 
-  // OTP sending to User
   await userOtpSent(user._id, otp);
 
   return res.json({ status: true, message: "otp resend successfully" })

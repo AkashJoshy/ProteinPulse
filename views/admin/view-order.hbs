@@ -23,7 +23,7 @@
         <div class="col-md-4">
             <label for="user" class="form-label">Customer Name</label>
             <input type="text" class="form-control" id="user"
-                value="{{order.address.firstName}} {{order.address.lastName}}"
+                value="{{order.customer}}"
                 style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);" disabled required>
             <div class="invalid-feedback">Please provide the customer name.</div>
         </div>
@@ -147,6 +147,9 @@
                 </div>
                 <div class="pt-0 pt-md-5" style="color: rgb(4, 120, 244)">
                     {{this.productName}}
+                    <span class="text-dark">
+                    x {{this.quantity}}
+                    </span>
                 </div>
                 <div class="d-flex mt-2">
                     <h6>Status: </h6>
