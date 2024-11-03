@@ -12,7 +12,6 @@ const notFound  = (req, res, next) => {
 const errorHandler = (err, req, res, next) => {
     const statusCode = res.statusCode == 200 ? 500 : res.statusCode
     res.status(statusCode)
-    // deconstructing redirect path and also Error messasge from Err Object
     const redirectPath = err.redirectPath
     console.log(err);
     const {error: { message: errormessage } } = err
