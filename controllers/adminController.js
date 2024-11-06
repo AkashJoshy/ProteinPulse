@@ -16,15 +16,16 @@ const { products } = require("./userController");
 // Admin Login In Page
 const login = asyncHandler(async (req, res) => {
   if (req.session.admin) {
-    return res.redirect("/admin/home-page");
-  } else {
-    res.render("admin/login-page", {
-      admin: true,
-      loginErr: req.session.errMessage,
-      admin1: req.session.admin,
-    });
-    req.session.errMessage = false;
+    return res.redirect("/admin/dashboard");
   }
+
+  return res.render("admin/login-page", {
+    admin: true,
+    loginErr: req.session.errMessage,
+    admin1: req.session.admin,
+  });
+  req.session.errMessage = false;
+
 });
 
 // Admin Login checking
@@ -51,9 +52,6 @@ const doLogin = asyncHandler(async (req, res, next) => {
 
 // Admin DashBoard
 const dashboard = asyncHandler(async (req, res, next) => {
-  if (!req.session.admin) {
-    return res.redirect("/admin/");
-  }
 
   // Total Products
   const products = await ProductData.find({}).countDocuments()
@@ -81,9 +79,6 @@ const dashboard = asyncHandler(async (req, res, next) => {
 // All Customers
 const getCustomers = asyncHandler(async (req, res) => {
   try {
-    if (!req.session.admin) {
-      return res.redirect("/admin/");
-    }
     const page = req.query.page || 1;
     const limit = 10;
 
@@ -171,9 +166,7 @@ const restoreCustomer = asyncHandler(async (req, res) => {
 
 // Category
 const getCategories = asyncHandler(async (req, res) => {
-  if (!req.session.admin) {
-    return res.redirect("/admin/");
-  }
+
   const page = Number(req.query.page) || 1;
 
   const limit = req.query.limit || 3;
@@ -211,8 +204,8 @@ const getCategories = asyncHandler(async (req, res) => {
 
 // category queryies like search, filter, sort
 const categoryQuery = asyncHandler(async (req, res, next) => {
-  if (!req.session.admin) {
-    return res.json({ status: false, redirected: "/admin/" });
+  if(!req.session.admin) {
+    return res.json({ status: false, redirected: '/admin/' })
   }
   const search = req.query.search || "";
   const page = Number(req.query.page) || 1;
@@ -250,20 +243,16 @@ const categoryQuery = asyncHandler(async (req, res, next) => {
 
 // Add Category
 const addCategory = asyncHandler(async (req, res) => {
-  if (!req.session.admin) {
-    return res.redirect("/admin/");
-  }
+
   return res.render("admin/add-category", {
     admin: true,
     admin1: req.session.admin,
   });
 });
 
+// Add new Product
 const saveAddCategory = asyncHandler(async (req, res) => {
   try {
-    if (!req.session.admin) {
-      return res.redirect("/admin/");
-    }
     const { name, description } = req.body;
     let isImage;
     console.log(req.files);
@@ -297,9 +286,7 @@ const editCategory = asyncHandler(async (req, res) => {
 // Edit Category
 const saveEditCategory = asyncHandler(async (req, res) => {
   try {
-    if (!req.session.admin) {
-      return res.redirect("/admin/");
-    }
+  
     let isImage;
     const categoryID = req.body.categoryID;
     if (req.files) {
@@ -339,9 +326,7 @@ const deleteCategory = asyncHandler(async (req, res, next) => {
 // View all Products
 const getProducts = asyncHandler(async (req, res) => {
   try {
-    if (!req.session.admin) {
-      return res.redirect("/admin/");
-    }
+   
     const page = Number(req.query.page) || 1;
     const limit = 2;
 
@@ -370,12 +355,14 @@ const getProducts = asyncHandler(async (req, res) => {
       totalPages,
     };
 
-    return res.render("admin/view-products", {
+    res.render("admin/view-products", {
       admin: true,
       products,
       admin1: req.session.admin,
       pagination,
-    });
+      errMsg: req.session.errMessage,
+    })
+    req.session.errMessage = false
   } catch (error) {
     console.error(error);
   }
@@ -384,9 +371,6 @@ const getProducts = asyncHandler(async (req, res) => {
 // Add Product
 const addProduct = asyncHandler(async (req, res) => {
   try {
-    if (!req.session.admin) {
-      return res.redirect("/admin/");
-    }
     const categories = await CategoryData.find({}, { name: 1 }).lean();
     res.render("admin/add-product", {
       admin: true,
@@ -418,7 +402,6 @@ const saveProduct = asyncHandler(async (req, res) => {
     console.log(req.body);
     price = Number(price);
     rating = Number(rating);
-    // console.log(req.files);
     size = size + units;
     let imageUrl = req.files.map((file) => file.filename);
     await ProductData.create({
@@ -436,7 +419,7 @@ const saveProduct = asyncHandler(async (req, res) => {
       bestBefore,
       imageUrl,
     });
-    res.redirect("/admin/products");
+    return res.redirect("/admin/products");
   } catch (error) {
     console.error(`the Error ${error}`);
     throw new Error("Something Wrong" + error);
@@ -446,20 +429,17 @@ const saveProduct = asyncHandler(async (req, res) => {
 // Edit Product
 const editProduct = asyncHandler(async (req, res) => {
   try {
-    if (!req.session.admin) {
-      return res.redirect("/admin/");
-    }
     const productID = req.params.productID;
-    const product = await ProductData.findById({ _id: productID }).lean();
-    // const [size, unit] = product.size.split(" ");
+    let product = await ProductData.findById({ _id: productID }).lean();
+
     let size = parseInt(product.size)
-    // Separating the unit from size
     let match = product.size.match(/[a-zA-Z]+/)
     let unit = match[0]
-    console.log(`Matching Part`, match)
+
     const categories = await CategoryData.find({}, { name: 1 }).lean();
-    console.log(`products`)
-    console.log(product)
+    const formattedDate = new Date(product.bestBefore).toISOString().split("T")[0]
+    product.bestBefore = formattedDate
+    console.log(product) 
     res.render("admin/edit-product", {
       admin: true,
       categories,
@@ -476,9 +456,7 @@ const editProduct = asyncHandler(async (req, res) => {
 // Update Product
 const updateProduct = asyncHandler(async (req, res) => {
   try {
-    if (!req.session.admin) {
-      return res.redirect("/admin/");
-    }
+   
     let {
       name,
       categoryName,
@@ -493,24 +471,24 @@ const updateProduct = asyncHandler(async (req, res) => {
       bestBefore,
       prodID,
     } = req.body;
-    // console.log(req.body);
-    // console.log(req.files);
-    // To get the index value of the Image To Update
+
     let imageIndex = req.files.map((file) => {
       let fileLength = "file".length;
       let fileName = file.fieldname.slice(fileLength);
       fileName = Number(fileName);
       return fileName;
     });
-    // console.log(imageIndex);
     price = Number(price);
     rating = Number(rating);
     let product = await ProductData.findById({ _id: prodID });
 
-    // shallow copying of product.imageUrl
+    if (!product) {
+      const err = new Error("Product not Found")
+      const redirectPath = "/admin/products";
+      return next({ error: err, redirectPath });
+    }
+
     let imageUrl = product.imageUrl.slice();
-    // console.log(`ALL Files: ${imageUrl}`);
-    // console.log(req.files);
     if (req.files && req.files.length > 0) {
       req.files.forEach((file, index) => {
         imageIndex.forEach((value) => {
@@ -524,12 +502,9 @@ const updateProduct = asyncHandler(async (req, res) => {
       });
     }
 
-    // Ternary operator
     bestBefore = bestBefore === "" ? product.bestBefore : bestBefore;
 
-    // Size
     size = size + " " + unit;
-    console.log(size);
 
     await ProductData.findByIdAndUpdate(
       { _id: prodID },
@@ -714,10 +689,6 @@ const sortProducts = asyncHandler(async (req, res) => {
 // Get Orders
 const getOrders = asyncHandler(async (req, res) => {
   try {
-    if (!req.session.admin) {
-      return res.redirect("/admin/");
-    }
-
     const page = req.query.page || 1;
     const limit = 7;
 
@@ -759,36 +730,23 @@ const getOrders = asyncHandler(async (req, res) => {
 
 // Get Single Order
 const viewOrder = asyncHandler(async (req, res, next) => {
-  if (!req.session.admin) {
-    return res.redirect("/admin/");
-  }
-
   const orderID = req.params.orderID;
 
   // single Order Details
   let order = await OrderData.findById({ _id: orderID }).lean();
-  order.createdAt = moment(order.createdAt).format("MMMM Do YYYY HH:mm:ss");
 
-  if(!order) {
+  if (!order) {
     const err = new Error("Order not found!")
     const redirectPath = '/admin/orders'
     return next({ error: err, redirectPath });
   }
 
-  let orderProducts = await Promise.all(order.products.map(async (product) => {
-    let prod = await ProductData.findById({ _id: product.productID })
-    if (!prod || !prod?.imageUrl) {
-      return { ...product, image: `image_not_available.png` }
-    }
-    return { ...product }
-  }))
-
+  order.createdAt = moment(order.createdAt).format("MMMM Do YYYY HH:mm:ss");
 
   return res.render("admin/view-order", {
     admin: true,
     order,
     admin1: req.session.admin,
-    orderProducts,
   });
 });
 
@@ -800,6 +758,25 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     }
     let { orderID, orderStatus } = req.body;
     console.log(orderStatus);
+
+    let isOrder = await OrderData.findById({ _id: orderID })
+
+    if (!isOrder) {
+      return res.json({ status: false, redirected: "/admin/orders", message: 'Order not found!' });
+    }
+
+    let isProductsInOrder = await Promise.all(
+      isOrder.products.map(async (prod) => {
+        let product = await ProductData.findById({ _id: prod.productID })
+        return product ? product : null
+      })
+    )
+
+    isProductsInOrder = isProductsInOrder.filter(prod => prod !== null)
+
+    if (isProductsInOrder <= 0) {
+      return res.json({ status: false, redirected: "/admin/orders", message: 'No products available for the order' });
+    }
 
     let status = {
       message: "",
@@ -857,9 +834,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       }
     );
 
-    // And also change the product status too
-    // checks if any products in the order Collection
-    let orderProducts;
+    let orderProducts
     if (order.products.length > 0) {
       orderProducts = await Promise.all(
         order.products.map(async (product) => {
@@ -870,6 +845,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
         })
       );
     }
+
 
     return res.json({ status: true, redirected: "/admin/orders" });
   } catch (error) {
@@ -889,6 +865,28 @@ const updateOrderProductStatus = asyncHandler(async (req, res, next) => {
     orderProductStatus
   } = req.body
 
+  console.log(req.body)
+
+  let order = await OrderData.findById({ _id: orderID }).lean()
+  let product = await ProductData.findById({ _id: orderProductID }).lean()
+
+
+  if (!order) {
+    return res.json({ status: false, redirected: "/admin/orders", message: 'No order found!' });
+  }
+
+
+  if (!product) {
+    return res.json({ status: false, redirected: "/admin/orders", message: 'No order found!' });
+  }
+
+  console.log(`Product Status is ${orderProductStatus}`)
+
+  await OrderData.findOneAndUpdate({ _id: orderID, 'products.productID': orderProductID },
+    { $set: { 'products.$.status': orderProductStatus, status: orderProductStatus } }
+  )
+
+  return res.json({ status: true, orderStatus: orderProductStatus })
 })
 
 // Order Sorting
@@ -932,9 +930,6 @@ const orderSorting = asyncHandler(async (req, res) => {
 
 // Coupon Management
 const couponPage = asyncHandler(async (req, res, next) => {
-  if (!req.session.admin) {
-    return res.redirect("/admin/");
-  }
 
   let page = req.query.page || 1
   let limit = 2;
@@ -978,10 +973,6 @@ const couponPage = asyncHandler(async (req, res, next) => {
 
 // Add Coupon
 const addCoupon = asyncHandler(async (req, res, next) => {
-  if (!req.session.admin) {
-    return res.redirect("/admin/");
-  }
-
   let {
     code,
     couponType,
@@ -1052,9 +1043,6 @@ const deleteOffer = asyncHandler(async (req, res, next) => {
 
 // Sales reports
 const salesReports = asyncHandler(async (req, res, next) => {
-  if (!req.session.admin) {
-    return res.redirect("/admin/");
-  }
 
   return res.render("admin/view-sales-reports", {
     admin: true,
@@ -1174,7 +1162,7 @@ const downloadSalesReport = asyncHandler(async (req, res, next) => {
     doc.moveDown(2);
 
     doc.lineWidth(1)
-      .moveTo(50, doc.y) 
+      .moveTo(50, doc.y)
       .lineTo(doc.page.width - 50, doc.y)
       .strokeColor('#cccccc')
       .stroke()
@@ -1195,6 +1183,9 @@ const downloadSalesReport = asyncHandler(async (req, res, next) => {
 
 // Sales chart
 const salesChart = asyncHandler(async (req, res, next) => {
+  if(!req.session.admin) {
+    return res.json({ status: false, redirected: '/admin/' })
+  }
   const filter = req.query.filter;
   let labels = [];
   let startDate;
@@ -1346,9 +1337,6 @@ const salesChart = asyncHandler(async (req, res, next) => {
 
 // Carousal Management
 const getCarousels = asyncHandler(async (req, res, next) => {
-  if (!req.session.admin) {
-    return res.redirect("/admin/");
-  }
 
   return res.render("admin/view-carousels", {
     admin: true,
@@ -1358,10 +1346,6 @@ const getCarousels = asyncHandler(async (req, res, next) => {
 
 // View Add Carousel page
 const viewAddCarousel = asyncHandler(async (req, res, next) => {
-  if (!req.session.admin) {
-    return res.redirect("/admin/");
-  }
-
   return res.render("admin/add-carousel", {
     admin: true,
     admin1: req.session.admin,
@@ -1370,9 +1354,6 @@ const viewAddCarousel = asyncHandler(async (req, res, next) => {
 
 // Products and categories Offer page
 const offerPage = asyncHandler(async (req, res, next) => {
-  if (!req.session.admin) {
-    return res.redirect("/admin/");
-  }
 
   let products = await ProductData.find({}).lean()
   let categories = await CategoryData.find({}).lean()
@@ -1463,9 +1444,7 @@ const addOffers = asyncHandler(async (req, res, next) => {
 
 // Settings
 const settings = asyncHandler(async (req, res) => {
-  if (!req.session.admin) {
-    return res.redirect("/admin/");
-  }
+
   const adminID = req.session.admin._id;
   let currentAdmin = await UserData.findById({ _id: adminID }).lean();
   return res.render("admin/view-settings", {
@@ -1483,7 +1462,7 @@ const logout = asyncHandler(async (req, res) => {
     const admin = await UserData.findOne({ _id: adminID });
     if (admin) {
       req.session.admin = null;
-      res.redirect("/admin/");
+      return res.redirect("/admin/");
     }
   } catch (error) {
     console.error(error);

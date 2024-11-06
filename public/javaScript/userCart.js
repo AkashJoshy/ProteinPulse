@@ -136,11 +136,13 @@ function applyCoupon() {
                         if(couponDiscountPrice) couponDiscountPrice.innerHTML = response.couponDiscountPrice;
                         inputOffer.value = "";
                     } else {
-                        // Show Error Messages
                         if (couponMsg) couponMsg.innerHTML = response.message;
                     }
                 } else {
-                    // If the user is not found, back to login Page
+                    if(response.message) {
+                        Swal.fire(response.message).then(() => window.location.href = response.redirected)
+                        return
+                    }
                     window.location.href = response.redirected
                 }
             }

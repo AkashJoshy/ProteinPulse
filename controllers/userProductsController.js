@@ -59,10 +59,14 @@ const product = asyncHandler(async (req, res, next) => {
     }
 
     const productID = req.params.productID;
+    const product = await ProductData.findById({ _id: productID }).lean();
+
+    if (!product) {
+        return res.status(404).json({ message: 'Product not found!' })
+    }
 
     const isWishlisted = user.wishlist.some(product => productID.toString() === product.productID.toString())
 
-    const product = await ProductData.findById({ _id: productID }).lean();
     // let productName = product.name.split('-')[0]
     let productName = product.name;
     console.log(productName);
@@ -99,9 +103,10 @@ const productFilters = asyncHandler(async (req, res, next) => {
 
         if (!user) {
             req.session.user = null;
-            const err = new Error("User not Found")
-            const redirectPath = "/login";
-            return next({ error: err, redirectPath });
+            return res.json({
+                status: false,
+                redirected: "/login",
+            })
         }
 
         const {
@@ -146,9 +151,10 @@ const sortProducts = asyncHandler(async (req, res, next) => {
 
     if (!user) {
         req.session.user = null;
-        const err = new Error("User not Found")
-        const redirectPath = "/login";
-        return next({ error: err, redirectPath });
+        return res.json({
+            status: false,
+            redirected: "/login",
+        })
     }
 
     let sort = req.query.sortType
@@ -224,9 +230,10 @@ const searchProducts = asyncHandler(async (req, res, next) => {
 
         if (!user) {
             req.session.user = null;
-            const err = new Error("User not Found")
-            const redirectPath = "/login";
-            return next({ error: err, redirectPath });
+            return res.json({
+                status: false,
+                redirected: "/login",
+            })
         }
 
         req.session.products = []
@@ -312,9 +319,10 @@ const updateWishlist = asyncHandler(async (req, res, next) => {
 
     if (!user) {
         req.session.user = null;
-        const err = new Error("User not Found")
-        const redirectPath = "/login";
-        return next({ error: err, redirectPath });
+        return res.json({
+            status: false,
+            redirected: "/login",
+        })
     }
 
     let productID = req.params.productID;

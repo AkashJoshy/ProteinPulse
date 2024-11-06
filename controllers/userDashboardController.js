@@ -228,9 +228,10 @@ const myOrdersPages = asyncHandler(async (req, res, next) => {
 
     if (!user) {
         req.session.user = null;
-        const err = new Error("User not Found")
-        const redirectPath = "/login";
-        return next({ error: err, redirectPath });
+        return res.json({
+            status: false,
+            redirected: "/login",
+        })
     }
 
     let page = Number(req.query.page) || 1
@@ -642,9 +643,10 @@ const walletTransactionPages = asyncHandler(async (req, res, next) => {
 
     if (!user) {
         req.session.user = null;
-        const err = new Error("User not Found")
-        const redirectPath = "/login";
-        return next({ error: err, redirectPath });
+        return res.json({
+            status: false,
+            redirected: "/login",
+        })
     }
 
     let page = Number(req.query.page) || 1
@@ -848,9 +850,10 @@ const verifyWalletTopup = asyncHandler(async (req, res, next) => {
 
     if (!user) {
         req.session.user = null;
-        const err = new Error("User not Found")
-        const redirectPath = "/login";
-        return next({ error: err, redirectPath });
+        return res.json({
+            status: false,
+            redirected: "/login",
+        })
     }
 
     console.log(topUp)
@@ -1040,9 +1043,10 @@ const deleteAddress = asyncHandler(async (req, res, next) => {
 
         if (!user) {
             req.session.user = null;
-            const err = new Error("User not Found")
-            const redirectPath = "/login";
-            return next({ error: err, redirectPath });
+            return res.json({
+                status: false,
+                redirected: "/login",
+            })
         }
 
         // Shipping Address Deletion
@@ -1108,9 +1112,10 @@ const removeWishlistProduct = asyncHandler(async (req, res, next) => {
 
     if (!user) {
         req.session.user = null;
-        const err = new Error("User not Found")
-        const redirectPath = "/login";
-        return next({ error: err, redirectPath });
+        return res.json({
+            status: false,
+            redirected: "/login",
+        })
     }
 
     // if (!product) {

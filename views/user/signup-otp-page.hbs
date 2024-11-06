@@ -115,7 +115,6 @@
                 formObj[data.name] = data.value
             })
             let { userOtp, uniqueID } = formObj
-
             if (userOtp.length >= 4) {
                 $.ajax({
                     url: `/verify-otp`,
@@ -123,12 +122,10 @@
                     data: formObj,
                     success: response => {
                         if (response.status) {
-                            window.location.href = response.redirected
+                            Swal.fire(response.message).then(() => window.location.href = response.redirected)
                         } else {
-                            if (redirected) {
-                                Swal.fire(response.message).then(res => {
-                                    window.location.href = response.redirected
-                                })
+                            if (response.message) {
+                                Swal.fire(response.message)
                                 return
                             }
                             Swal.fire(response.message)

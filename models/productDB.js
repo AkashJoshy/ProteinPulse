@@ -115,7 +115,8 @@ cron.schedule('* * * * * *', async () => {
                 )
             }
             let salePrice = Math.min(productOfferPrice, categoryOfferPrice)
-            await ProductData.findByIdAndUpdate({ _id: product._id }, { $set: { salePrice: salePrice } })
+            let offerPercentage = salePrice < product.price ? ((product.price - salePrice) / product.price) * 100 : 0;
+            await ProductData.findByIdAndUpdate({ _id: product._id }, { $set: { salePrice: salePrice, offer: offerPercentage } })
             return salePrice
         })
 

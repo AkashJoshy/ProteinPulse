@@ -162,8 +162,10 @@
     })
 
     const errorMessage = document.querySelector('.error-message')
-    if (errorMessage !== false) {
-        Swal.fire(errorMessage)
+
+    if (errorMessage.value && errorMessage.value !== "false") {
+        Swal.fire(errorMessage.value);
     }
+
 
 </script>

@@ -1,49 +1,48 @@
 const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/adminController");
-
+const adminAuthHandler = require('../middlewares/adminAuthMiddleware')
 
 // ADMIN REQUESTS
 // GET REQUESTS
-router.get("/", adminController.login);
-router.get("/dashboard", adminController.dashboard);
-router.get("/customers", adminController.getCustomers);
-// router.get('/edit-customer/:userID', adminController.viewCustomer)
-router.get("/category", adminController.getCategories);
+router.get("/", adminController.login)
+router.get("/dashboard", adminAuthHandler.authHandler, adminController.dashboard);
+router.get("/customers", adminAuthHandler.authHandler, adminController.getCustomers);
+router.get("/category", adminAuthHandler.authHandler, adminController.getCategories);
 router.get("/category/query", adminController.categoryQuery);
-router.get("/add-category", adminController.addCategory);
-router.get("/edit-category/:categoryID", adminController.editCategory);
-router.get("/products", adminController.getProducts);
-router.get("/add-product", adminController.addProduct);
-router.get("/edit-product/:productID", adminController.editProduct);
+router.get("/add-category", adminAuthHandler.authHandler, adminController.addCategory);
+router.get("/edit-category/:categoryID", adminAuthHandler.authHandler, adminController.editCategory);
+router.get("/products", adminAuthHandler.authHandler, adminController.getProducts);
+router.get("/add-product", adminAuthHandler.authHandler, adminController.addProduct);
+router.get("/edit-product/:productID", adminAuthHandler.authHandler, adminController.editProduct);
 router.get("/products/sort", adminController.sortProducts);
-router.get("/orders", adminController.getOrders);
-router.get("/orders/view-details/:orderID", adminController.viewOrder);
+router.get("/orders", adminAuthHandler.authHandler, adminController.getOrders);
+router.get("/orders/view-details/:orderID", adminAuthHandler.authHandler, adminController.viewOrder);
 router.get("/orders/:filter", adminController.orderSorting);
-router.get("/coupon-management", adminController.couponPage);
-router.get("/sale-reports", adminController.salesReports);
+router.get("/coupon-management", adminAuthHandler.authHandler, adminController.couponPage);
+router.get("/sale-reports", adminAuthHandler.authHandler, adminController.salesReports);
 router.get("/sales-chart", adminController.salesChart);
 router.get("/get-sales-reports", adminController.getSalesReports);
 router.get("/download-sales-reports", adminController.downloadSalesReport);
-router.get("/carousel-management", adminController.getCarousels);
-router.get("/add-carousel", adminController.viewAddCarousel);
-router.get("/offer-management", adminController.offerPage);
-router.get("/settings", adminController.settings);
-router.get("/logout/:adminID", adminController.logout);
+router.get("/carousel-management", adminAuthHandler.authHandler, adminController.getCarousels);
+router.get("/add-carousel", adminAuthHandler.authHandler, adminController.viewAddCarousel);
+router.get("/offer-management", adminAuthHandler.authHandler, adminController.offerPage);
+router.get("/settings", adminAuthHandler.authHandler, adminController.settings);
+router.get("/logout/:adminID", adminAuthHandler.authHandler, adminController.logout);
 
 
 // POST REQUESTS
 router.post("/", adminController.doLogin);
-router.post("/add-category", adminController.saveAddCategory);
-router.post("/add-product", adminController.saveProduct);
+router.post("/add-category", adminAuthHandler.authHandler, adminController.saveAddCategory);
+router.post("/add-product", adminAuthHandler.authHandler, adminController.saveProduct);
 router.put("/product/update-stock", adminController.updateProductStock);
-router.post("/add-coupon", adminController.addCoupon);
+router.post("/add-coupon", adminAuthHandler.authHandler, adminController.addCoupon);
 router.post("/add-offers", adminController.addOffers);
-router.post("/edit-category", adminController.saveEditCategory);
+router.post("/edit-category", adminAuthHandler.authHandler, adminController.saveEditCategory);
 
 
 // PUT REQUESTS
-router.put("/edit-product", adminController.updateProduct);
+router.put("/edit-product", adminAuthHandler.authHandler, adminController.updateProduct);
 router.put("/product/delete-image/:prodID/:imageUrl", adminController.deleteProductImage);
 router.put("/delete-customer", adminController.softDeleteCustomer);
 router.put("/restore-customer", adminController.restoreCustomer);
