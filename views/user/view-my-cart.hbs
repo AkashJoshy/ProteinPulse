@@ -95,8 +95,12 @@
                                     </p>
                                     <div class="d-flex justify-content-between">
                                         <h5 class="">₹ {{this.salePrice}}
+                                            {{#if (isSamePrice this.salePrice this.price)}}
                                             <span class="ms-2 text-decoration-line-through text-secondary opacity-75">₹
-                                                {{this.price}}</span>
+                                                {{this.price}}
+                                            </span>
+                                            {{/if}}
+
                                         </h5>
 
                                         <div style=" color: #F46F36; cursor: pointer;"

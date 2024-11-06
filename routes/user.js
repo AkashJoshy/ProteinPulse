@@ -1,12 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
-// const authHandler = require('../middlewares/authMiddleware')
+const userAuthController = require('../middlewares/userAuthMiddleware')
 
 // USER REQUESTS
 // GET REQUESTS
 router.get("/", userController.homePage);
-router.get("/login", userController.Login);
+router.get("/login", userAuthController.authHandler, userController.Login);
+// router.get("/login", userController.Login);
 router.get("/auth/google", userController.googleLogin);
 router.get("/google/callback", userController.googleCallback);
 router.get("/signup", userController.signup);
@@ -14,11 +15,10 @@ router.get("/verify-email", userController.emailVerify);
 router.get("/resend-signup-otp", userController.resendOtp);
 router.get("/forgot-password", userController.forgotPassword);
 router.get("/reset-password", userController.resetPassword);
-router.get("/user-categories/:categoryName", userController.categories);
-router.get("/order-checkout", userController.orderCheckout)
+router.get("/user-categories/:categoryName", userAuthController.authHandler, userController.categories);
+router.get("/order-checkout", userAuthController.authHandler, userController.orderCheckout)
 router.get("/logout", userController.logout);
 
-router.get("/sample", userController.sample);
 
 // POST REQUESTS
 router.post("/signup", userController.doSignup);

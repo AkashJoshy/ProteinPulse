@@ -109,24 +109,18 @@ const myCart = asyncHandler(async (req, res, next) => {
         totalSalePrice = cartTotal[0].totalSalePrice;
         totalDiscountAmount = cartTotal[0].totalDiscountAmount;
 
-        // Price deducted from Original Price
         discountPrice = originalPrice - totalSalePrice;
 
-        // Discount Percentage (Price deducted from OG price)
         let discountPercentage = (discountPrice / originalPrice) * 100;
         discountPercentage = Math.trunc(discountPercentage);
 
-        // Delivery Charge
         deliveryCharge = originalPrice >= 4500 ? 100 : 0;
 
-        // Total Amount (includes delivery charge too)
         totalPrice = totalSalePrice + deliveryCharge;
         const productDetails = await CartData.find({})
             .populate("products.productID")
             .lean();
 
-        // If any Coupons has been applied by User
-        //  console.log(typeof user.appliedCoupons)
         if (user.appliedCoupons) {
             let couponDiscountPercentage = 0;
             let coupons;
@@ -148,7 +142,6 @@ const myCart = asyncHandler(async (req, res, next) => {
             coupons = coupons.filter((coupon) => coupon !== null);
             console.log(coupons);
 
-            // Coupon Offer applying if the user has Apply any
             couponPrice = !coupons
                 ? 0
                 : coupons.reduce((acc, coupon) => {
@@ -159,9 +152,7 @@ const myCart = asyncHandler(async (req, res, next) => {
                     return acc + couponDiscount;
                 }, 0);
 
-            // then Deduct the Coupon price from Total Sale Price
             totalPrice -= couponPrice;
-            // Coupon Discount Percentage
             couponDiscountPercentage = Math.trunc(
                 (couponPrice / originalPrice) * 100
             );
@@ -248,7 +239,6 @@ const addToCart = asyncHandler(async (req, res, next) => {
         const productLimit = 4;
         const cart = await CartData.findOne({ userID: userID });
 
-        // New Cart creation for the user
         if (!cart) {
             if (count >= productLimit) {
                 return res.json({
@@ -289,7 +279,6 @@ const addToCart = asyncHandler(async (req, res, next) => {
                 });
             }
 
-            // Cart Product Increment
             cart.products[cartProductIndex].quantity++;
             await cart.save();
             return res.json({ status: true, message: "Cart Updated" });
@@ -439,7 +428,7 @@ const updateCartProductQuantity = asyncHandler(async (req, res, next) => {
             }
         }
 
-        // Coupon applied by User
+
         let coupons = await Promise.all(
             user.appliedCoupons.map(async (coupon) => {
                 if (coupon.cartID.toString() === cart._id.toString()) {
@@ -456,7 +445,6 @@ const updateCartProductQuantity = asyncHandler(async (req, res, next) => {
         coupons = coupons.filter((coupon) => coupon !== null);
         console.log(coupons);
 
-        // Cart total Amount
         const cartTotal = await CartData.aggregate([
             { $match: { userID: new mongoose.Types.ObjectId(userID) } },
             { $unwind: "$products" },
@@ -483,7 +471,6 @@ const updateCartProductQuantity = asyncHandler(async (req, res, next) => {
         let deliveryCharge = 0;
         discountPrice = originalPrice - totalSalePrice;
 
-        // Coupon Offer applying
         let couponDiscount = 0;
         let couponPrice = !coupons
             ? 0
@@ -496,7 +483,6 @@ const updateCartProductQuantity = asyncHandler(async (req, res, next) => {
             }, 0);
         totalSalePrice -= couponPrice;
 
-        // Discount Percentage
         let discountPercentage = (discountPrice / originalPrice) * 100;
         discountPercentage = Math.trunc(discountPercentage);
         let couponDiscountPercentage = Math.trunc(
@@ -504,14 +490,14 @@ const updateCartProductQuantity = asyncHandler(async (req, res, next) => {
         );
         console.log(`Coupon Discount Percentage: ${couponPrice}`);
 
-        // Delivery Charge
+
         deliveryCharge = originalPrice >= 4500 ? 100 : 0;
 
-        // Total Amount (includes delivery charge too)
         totalPrice = totalSalePrice + deliveryCharge;
         console.log(`Discount Percentage: ${discountPercentage}`);
 
         productQuantity = cart.products[cartProductIndex].quantity;
+
         return res.json({
             status: true,
             productQuantity,
@@ -541,14 +527,29 @@ const applyCoupon = asyncHandler(async (req, res, next) => {
 
     if (!user) {
         req.session.user = null;
-        const err = new Error("User not Found")
-        const redirectPath = "/login";
-        return next({ error: err, redirectPath });
+        return res.json({ status: false, redirected: "/login" });
     }
 
     const couponCode = req.params.couponCode;
-    const isOfferexist = await CouponData.findOne({ code: couponCode }).lean();
     const cart = await CartData.findOne({ userID }).lean();
+    const isOfferexist = await CouponData.findOne({ code: couponCode }).lean();
+
+    if (!isOfferexist) {
+        return res.json({
+            status: true,
+            isCoupon: false,
+            message: `Invalid coupon code`,
+        });
+    }
+
+    if (!cart) {
+        return res.json({
+            status: false,
+            message: `Cart not found`,
+            redirected: '/cart'
+        });
+    }
+
     let totalPrice;
 
     let coupons = await Promise.all(
@@ -567,16 +568,6 @@ const applyCoupon = asyncHandler(async (req, res, next) => {
     coupons = coupons.filter((coupon) => coupon !== null);
     console.log(coupons);
 
-    // If the code is Invalid
-    if (!isOfferexist) {
-        return res.json({
-            status: true,
-            isCoupon: false,
-            message: `Invalid coupon code`,
-        });
-    }
-
-    // Checking the coupon is Expired
     if (isOfferexist && new Date() > isOfferexist.expiryDate) {
         return res.json({
             status: true,
@@ -585,15 +576,13 @@ const applyCoupon = asyncHandler(async (req, res, next) => {
         });
     }
 
-    // Is coupon used by User
     const existingCoupon = user.appliedCoupons.find(
         (coupon) =>
             coupon.cartID.toString() === cart._id.toString() &&
             coupon.couponID.toString() === isOfferexist._id.toString()
     );
-    // If the Coupon is already existing in the UserDB coupons list
+
     if (existingCoupon) {
-        // checking the limit
         if (existingCoupon.limit < 1) {
             await UserData.findOneAndUpdate(
                 {
@@ -612,7 +601,7 @@ const applyCoupon = asyncHandler(async (req, res, next) => {
             });
         }
 
-        // If the limit is exceeded
+
         return res.json({
             status: true,
             isCoupon: false,
@@ -620,7 +609,6 @@ const applyCoupon = asyncHandler(async (req, res, next) => {
         });
     }
 
-    // Offer applying Total Cart Amount
     const cartTotal = await CartData.aggregate([
         {
             $match: {
@@ -652,7 +640,6 @@ const applyCoupon = asyncHandler(async (req, res, next) => {
     let originalPrice = cartTotal[0].originalPrice;
     let totalSalePrice = cartTotal[0].totalSalePrice;
 
-    // applying coupon offer
     let couponDiscount = 0;
     let existingCouponPrice = !coupons
         ? 0
@@ -677,10 +664,8 @@ const applyCoupon = asyncHandler(async (req, res, next) => {
 
     totalPrice = totalSalePrice + deliveryCharge;
 
-    // Discount Price
     let discountPrice = originalPrice - totalSalePrice;
 
-    // Discount Percentage
     let discountPercentage = Math.trunc((discountPrice / originalPrice) * 100);
     let couponDiscountPercentage = Math.trunc(
         (couponDiscountPrice / originalPrice) * 100
@@ -715,13 +700,18 @@ const removeCoupon = asyncHandler(async (req, res, next) => {
 
     if (!user) {
         req.session.user = null;
-        const err = new Error("User not Found")
-        const redirectPath = "/login";
-        return next({ error: err, redirectPath });
+        return res.json({ status: false, redirected: "/login" });
     }
 
     const { couponCode, cartID } = req.params;
     const cart = await CartData.findOne({ userID: userID }).lean();
+    if (!cart) {
+        return res.json({
+            status: false,
+            message: `Cart not found`,
+            redirected: '/cart'
+        });
+    }
     const couponToRemove = await CouponData.findOne({ code: couponCode });
     let totalPrice = 0;
 
@@ -741,7 +731,6 @@ const removeCoupon = asyncHandler(async (req, res, next) => {
     coupons = coupons.filter((coupon) => coupon !== null);
     console.log(coupons);
 
-    // Cart Total
     const cartTotal = await CartData.aggregate([
         {
             $match: {
@@ -765,14 +754,11 @@ const removeCoupon = asyncHandler(async (req, res, next) => {
         },
     ]);
 
-    // Getting OG price and sales price
     let originalPrice = cartTotal[0].originalPrice;
     let totalSalePrice = cartTotal[0].totalSalePrice;
 
-    // Discount Amount
     let discountAmount = originalPrice - totalSalePrice;
 
-    // applying coupon offer
     let couponDiscount = 0;
     let existingCouponPrice = !coupons
         ? 0
@@ -784,7 +770,6 @@ const removeCoupon = asyncHandler(async (req, res, next) => {
             return acc + couponDiscount;
         }, 0);
 
-    // Price of the coupon to reduct from applied coupon price
     let priceTodeduct =
         originalPrice >= couponToRemove.maxDiscount
             ? couponToRemove.maxDiscount
@@ -794,18 +779,17 @@ const removeCoupon = asyncHandler(async (req, res, next) => {
 
     let couponDiscountPrice = existingCouponPrice - priceTodeduct;
     totalSalePrice = totalSalePrice - couponDiscountPrice;
-    // Discount Percentage
+
     let discountPercentage = Math.trunc((discountAmount / originalPrice) * 100);
     let couponDiscountPercentage = Math.trunc(
         (couponDiscountPrice / originalPrice) * 100
     );
 
-    // Delivery Charge
+
     deliveryCharge = originalPrice >= 3500 ? 100 : 0;
 
     totalPrice = totalSalePrice + deliveryCharge;
 
-    // Pulling coupon from applied Coupons
     await UserData.findOneAndUpdate(
         {
             _id: userID,

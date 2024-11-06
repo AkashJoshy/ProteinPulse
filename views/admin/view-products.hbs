@@ -175,6 +175,12 @@
     </ul>
   </nav>
 
+  <div>
+    {{#if errMsg}}
+    <input type="text" name="d-none err-message" value="{{errMsg}}" >
+    {{/if}}
+  </div>
+
 </div>
 
 <script src="/javaScript/viewProducts.js"></script>
@@ -334,5 +340,10 @@
     console.log(`Filter: ${filter}`)
     fetchProducts(filter, page);
   })
+
+  const errorMessage = document.querySelector('.err-message')
+  if(errorMessage) {
+    Swal.fire(errorMessage.value)
+  }
 
 </script>
