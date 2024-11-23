@@ -1,26 +1,27 @@
 const express = require('express')
 const router = express.Router()
 const userDashboardController = require('../controllers/userDashboardController')
+const userAuthController = require('../middlewares/userAuthMiddleware')
 
 
 // GET Requests
-router.get("/", userDashboardController.dashboard);
-router.get("/account-details", userDashboardController.accountDetails)
-router.get("/orders", userDashboardController.myOrders)
+router.get("/", userAuthController.authHandler, userDashboardController.dashboard);
+router.get("/account-details", userAuthController.authHandler, userDashboardController.accountDetails)
+router.get("/orders", userAuthController.authHandler, userDashboardController.myOrders)
 router.get("/orders/page", userDashboardController.myOrdersPages)
-router.get("/orders/edit-orders/:orderID", userDashboardController.viewOrderDetails);
-router.get("/wishlist", userDashboardController.wishlist);
-router.get("/address", userDashboardController.accountAddress);
-router.get("/address/add-address", userDashboardController.addAddress);
-router.get("/address/saved-address", userDashboardController.viewAddresses);
-router.get("/address/edit-address/:addressType/:addressID", userDashboardController.getAddressEdit);
-router.get("/wallet", userDashboardController.wallet);
+router.get("/orders/edit-orders/:orderID", userAuthController.authHandler, userDashboardController.viewOrderDetails);
+router.get("/wishlist", userAuthController.authHandler, userDashboardController.wishlist);
+router.get("/address", userAuthController.authHandler, userDashboardController.accountAddress);
+router.get("/address/add-address", userAuthController.authHandler, userDashboardController.addAddress);
+router.get("/address/saved-address", userAuthController.authHandler, userDashboardController.viewAddresses);
+router.get("/address/edit-address/:addressType/:addressID", userAuthController.authHandler, userDashboardController.getAddressEdit);
+router.get("/wallet", userAuthController.authHandler, userDashboardController.wallet);
 router.get("/wallet/page", userDashboardController.walletTransactionPages);
 
 
 // POST Requests
-router.post("/address/add-address", userDashboardController.saveAddress);
-router.post("/address/update-address", userDashboardController.updateAddress)
+router.post("/address/add-address", userAuthController.authHandler, userDashboardController.saveAddress);
+router.post("/address/update-address", userAuthController.authHandler, userDashboardController.updateAddress)
 router.post("/add-wallet-amount", userDashboardController.addToWallet);
 
 

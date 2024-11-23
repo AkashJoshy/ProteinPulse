@@ -4,94 +4,110 @@
 
 
 <div class="container shadow-lg p-3 mb-5 mt-4 rounded">
-  <form action="/admin/add-category" class="row g-3 needs-validation" method="post" enctype="multipart/form-data" novalidate>
- 
-   <div class="col-md-12 d-flex">
-    <img class="image-display rounded-3 w-25 image-fluid mx-auto mt-3" style="height: auto;" >
-  </div>
+  <form action="/admin/add-carousel" class="row g-3 needs-validation" method="post" enctype="multipart/form-data"
+    novalidate>
 
-  <div class="col-md-12">
-    <label for="categoryImage" class="form-label">Carousel</label>
-    <input type="file" accept="image/*" name="file" class="form-control carousal-img" aria-label="file example" id="categoryImage" required>
-    <div class="invalid-feedback">Please Upload the Category Image</div>
-  </div>
-
-  <div class="col-md-6">
-    <label for="subDestination" class="form-label">Sub-Destination</label>
-    <select class="form-select" aria-label="Default select example" id="subDestination" required>
-  <option value="" selected>Select the Sub-Destination</option>
-  <option value="category">Category</option>
-  <option value="products">Products</option>
-</select>
-    <div class="valid-feedback">
-      Looks good!
+    <div class="col-md-12">
+      <label for="carouselName" class="form-label">Carousel Name</label>
+      <input type="text" class="form-control" name="name" id="carouselName" required>
+      <div class="valid-feedback">
+        Looks good!
+      </div>
     </div>
-  </div>
 
-  <div class="col-md-6">
-    <label for="destination" class="form-label">Destination</label>
-    <select class="form-select" aria-label="Default select example" id="destination" required>
-  <option selected>Select the Destination</option>
-</select>
-    <div class="valid-feedback">
-      Looks good!
+    <div class="col-md-12 d-flex">
+      <img class="image-display rounded-3 w-25 image-fluid mx-auto mt-3" style="height: auto;">
     </div>
-  </div>
 
-
-  <div class="col-md-12">
-    <label for="bestBefore" class="form-label">Expiry Date</label>
-    <input type="date" class="form-control" name="expiryDate"
-    id="bestBefore" required>
-    <div class="valid-feedback">
-      Looks good!
+    <div class="col-md-12">
+      <label for="categoryImage" class="form-label">Carousel Image</label>
+      <input type="file" accept="image/*" name="file" class="form-control carousal-img" aria-label="file example"
+        id="categoryImage" required>
+      <div class="invalid-feedback">Please Upload the Category Image</div>
     </div>
-  </div>
+
+    <div class="col-md-6">
+      <label for="subDestination" class="form-label">Sub-Destination</label>
+      <select class="form-select" aria-label="Default select example" name="subDestination" id="subDestination"
+        required>
+        <option value="" selected>Select the Sub-Destination</option>
+        <option value="category">Category</option>
+        <option value="product">Product</option>
+      </select>
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <label for="destination" class="form-label">Destination</label>
+      <select class="form-select" aria-label="Default select example" name="destinationID" id="destination" required>
+        <option selected>Select the Destination</option>
+      </select>
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
 
 
-  <div class="col-12 d-flex">
-    <button class="btn btn-success mx-auto" type="submit">Save</button>
-  </div>
-</form>
+    <div class="col-md-12">
+      <label for="bestBefore" class="form-label">Expiry Date</label>
+      <input type="date" class="form-control" name="expiryDate" id="bestBefore" required>
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+
+
+    <div class="col-12 d-flex">
+      <button class="btn btn-success mx-auto" type="submit">Save</button>
+    </div>
+  </form>
 </div>
 
+<script src="/javaScript/validation.js"></script>
 <script>
 
-// view the Carousel Image
-const carousalImg = document.querySelector('.carousal-img')
-const viewCarousalImg = document.querySelector('.image-display')
+  // view the Carousel Image
+  const carousalImg = document.querySelector('.carousal-img')
+  const viewCarousalImg = document.querySelector('.image-display')
 
-carousalImg.addEventListener('change', (e)=> {
+  carousalImg.addEventListener('change', (e) => {
     viewCarousalImg.src = URL.createObjectURL(e.target.files[0])
-})
+  })
 
 
-// Carousel Destination
-const subDestination = document.querySelector('#subDestination')
-let destination = document.querySelector('#destination')
+  // Carousel Destination
+  const subDestination = document.querySelector('#subDestination')
+  let destination = document.querySelector('#destination')
 
-// destinations for Categries and Products
-const destinations = {
-    category: ['fdrfdsfd', 'sxzsdxzsdzx', 'szdsdcxdfxd'],
-    products: ['asdsdzxsd', 'asdsfgdf', 'zdfcfchbfhb', 'duirfsedf']
-}
+  subDestination.addEventListener('change', () => {
+    let option = subDestination.value
+    $.ajax({
+      url: `/admin/carousel-destinations`,
+      method: 'GET',
+      data: { option: option },
+      success: response => {
+        if (response.status) {
+          let destinations = response.destinations
+          let html = `<option selected>Select the Destination</option>`
+          destinations.forEach(destination => {
+            html += `
+          <option value="${destination._id}">${destination.name}</option>
+          `
+          })
+          destination.innerHTML = html
+        } else {
+          if (response.message) {
 
-subDestination.addEventListener('change', (e) => {
-    let selectedSubDestination = e.target.value 
-    // console.log(selectedSubDestination)
+            return
+          }
+          window.location.href = response.redirected
+        }
+      }
+    })
+  })
 
-    // clear the destination 
-    destination.innerHTML = `<option selected>Select the Destination</option>`
 
-    if (selectedSubDestination && destinations[selectedSubDestination]) {
-        destinations[selectedSubDestination].forEach(val => {
-            const option = document.createElement('option');
-            option.value = val;
-            option.textContent = val;
-            destination.appendChild(option);
-        });
-    }
-
-})
 
 </script>

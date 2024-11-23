@@ -92,6 +92,87 @@
   <canvas id="salesChart" style="width: 100%; height: 100%;"></canvas>
 </div>
 
+
+<h3 class="ms-3 ms-md-4 mt-5">Best Selling Products</h3>
+<div class="mx-4 px-1 py-0 table-responsive shadow-sm rounded">
+  <table class="table mt-3">
+    <thead class="table-dark">
+      <tr class="text-center">
+        <th scope="col">NO</th>
+        <th scope="col">Image</th>
+        <th scope="col" >Name</th>
+        <th scope="col" class="text-center">Total Sales</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#if (isEmpty topProducts.length)}}
+      {{#each topProducts}}
+      <tr class="text-center">
+        <th scope="row"> {{increment @index}} </th>
+        <td> <img src="/uploads/{{this.imageUrl.[0]}}" class="text-center" style="height: 120px;" alt="top-selling-product"> </td>
+        <td > {{this.name}} </td>
+        <td class="text-center"> {{this.totalSales}} </td>
+      </tr>
+      {{/each}}
+    </tbody>
+      {{else}}
+      <th colspan="12" class="fw-semibold text-danger fs-4 text-center">No Products Available</th>
+      {{/if}}
+  </table>
+</div>
+
+<h3 class="ms-3 ms-md-4 mt-5">Best Selling Categories</h3>
+<div class="mx-4 px-1 py-0 table-responsive shadow-sm rounded">
+  <table class="table mt-3">
+    <thead class="table-dark">
+      <tr>
+        <th scope="col">NO</th>
+        <th scope="col" >Name</th>
+        <th scope="col" class="text-center">Total Sales</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#if (isEmpty topCategories.length)}}
+      {{#each topCategories}}
+      <tr>
+        <th scope="row"> {{increment @index}}</th>
+        <td > {{this._id}} </td>
+        <td class="text-center"> {{this.totalSales}} </td>
+      </tr>
+      {{/each}}
+    </tbody>
+      {{else}}
+      <th colspan="12" class="text-danger fw-semibold fs-4 text-center">No Categories Available</th>
+      {{/if}}
+  </table>
+</div>
+
+<h3 class="ms-3 ms-md-5 mt-5">Best Selling Brands</h3>
+<div class="mx-4 px-1 py-0 table-responsive shadow-sm rounded">
+  <table class="table mt-3">
+    <thead class="table-dark">
+      <tr>
+        <th scope="col">NO</th>
+        <th scope="col" >Name</th>
+        <th scope="col" class="text-center">Total Sales</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#if (isEmpty topBrands.length)}}
+      {{#each topBrands}}
+      <tr>
+        <th scope="row"> {{increment @index}}</th>
+        <td > {{this._id}} </td>
+        <td class="text-center"> {{this.totalSales}} </td>
+      </tr>
+      {{/each}}
+    </tbody>
+      {{else}}
+      <th colspan="12" class="text-danger fw-semibold fs-4 text-center">No Brands Available</th>
+      {{/if}}
+  </table>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>

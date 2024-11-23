@@ -5,6 +5,12 @@
     border-color: black;
     color: white;
   }
+
+  .form-control:focus {
+    border-color: #c1c1c1;
+    box-shadow: none;
+    background-color: #f8f9fa;
+  }
 </style>
 
 <div class=" mt-3 d-flex me-2 me-md-5">
@@ -27,6 +33,10 @@
     Products <a href="/admin/add-product" class="add-category px-3 rounded-3"
       style="text-decoration: none; margin-left: 7px; color: rgb(38, 185, 38); border: 0.1px solid rgb(0, 0, 0);">+</a>
   </h3>
+  <div class="ms-auto mt-2 me-2">
+    <input type="search" style="color: rgb(17, 17, 17) ;padding-left: 5px; border: 2px solid rgb(98, 97, 97);"
+      placeholder="Search" id="search-bar" class="form-control">
+  </div>
   <div class="btn btn-success me-3 me-md-5 mt-2 mb-2" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
     Add Stock
   </div>
@@ -46,7 +56,7 @@
       <div class="modal-body">
 
         {{!-- Form to update Stock --}}
-        <form  class="needs-validation" id="productUpateForm" novalidate>
+        <form class="needs-validation" id="productUpateForm" novalidate>
           <div class="">
             <label for="productID" class="form-label">Product Name</label>
             <select name="productID" class="form-select" id="productID" required>
@@ -143,10 +153,14 @@
       </tr>
       {{/each}}
       {{else}}
-      <h2 class="text-danger text-center">No Products Available</h2>
-      {{/if}}
     </tbody>
+    <tr>
+      <td colspan="16" class="fs-4 fw-semibold text-md-center text-danger">No Products Available</td>
+    </tr>
+    {{/if}}
   </table>
+
+  <h4 class="fs-4 text-center text-danger fw-semibold" id="product-message"></h4>
 
   <nav aria-label="Page navigation example" class="d-flex fixed-bottom" id="pagination" style="z-index: 2;">
     <ul class="pagination mx-auto py-3 admin-pagination">
@@ -177,7 +191,7 @@
 
   <div>
     {{#if errMsg}}
-    <input type="text" name="d-none err-message" value="{{errMsg}}" >
+    <input type="text" name="d-none err-message" value="{{errMsg}}">
     {{/if}}
   </div>
 
@@ -188,37 +202,41 @@
 <script>
 
   // Function to update pagination
-  function updatePagination(pagination) {
+  function updatePagination(pagination, query = 'filters', search = '') {
     const paginationElement = document.querySelector('#pagination .pagination');
     let paginationHtml = '';
+
 
     // Previous Page Link
     if (pagination.previousPage) {
       paginationHtml += `
-        <li class="page-item">
-          <a class="page-link bg-dark prev-next-number" href="?page=${pagination.currentPage - 1}&filter=${searchSort.value}">Previous</a>
-        </li>
-      `;
+      <li class="page-item">
+        <a class="page-link bg-dark prev-next-number" href="${query == 'search' ? `?search=${search}&page=${pagination.currentPage - 1}` : `?page=${pagination.currentPage - 1}&filter=${searchSort.value}`}">Previous</a>
+      </li>
+    `;
     }
 
     // Page Number Links
     for (let pageNumber = 1; pageNumber <= pagination.totalPages; pageNumber++) {
       paginationHtml += `
-        <li class="page-item ${pagination.currentPage === pageNumber ? 'active' : ''}">
-          <a class="page-link page-number" href="?page=${pageNumber}&filter=${searchSort.value}">
-            ${pageNumber}
-          </a>
-        </li>
-      `;
+      <li class="page-item ${pagination.currentPage === pageNumber ? 'active' : ''}">
+        <a class="page-link page-number" href="${query == 'search' ? `?search=${search}&page=${pageNumber}` : `?page=${pageNumber}&filter=${searchSort.value}`}">
+          ${pageNumber}
+        </a>
+      </li>
+    `;
     }
 
     // Next Page Link
     if (pagination.nextPage) {
+      if (query == 'search') {
+        console.log(`Search is ...`)
+      }
       paginationHtml += `
-        <li class="page-item">
-          <a class="page-link bg-dark prev-next-number" href="?page=${pagination.currentPage + 1}&filter=${searchSort.value}">Next</a>
-        </li>
-      `;
+      <li class="page-item">
+        <a class="page-link bg-dark prev-next-number" href="${query == 'search' ? `?search=${search}&page=${pagination.currentPage + 1}` : `?page=${pagination.currentPage + 1}&filter=${searchSort.value}`}">Next</a>
+      </li>
+    `;
     }
 
     paginationElement.innerHTML = paginationHtml;
@@ -231,6 +249,8 @@
       text: `Do you want to ${productAction} ${productName} ?`,
       icon: 'warning',
       showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#2196F3',
       confirmButtonText: `Yes, ${productAction} it!`,
       cancelButtonText: 'No, cancel!',
     }).then((result) => {
@@ -241,6 +261,10 @@
           data: { productID },
           success: response => {
             if (response.status) {
+              if (response.islessPrice) {
+                Swal.fire(response.message)
+                return
+              }
               Swal.fire(`Successfully ${productAction}d ${productName}`)
                 .then(() => window.location.href = response.redirected);
             } else {
@@ -327,22 +351,116 @@
     fetchProducts(filter, page);
   });
 
-  // Pagination Btn 
 
-  // Initialize filter and fecth products wehen the page loads
-  document.addEventListener('DOMContentLoaded', () => {
-    //  console.log(window.location.search)
+  document.addEventListener('DOMContentLoaded', (e) => {
     const urlParams = new URLSearchParams(window.location.search);
-    console.log(urlParams)
+    const search = urlParams.get('search') || ''
     const filter = urlParams.get('filter') || 'no-filter';
     const page = urlParams.get('page') || 1;
-    searchSort.value = filter;
-    console.log(`Filter: ${filter}`)
-    fetchProducts(filter, page);
+    console.log(`search is ${search}`)
+    if (search) {
+      searchBar.value = search
+      searchProducts(search, page)
+    } else {
+      searchSort.value = filter;
+      fetchProducts(filter, page,);
+    }
+
+  });
+
+  // Search Fn
+  function searchProducts(search, page) {
+    $.ajax({
+      url: `/admin/products/query?search=${search}&page=${page}`,
+      method: 'GET',
+      success: response => {
+        if (response.status) {
+          if (response.pagination) {
+            let products = response.products
+
+            let html = ``
+            products.forEach((product, index) => {
+              html +=
+                `
+                <tr>
+                <th scope="row"> ${index + 1} </th>
+                <td> ${product.name} </td>
+                <td> <img src="/uploads/${product.imageUrl[0]}"  style="height: 100px;" alt=""> </td>
+                <td>
+                  <div class="table-responsive" style="height: 100px; overflow-y: scroll;">
+                    ${product.description}
+                  </div>
+                </td>
+                <td> ${product.categoryName} </td>
+                <td> ${product.size} </td>
+                <td> ${product.price} </td>
+                <td> ${product.offer}% </td>
+                <td> ${product.flavour} </td>
+                <td> ${product.rating} </td>
+                <td> ${product.quantities} </td>
+                <td> ${product.salePrice} </td>
+                <td> ${product.origin} </td>
+                <td> ${product.bestBefore} </td>
+                <td>
+                  <a href="/admin/edit-product/${product._id}">
+                      <i class="fa-solid fa-pen" style="cursor: pointer; color: rgb(15, 223, 15);"></i>
+                  </a>
+                </td>
+                <td>
+                  ${product.isActive ? `
+                  <a class="btn-product-action"
+                    onclick="deleteproduct('${product._id}', 
+                    '${product.name}', 
+                    'delete-product', 
+                    'Delete')">
+                      <i class="fa-solid fa-trash mx-auto px-3" style="cursor: pointer; color: red;"></i>
+                  </a>`
+                  : `
+                  <a class="btn btn-sm btn-outline-dark btn-product-action" 
+                    onclick="deleteproduct('${product._id}', 
+                    '${product.name}', 
+                    'restore-product', 
+                    'Restore')">
+                      RESTORE
+                  </a>`
+                }
+                </td>
+              </tr>
+              `
+            })
+
+            document.querySelector('table tbody').innerHTML = html;
+            document.querySelector('#product-message').innerHTML = ``;
+            updatePagination(response.pagination, 'search', search)
+          } else {
+            document.querySelector('table tbody').innerHTML = ``;
+            document.querySelector('#product-message').innerHTML = `No Products Available`;
+            document.querySelector('.admin-pagination').innerHTML = ``;
+
+          }
+        } else {
+          window.location.href = response.redirected
+        }
+      }
+    })
+  }
+
+
+  const searchBar = document.querySelector('#search-bar')
+  let search
+
+  searchBar.addEventListener('input', (e) => {
+    e.preventDefault();
+    search = e.target.value
+    let searchParams = new URLSearchParams(window.location.search)
+    console.log(searchParams)
+    let page = searchParams.get('page') || 1
+    window.location.href
+    searchProducts(search, page)
   })
 
   const errorMessage = document.querySelector('.err-message')
-  if(errorMessage) {
+  if (errorMessage) {
     Swal.fire(errorMessage.value)
   }
 

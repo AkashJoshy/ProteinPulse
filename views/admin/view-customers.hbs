@@ -1,6 +1,24 @@
+<style>
+  .form-control:focus {
+    border-color: #c1c1c1;
+    box-shadow: none;
+    background-color: #f8f9fa;
+  }
 
-<div class="mt-5">
+  .page-item.active .page-link {
+    background-color: #F46F36;
+    color: white;
+    border-color: black;
+  }
+</style>
+
+<div class="mt-5 d-flex">
   <h3 class="ms-3 ms-md-5">All Customers</h3>
+  <div class="ms-auto mb-3 me-5">
+
+    <input type="search" style="color: rgb(17, 17, 17) ;padding-left: 5px; border: 2px solid rgb(98, 97, 97);"
+      placeholder="Search Customers" id="search-bar" class="form-control">
+  </div>
 </div>
 
 <div class="container table-responsive shadow-lg rounded">
@@ -17,118 +35,226 @@
       </tr>
     </thead>
     <tbody>
+      {{#if (isEmpty users.length)}}
       {{#each users}}
-        <tr>
-          <th scope="row">{{increment @index}}</th>
-          <td>{{this.firstName}}</td>
-          <td>{{this.lastName}}</td>
-          <td>{{this.email}}</td>
-          <td>{{this.mobileNumber}}</td>
-          <td>
-            {{#if this.isBlocked}}
-            <label class="switch">
-              <input type="checkbox" />
-              <span class="slider round"></span>
-            </label>
-              {{else}}
-            <label class="switch">
-              <input type="checkbox" checked />
-              <span class="slider round"></span>
-            </label>
-            {{/if}}
-          </td>
-          <td>
-            {{!-- <a
-              href="/admin/edit-customer/{{this._id}}"
-              class="btn btn-success btn-sm"
-            >UPDATE</a> --}}
-            {{#if this.isBlocked}}
-            <a
-              onclick="confirmDeleteOrRestore(`{{this.firstName}}`,
+      <tr>
+        <th scope="row">{{increment @index}}</th>
+        <td>{{this.firstName}}</td>
+        <td>{{this.lastName}}</td>
+        <td>{{this.email}}</td>
+        <td>{{this.mobileNumber}}</td>
+        <td>
+          {{#if this.isBlocked}}
+          <label class="switch">
+            <input type="checkbox" />
+            <span class="slider round"></span>
+          </label>
+          {{else}}
+          <label class="switch">
+            <input type="checkbox" checked />
+            <span class="slider round"></span>
+          </label>
+          {{/if}}
+        </td>
+        <td>
+
+          {{#if this.isBlocked}}
+          <a onclick="confirmDeleteOrRestore(`{{this.firstName}}`,
                `{{this.lastName}}`, 
                `{{this._id}}`, 
                `restore-customer`, 
-               `Restore`)"
-              class="btn btn-secondary btn-sm mt-1 mt-md-0 btn-customer-action"
-            >RESTORE</a>
-              {{else}}
-            <a
-              onclick="confirmDeleteOrRestore(`{{this.firstName}}`,
+               `Restore`)" class="btn btn-secondary btn-sm mt-1 mt-md-0 btn-customer-action">RESTORE</a>
+          {{else}}
+          <a onclick="confirmDeleteOrRestore(`{{this.firstName}}`,
                `{{this.lastName}}`, 
                `{{this._id}}`, 
                `delete-customer`, 
-               `Delete`)"
-              class="btn btn-danger btn-customer-action btn-sm mt-1 mt-md-0"
-            >DELETE</a>
-            {{/if}}
-          </td>
-        </tr>
+               `Delete`)" class="btn btn-danger btn-customer-action btn-sm mt-1 mt-md-0">DELETE</a>
+          {{/if}}
+        </td>
+      </tr>
       {{/each}}
     </tbody>
+    {{else}}
+    <td colspan="10" class="fw-semibold fs-4 text-center text-danger select-disabled">No Customers found</td>
+    {{/if}}
   </table>
+  <h2 class="fw-semibold fs-4 text-danger text-center" id="product-message"></h2>
 
-<nav aria-label="Page navigation example" class="d-flex fixed-bottom" style="z-index: 2;" >
+  <nav aria-label="Page navigation example" id="pagination" class="d-flex fixed-bottom" style="z-index: 2;">
+    <ul class="pagination mx-auto py-3 admin-pagination" id="pagination-body">
 
-  <ul class="pagination mx-auto py-3 admin-pagination" >
-    {{#if pagination.previousPage}}
-    <li class="page-item">
-    <a class="page-link bg-dark prev-next-number" 
-      href="/admin/customers?page={{paginationManipulation pagination.currentPage -1}}">Previous
-    </a>
-    </li>
-    {{/if}}
-    {{#each (paginationNumbers 1 pagination.totalPages) as |pageNumber| }}
-    <li class="page-item"><a class="page-link page-number " 
-    href="/admin/customers?page={{pageNumber}}"> {{pageNumber}} </a></li>
-    {{/each}}
-    {{#if pagination.nextPage}}
-    <li class="page-item">
-    <a class="page-link bg-dark prev-next-number" 
-      href="/admin/customers/page={{paginationManipulation pagination.currentPage 1}}">Next
-    </a>
-    </li>
-    {{/if}}
-  </ul>
+      {{#if pagination.isPrevious}}
+      <li class="page-item">
+        <a class="page-link bg-dark prev-next-number" data-page="{{paginationManipulation pagination.currentPage -1}}"
+          href="/admin/customers?page={{paginationManipulation pagination.currentPage -1}}">Previous
+        </a>
+      </li>
+      {{/if}}
 
-</nav>
+      {{#each (paginationNumbers 1 pagination.totalPages) as |pageNumber| }}
+      <li class="page-item">
+        <a class="page-link page-number" data-page="{{pageNumber}}" href="/admin/customers?page={{pageNumber}}">
+          {{pageNumber}}
+        </a>
+      </li>
+      {{/each}}
+
+      {{#if pagination.isNext}}
+      <li class="page-item">
+        <a class="page-link bg-dark prev-next-number" data-page="{{paginationManipulation pagination.currentPage 1}}"
+          href="/admin/customers?page={{paginationManipulation pagination.currentPage 1}}">Next
+        </a>
+      </li>
+      {{/if}}
+
+    </ul>
+
+  </nav>
 
 </div>
 
 
 
 <script>
-function confirmDeleteOrRestore(firstName, lastName, customerID, subRoute, adminAction) {
 
-  // Ajax method to delete or restore customers with sweetAlert 
+  function confirmDeleteOrRestore(firstName, lastName, customerID, subRoute, adminAction) {
     Swal.fire({
-            title: 'Are you sure?',
-            text: `Do you want to ${adminAction} ${firstName} ${lastName} ?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: `Yes, ${adminAction} it!`,
-            cancelButtonText: 'No, cancel!',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Handle the delete/restore action
-                $.ajax({
-                  url: `/admin/${subRoute}`,
-                  method: "PUT",
-                  data: {
-                    userID: customerID
-                  },
-                  success: response => {
-                    if(response.status) {
-                      Swal.fire(`Successfully ${adminAction}d ${firstName} ${lastName}`)
-                      .then(() => window.location.href = response.redirected)
-                    }
-                  }
-                })
+      title: 'Are you sure?',
+      text: `Do you want to ${adminAction} ${firstName} ${lastName} ?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#2196F3',
+      confirmButtonText: `Yes, ${adminAction} it!`,
+      cancelButtonText: 'No, cancel!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: `/admin/${subRoute}`,
+          method: "PUT",
+          data: {
+            userID: customerID
+          },
+          success: response => {
+            if (response.status) {
+              Swal.fire(`Successfully ${adminAction}d ${firstName} ${lastName}`)
+                .then(() => window.location.href = response.redirected)
             }
-        });
-}
+          }
+        })
+      }
+    });
+  }
+
+  const searchBar = document.querySelector('#search-bar')
+  let search
+  searchBar.addEventListener('input', (e) => {
+    e.preventDefault();
+    search = e.target.value
+    let searchParams = new URLSearchParams(window.location.search)
+    let page = searchParams.get('page') || 1
+    searchCustomers(search, page)
+  })
+
+  function updatePagination(pagination, search) {
+    const paginationElement = document.querySelector('#pagination .pagination');
+    let paginationHtml = '';
+
+    if (pagination.isPrevious) {
+      paginationHtml += `
+      <li class="page-item">
+        <a class="page-link bg-dark prev-next-number" 
+        data-page="${pagination.currentPage - 1}"
+        href="?search=${search}&page=${pagination.currentPage - 1}">Previous</a>
+      </li>
+    `;
+    }
+
+    for (let pageNumber = 1; pageNumber <= pagination.totalPages; pageNumber++) {
+      paginationHtml += `
+      <li class="page-item ${pagination.currentPage === pageNumber ? 'active' : ''}">
+        <a class="page-link page-number" data-page="${pageNumber}"
+         href="?search=${search}&page=${pageNumber}">
+          ${pageNumber}
+        </a>
+      </li>
+    `;
+    }
+
+    if (pagination.isNext) {
+      paginationHtml += `
+      <li class="page-item">
+        <a class="page-link bg-dark prev-next-number"
+        data-page="${pagination.currentPage + 1}"
+        href="?search=${search}&page=${pagination.currentPage + 1}">Next</a>
+      </li>
+    `;
+    }
+
+    paginationElement.innerHTML = paginationHtml;
+  }
+
+  let paginationBody = document.querySelector('#pagination-body')
+  paginationBody.addEventListener('click', e => {
+    e.preventDefault()
+    const url = new URL(e.target.href)
+    const search = url.searchParams.get('search') || ''
+    const page = parseInt(e.target.getAttribute('data-page'));
+    searchCustomers(search, page)
+  })
+
+  function searchCustomers(search, page) {
+    const customerErrMessage = document.querySelector('#product-message')
+    $.ajax({
+      url: `/admin/customers/query?search=${search}&page=${page}`,
+      method: 'GET',
+      success: response => {
+        if (response.status) {
+          if (response.pagination) {
+            let customers = response.customers
+
+            let html = ``
+            customers.forEach((customer, index) => {
+              html += `
+                <tr>
+                  <th scope="row">${index + 1}</th>
+                  <td>${customer.firstName}</td>
+                  <td>${customer.lastName}</td>
+                  <td>${customer.email}</td>
+                  <td>${customer.mobileNumber}</td>
+                  <td>
+                    <label class="switch">
+                    <input type="checkbox" ${customer.isBlocked ? '' : 'checked'} />
+                    <span class="slider round"></span>
+                    </label>
+                  </td>
+                  <td>
+                      ${customer.isBlocked
+                  ? `<a onclick="confirmDeleteOrRestore('${customer.firstName}', '${customer.lastName}', '${customer._id}', 'restore-customer', 'Restore')" class="btn btn-secondary btn-sm mt-1 mt-md-0 btn-customer-action">RESTORE</a>`
+                  : `<a onclick="confirmDeleteOrRestore('${customer.firstName}', '${customer.lastName}', '${customer._id}', 'delete-customer', 'Delete')" class="btn btn-danger btn-customer-action btn-sm mt-1 mt-md-0">DELETE</a>`
+                }
+                  </td>
+                  </tr>
+                    `;
+            })
+
+            document.querySelector('table tbody').innerHTML = html;
+            customerErrMessage.innerHTML = ``
+            console.log(response.pagination)
+            updatePagination(response.pagination, search)
+          } else {
+            document.querySelector('table tbody').innerHTML = ``;
+            customerErrMessage.classList.add = "select-disabled"
+            customerErrMessage.innerHTML = `No Customers found`;
+            document.querySelector('.admin-pagination').innerHTML = ``;
+
+          }
+        } else {
+          window.location.href = response.redirected
+        }
+      }
+    })
+  }
 
 </script>
-
-
-
-

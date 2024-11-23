@@ -268,8 +268,8 @@
       text: `You won't be able to revert this!`,
       icon: `warning`,
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#2196F3',
       confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'Cancel'
     }).then(result => {
@@ -313,9 +313,9 @@
   const currentPage = document.querySelector('#current-page')
 
   pages.forEach(page => {
-      if (page.innerText == currentPage.value) {
-        page.classList.add('active')
-      }
+    if (page.innerText == currentPage.value) {
+      page.classList.add('active')
+    }
     page.addEventListener('click', (e) => {
       pages.forEach(pg => pg.classList.remove('active'))
     })

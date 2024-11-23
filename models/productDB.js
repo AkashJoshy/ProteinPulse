@@ -70,6 +70,10 @@ const ProductSchema = new Schema({
         type: [String],
         required: true
     },
+    totalSales: {
+        type: Number,
+        default: 0
+    },
     isActive: {
         type: Boolean,
         default: true

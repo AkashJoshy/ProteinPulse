@@ -50,12 +50,12 @@
                                     <span class="fa fa-star checked"></span>
                                     {{#if (isStock this.quantities)}}
                                     <div>
-                                        <a href="#" class="btn mt-3"
+                                        <a class="btn mt-3"
                                             style="background-color: rgb(255, 43, 43); color: white;">SOLD OUT</a>
                                     </div>
                                     {{else}}
                                     <div>
-                                        <a onclick="addToCart(`{{this._id}}`)" class="btn mt-3"
+                                        <a onclick="addToCart(`{{this._id}}`)" class="btn mt-3 w-100 shadow-sm"
                                             style="background-color: #F46F36; color: white;">ADD TO CART</a>
                                     </div>
                                     {{/if}}
@@ -134,18 +134,17 @@
 
                         productFilters.forEach((productFilter, index) => {
                             html += `
-                  <div id="products" class="col-12 col-md-6 col-xxl-4">
-                  <div class=" mt-3 products-container">
-                      <a href="/user/products/${productFilter._id}" style="text-decoration: none;">
-                          <div class="card mx-auto shadow-lg"
-                          style="width: 16rem;cursor: pointer;"
-                          >
-                              <div class="offer-section px-2 text-center">
+                            <div id="products" class="col-12 col-md-6 col-xxl-4 mt-3">
+                            <div class=" mt-3 products-container">
+                            <a href="/user/products/${productFilter._id}" style="text-decoration: none;">
+                            <div class="card mx-auto shadow-lg"
+                                style="width: 16rem;cursor: pointer;">
+                            <div class="offer-section px-2 text-center">
                                   OFFER ${productFilter.offer}%
-                              </div>
-                              <img style="height: 8rem; width: 10.5rem;" src="/uploads/${productFilter.imageUrl[0]}"
+                            </div>
+                            <img style="height: 8rem; width: 10.5rem;" src="/uploads/${productFilter.imageUrl[0]}"
                                   class="card-img-top mt-4 mx-auto product-image pt-2" alt="..." />
-                              <div class="card-body rounded-3"
+                            <div class="card-body rounded-3"
                                   // {(isStock this.quantities)}
                                   ${productFilter.quantities <= 0 ?
                                     `
@@ -161,13 +160,13 @@
                                       ${productFilter.name}
                                   </h6>
                                   <h5 class="card-text text-black">₹${productFilter.salePrice}
-                                  ${productFilter.salePrice != productFilter.price ? 
+                                  ${productFilter.salePrice != productFilter.price ?
                                     `<span
                                         class="px-2 text-decoration-line-through text-secondary">₹${productFilter.price}
                                     </span>`
                                     :
                                     ``
-                                  }
+                                }
                                   </h5>
                                   <span class="fa fa-star checked"></span>
                                   <span class="fa fa-star checked"></span>
@@ -177,22 +176,22 @@
                                   ${productFilter.quantities <= 0 ?
 
                                     `<div>
-                                    <a href="#" class="btn mt-3"
+                                    <a href="" class="btn mt-3"
                                     style="background-color: rgb(255, 43, 43); color: white;">SOLD OUT</a>
                                     </div>`
                                     :
                                     `<div>
-                                    <a onclick="addToCart("${productFilter._id}")" class="btn mt-3"
+                                    <a onclick="addToCart("${productFilter._id}")" class="btn mt-3 w-100"
                                     style="background-color: #F46F36; color: white;">ADD TO CART</a>
                                     </div>`
                                 }
 
                               </div>
-                          </div>
-                      </a>
-                  </div>
-                  </div>
-                  `
+                            </div>
+                            </a>
+                            </div>
+                            </div>
+                            `
                             // then the looped Array ${html} is applying 
                             document.querySelector('.product-err-msg').innerHTML = null;
                             document.querySelector('#all-products-container').innerHTML = html;

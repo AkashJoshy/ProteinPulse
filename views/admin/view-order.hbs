@@ -210,26 +210,16 @@
             </div>
             {{/each}}
         </div>
-
-        <div class="col-12 d-flex mt-5 mb-4">
-            <button class="btn btn-success mx-auto" type="submit">Update Order</button>
-        </div>
     </form>
     {{/if}}
 </div>
-
-{{!--
-<script src="/javaScript/validation.js"></script> --}}
 
 <script>
     (() => {
         "use strict";
 
-        // Fetch all the forms we want to apply custom Bootstrap validation styles to
         const forms = document.querySelectorAll(".needs-validation");
 
-
-        // Loop over them and prevent submission
         Array.from(forms).forEach((form) => {
             form.addEventListener(
                 "submit",
@@ -247,14 +237,13 @@
     })();
 
 
-    //Function to change Order Status
+
     function changeOrderStatus(event) {
         const element = event.target
         const elementValue = element.value
         console.log(elementValue)
         const orderID = element.getAttribute('data-order-id')
         console.log(orderID)
-        // PUT Request for changing order status
         $.ajax({
             url: "/admin/orders/update-status",
             method: 'PUT',
@@ -281,8 +270,6 @@
 
     document.querySelector('.order-status').addEventListener('change', changeOrderStatus)
 
-
-    // Chnage Single Product Status
 
     document.querySelectorAll('.order-product-status').forEach(product => {
         product.addEventListener('change', (e) => {

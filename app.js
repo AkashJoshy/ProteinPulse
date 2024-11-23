@@ -72,7 +72,6 @@ app.engine('hbs', engine({
     defaultLayout: 'main',
     layoutsDir: __dirname + '/views/layouts/',
     partialsDir: __dirname + '/views/partials/',
-    // Custom helper for incrementing value 
     helpers: {
         increment: value => value + 1,
         isStock: value => value <= 0,
@@ -87,13 +86,18 @@ app.engine('hbs', engine({
         isCancelled: value => value == 'Cancelled' ? true : false,
         isReturned: value => value == 'Returned' ? true : false,
         isDelivered: value => value == 'Delivered' ? true : false,
+        isFailed: value => value == 'Failed' ? true : false,
+        getLastIndex: value => {
+            console.log(`Length is ${value}`)
+            return value - 1
+        },
         isorderStatusCancelled: value => value == 'Cancelled' ? true : false,
         isorderStatusPending: value => value == 'Pending' ? true : false,
         isorderStatusProcessing: value => value == 'Processing' ? true : false,
         isorderStatusShipped: value => value == 'Shipped' ? true : false,
         isorderStatusOutForDelivery: value => value == 'Out for Delivery' ? true : false,
         isorderStatusDelivery: value => value == 'Delivered' ? true : false,
-        isorderStatusReturned: value => value == 'Returned' ? true : false,
+        isorderStatusRefunded: value => value == 'Refunded' ? true : false,
         isWalletEnough: (walletBalance, totalPrice) => walletBalance < totalPrice,
         isEmpty: length => length > 0 ? true : false,
         isCreditedOrNot: paymentType => paymentType === 'debit' ? true : false,
@@ -107,6 +111,9 @@ app.engine('hbs', engine({
         orderProgress: value => value == 'Pending' ? 15 : (value == 'Processing' ? 34 : (value == 'Shipped' ? 50 : (value == 'Out for Delivery' ? 64 : (value == 'Delivered' ? 100 : 0) ) ) ),
         paginationNumbers: (start, end) => {
             let number = []
+            // let limit = 3
+            // start = current <= 2 ? start : start - 2
+            // end = end <= limit ? start : end - 2
             for(let i = start; i <= end; i++) {
                 number.push(i)
             }
@@ -153,9 +160,21 @@ app.use('/user/dashboard', userDashboardRouter)
 app.use('/user/products', userProductsRouter)
 
 
+// Error 404 route
+app.get('/404', (req, res, next) => {
+    res.status(404).render('error/error-page', {
+        admin: false,
+        message: req.session.errMessage,
+    })
+    req.session.errMessage = false
+    return
+})
+
+
 // Error Middlewares
 app.use(notFound)
 app.use(errorHandler)
+
 
 // mongoDB connection
 createMongoConnection()

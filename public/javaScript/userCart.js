@@ -57,7 +57,12 @@ function deleteCartProduct(cartProductID, productID, productName) {
                   if(response.status) {
                     Swal.fire(`Successfully removed ${productName}`)
                     .then(() => window.location.href = response.redirected)
-                  } else {
+                } else {
+                    if(response.message) {
+                        Swal.fire(response.message)
+                        .then(() => window.location.href = response.redirected)
+                        return
+                    }
                     window.location.href = response.redirected
                   }
                 }
@@ -87,7 +92,7 @@ function manageCartProductQuantity(quantity, count, productID, cartProductID) {
                 discountPrice.innerHTML = response.discountPrice
                 totalPrice.innerHTML = response.totalPrice
                 if(couponPercentage) couponPercentage.innerHTML = response.couponDiscountPercentage
-                if(couponDiscountPrice) couponDiscountPrice.innerHTML = response.couponPrice
+                if(couponDiscountPrice) couponDiscountPrice.innerHTML = response.couponDiscountPrice
            } else {
             if(response.message) {
                 return Swal.fire(response.message)
