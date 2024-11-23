@@ -15,16 +15,21 @@ const passport = require("passport");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const moment = require("moment");
+const invoiceGenerator = require('../utils/invoiceGeneratorHelper')
+const { changePasswordOtpSent, verifyEmail } = require('../utils/userMailHelpers')
 const { createHmac } = require("crypto");
 const { CouponData } = require("../models/CouponDB");
 const { v4: uuidv4 } = require("uuid");
+const { getTopProducts, getTopCategories, getTopBrands } = require('../utils/topSellingHelper')
 let generateOrderNumber = require("../utils/generateUniqueOrderNumberHelper");
 let generateReferralCode = require("../utils/generateReferralCodeHelper");
 let generateTransactionID = require("../utils/generateUniqueTransactionIDHelper");
+let cartTotalPrice = require("../utils/cartTotalPriceHelper");
 let instance = require("../config/razorpay");
 const { off } = require("process");
 const path = require('path')
-const fs = require('fs')
+const fs = require('fs');
+const { CarouselData } = require("../models/CarouselDB");
 require("dotenv").config();
 
 // Company Info
@@ -36,8 +41,6 @@ const transporterPort = process.env.TRANSPORTER_PORT;
 // Razorpay
 const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
 
-// Port Number
-const port = process.env.PORT || 4000;
 
 // Otp Generating
 const otpGenerate = async () => {
@@ -56,46 +59,6 @@ let transporter = nodemailer.createTransport({
   },
 });
 
-// Email Verifying
-const verifyEmail = async (userID) => {
-  try {
-    console.log(`UserID: ${userID}`);
-    // Generating JWT Token
-    const token = jwt.sign({ id: userID }, process.env.SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_TIME,
-    });
-
-    // Finding User
-    const user = await UserData.findById(userID);
-
-    if (!user) {
-      throw new Error(`User not Found`);
-    }
-
-    // Now place the token into userDB
-    user.verificationToken = token;
-    user.verificationTokenExpires = Date.now() + 3600000;
-    await user.save();
-
-    const mailOptions = {
-      from: email,
-      to: user.email,
-      subject: "Verification Mail",
-      html: `<p>Hii, ${user.firstName} ${user.lastName}, please click here to 
-      <a href="http://127.0.0.1:${port}/verify-email?uniqueID=${token}"> verify </a> 
-      </p>`,
-    };
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log(`Email has been send: ${info.response}`);
-      }
-    });
-  } catch (error) {
-    console.error(`Error sending verification email:`, error);
-  }
-};
 
 // Otp Sending to Email
 const userOtpSent = async (userID, otp) => {
@@ -123,33 +86,6 @@ const userOtpSent = async (userID, otp) => {
   }
 };
 
-// change password otp send
-async function changePasswordOtpSent(userID) {
-  try {
-    const user = await UserData.findById(userID);
-
-    const mailOptions = {
-      from: email,
-      to: user.email,
-      subject: "Change Forgotten Password",
-      html: `<p>Hii, ${user.firstName} ${user.lastName}, 
-          this is a link to reset your password
-          <a href="http://127.0.0.1:${port}/reset-password?userID=${userID}"> Reset Now.
-          </a>
-          </p>`,
-    };
-
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        console.error(err);
-      } else {
-        console.log(`OTP has been Send to ${info.response}`);
-      }
-    });
-  } catch (error) {
-    console.error(error);
-  }
-}
 
 // Password Hashing
 async function passwordHashing(password) {
@@ -166,20 +102,12 @@ async function hashedPasswordComparing(password, userPassword) {
 //  User Home Page
 const homePage = asyncHandler(async (req, res, next) => {
   try {
-    const trendingProduct = await ProductData.find({
-      rating: { $gt: 4 },
-      isActive: true,
-    })
-      .limit(4)
-      .lean();
-
-    const bestSelling = await ProductData.find({
-      quantities: { $gte: 10 },
-    })
-      .limit(4)
-      .lean();
+    const topProducts = getTopProducts()
+    const topCategories = getTopCategories()
+    const topBrands = getTopBrands()
 
     const categories = await CategoryData.find({ isActive: true }).lean();
+    const carousels = await CarouselData.find({ isActive: true }).lean()
 
     if (req.user) {
       let user = await UserData.findOneAndUpdate(
@@ -190,28 +118,26 @@ const homePage = asyncHandler(async (req, res, next) => {
       req.session.user = user;
     }
 
-    let user
-    if(req.session.user) {
-      let userID = req.session.user._id
-      user = await UserData.findById({_id: userID}).lean()
-    }
-
-
     res.render("user/home-page", {
       auth: true,
       categories,
       user: req.session.user,
-      trendingProduct,
-      bestSelling,
-      user: user ? user: null
+      topProducts,
+      topCategories,
+      topBrands,
+      carousels,
+      errMessage: req.session.errMessage
     });
+    req.session.errMessage = false
+    return
   } catch (error) {
-    console.error(error);
+    const err = new Error("Oops... Something Went Wrong")
+    return next({ error: err, message: err })
   }
 });
 
 // view login page
-const Login = asyncHandler(async (req, res) => {
+const Login = asyncHandler(async (req, res, next) => {
   try {
     res.render("user/login-page", {
       loginErr: req.session.errMessage,
@@ -220,42 +146,46 @@ const Login = asyncHandler(async (req, res) => {
     req.session.errMessage = false;
     req.session.userSuccess = false;
   } catch (error) {
-    console.error(`Error loading the page: ${error}`);
+    const err = new Error("Oops... Something Went Wrong")
+    return next({ error: err, message: err })
   }
 });
 
 // login
 const doLogin = asyncHandler(async (req, res, next) => {
-  const { email, password } = req.body;
-  let user = await UserData.findOne({ email: email, isAdmin: false });
-  if (user) {
-    const matchedPassword = await bcrypt.compare(password, user.password);
-    if (matchedPassword) {
-      if (!user.isVerified) {
-        console.log(user._id);
-        await verifyEmail(user._id, user.firstName, user.lastName, user.email);
-        req.session.userSuccess =
-          "User is Not Verified, OTP has been Send To the Email";
-        return res.redirect("/login");
-      }
-      if (user.isBlocked) {
-        const error = new Error("User is Blocked");
+  try {
+    const { email, password } = req.body;
+    let user = await UserData.findOne({ email: email, isAdmin: false });
+    if (user) {
+      const matchedPassword = await bcrypt.compare(password, user.password);
+      if (matchedPassword) {
+        if (!user.isVerified) {
+          await verifyEmail(user._id);
+          req.session.userSuccess =
+            "User is Not Verified, OTP has been Send To the Email";
+          return res.redirect("/login");
+        }
+        if (user.isBlocked) {
+          const error = new Error("User is Blocked");
+          const redirectPath = "/login";
+          return next({ error, redirectPath });
+        } else {
+          req.session.user = user;
+          res.redirect("/");
+        }
+      } else {
+        const error = new Error("Credentials is Incorrect");
         const redirectPath = "/login";
         return next({ error, redirectPath });
-      } else {
-        req.session.user = user;
-        console.log(`User is Present`);
-        res.redirect("/");
       }
     } else {
-      const error = new Error("Credentials is Incorrect");
+      const error = new Error("No User is Found!");
       const redirectPath = "/login";
       return next({ error, redirectPath });
     }
-  } else {
-    const error = new Error("No User is Found!");
-    const redirectPath = "/login";
-    return next({ error, redirectPath });
+  } catch (error) {
+    const err = new Error("Oops... Something Went Wrong")
+    return next({ error: err, message: err })
   }
 });
 
@@ -278,132 +208,158 @@ const signup = asyncHandler(async (req, res, next) => {
 
 // User Sign Up
 const doSignup = asyncHandler(async (req, res, next) => {
-  let { firstName, lastName, email, password, mobileNumber, referralCode } =
-    req.body;
-  let existedUser = await UserData.findOne({ email: email });
+  try {
+    let { firstName, lastName, email, password, mobileNumber, referralCode } =
+      req.body;
+    let existedUser = await UserData.findOne({ email: email });
 
-  if (existedUser) {
-    const error = new Error("User is Already existed");
-    const redirectPath = "/signup";
-    return next({ error, redirectPath });
-  } else {
-    // console.log(`refferal code used: `+ referralCode);
-    console.log(`referralCode:` + " " + referralCode)
-    let referredUser
-    if (referralCode) {
-      referredUser = await UserData.findOne({ referralCode: referralCode })
-    }
-    // referredUser = referralCode ? await UserData.findOne({ referralCode: referralCode }) : null
-    let walletBalance = referredUser !== undefined ? 50 : 0
-    console.log(`referredUser`)
-    console.log(referredUser)
-    console.log(`Wallet Balance: ${walletBalance}`)
+    if (existedUser) {
+      const error = new Error("User is Already existed");
+      const redirectPath = "/signup";
+      return next({ error, redirectPath });
+    } else {
+      let referredUser
+      if (referralCode) {
+        referredUser = await UserData.findOne({ referralCode: referralCode })
+      }
+      // referredUser = referralCode ? await UserData.findOne({ referralCode: referralCode }) : null
+      let walletBalance = referredUser !== undefined ? 50 : 0
 
-    let referredBy
-    if (referredUser) {
-      referredBy = referredUser._id
-      console.log(`Reffered`)
-      let transactionID = await generateTransactionID(referredBy)
-      console.log(`Transaction ID: ${transactionID}`)
-      await WalletData.findOneAndUpdate(
-        { userID: referredBy },
-        {
-          $inc: { balance: 100 },
-          $push:
+      let referredBy
+      if (referredUser) {
+        referredBy = referredUser._id
+        let transactionID = await generateTransactionID(referredBy)
+        await WalletData.findOneAndUpdate(
+          { userID: referredBy },
           {
-            transactions: {
-              amount: 100,
-              transactionID,
-              transactionType: 'referral',
-              paymentType: 'Referral',
-              description: 'The Refferal amount credited',
-              status: 'Success',
+            $inc: { balance: 100 },
+            $push:
+            {
+              transactions: {
+                amount: 100,
+                transactionID,
+                transactionType: 'referral',
+                paymentType: 'Referral',
+                description: 'The Refferal amount credited',
+                status: 'Success',
+              }
             }
           }
-        }
-      )
+        )
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const codeReferral = await generateReferralCode();
+      const user = await UserData.create({
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+        mobileNumber,
+        referralCode: codeReferral,
+        referredBy: referralCode ? referredBy : "",
+      });
+
+      if (walletBalance <= 0) {
+        await WalletData.create({
+          userID: user._id,
+          balance: walletBalance,
+          transactions: [{
+            amount: walletBalance,
+            transactionType: 'referral',
+            paymentType: 'Referral',
+            description: 'The Refferal amount credited',
+            status: 'Success',
+          }]
+        })
+      } else {
+        // await WalletData.create({
+        //   userID: user._id,
+        //   balance: walletBalance,
+        //   transactions: [{
+        //     amount: walletBalance,
+        //     transactionType: 'referral',
+        //     paymentType: 'Referral',
+        //     description: 'The Refferal amount credited',
+        //     status: 'Success',
+        //   }]
+        // })
+      }
+
+      await verifyEmail(user._id);
+      req.session.loginMessage =
+        "User Registration successfully, Please verify Email";
+      return res.redirect("/signup");
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const codeReferral = await generateReferralCode();
-    console.log(`codeReferral: ${codeReferral}`);
-    const user = await UserData.create({
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword,
-      mobileNumber,
-      referralCode: codeReferral,
-      referredBy: referralCode ? referredBy : "",
-    });
-
-    if (walletBalance <= 0) {
-      await WalletData.create({
-        userID: user._id,
-        balance: walletBalance,
-        transactions: [{
-          amount: walletBalance,
-          transactionType: 'referral',
-          paymentType: 'Referral',
-          description: 'The Refferal amount credited',
-          status: 'Success',
-        }]
-      })
-    } else {
-      // await WalletData.create({
-      //   userID: user._id,
-      //   balance: walletBalance,
-      //   transactions: [{
-      //     amount: walletBalance,
-      //     transactionType: 'referral',
-      //     paymentType: 'Referral',
-      //     description: 'The Refferal amount credited',
-      //     status: 'Success',
-      //   }]
-      // })
-    }
-
-    await verifyEmail(user._id);
-    req.session.loginMessage =
-      "User Registration successfully, Please verify Email";
-    return res.redirect("/signup");
+  } catch (error) {
+    const err = new Error("Oops... Something Went Wrong")
+    return next({ error: err, message: err })
   }
 });
 
 // email verification
 const emailVerify = asyncHandler(async (req, res, next) => {
-  console.log(req.query);
-  const token = req.query.uniqueID;
-  const resend = req.query.otp;
+  try {
+    const token = req.query.uniqueID;
+    const resend = req.query.otp;
 
-  console.log(`Recieved`);
-  if (!token) {
-    return res.status(400).send(`Verification Token is Required`);
-  }
+    if (!token) {
+      return res.status(400).send(`Verification Token is Required`);
+    }
 
-  let user = await UserData.findOne({ verificationToken: token });
-
-
-  if (!user) {
-    return res.status(400).send("Invalid Verification Token.");
-  }
+    let user = await UserData.findOne({ verificationToken: token });
 
 
-  if (
-    user.verificationTokenExpires &&
-    Date.now() > user.verificationTokenExpires
-  ) {
-    return res.status(400).send("Verification Token has expired..");
-  }
+    if (!user) {
+      return res.status(400).send("Invalid Verification Token.");
+    }
 
-  if (user) {
-    const otp = await otpGenerate();
-    let expiresAt = Date.now() + 30 * 60 * 1000;
-    if (resend == 0) {
+
+    if (
+      user.verificationTokenExpires &&
+      Date.now() > user.verificationTokenExpires
+    ) {
+      return res.status(400).send("Verification Token has expired..");
+    }
+
+    if (user) {
+      const otp = await otpGenerate();
+      let expiresAt = Date.now() + 30 * 60 * 1000;
+      if (resend == 0) {
+        await OtpData.create({
+          userID: user._id,
+          otp,
+          expiresAt: Date.now() + 10 * 60 * 1000
+        });
+
+        await userOtpSent(user._id, otp, expiresAt);
+
+        res.render("user/signup-otp-page", {
+          userID: user._id,
+          errMessage: req.session.errMessage,
+          token,
+        });
+        req.session.errMessage = false;
+        return;
+      }
+
+      const userOtp = await OtpData.findOne({ userID: user._id }).sort({
+        createdAt: -1,
+      });
+      if (userOtp && Date.now() < userOtp.expiresAt) {
+        res.render("user/signup-otp-page", {
+          userID: user._id,
+          errMessage: req.session.errMessage,
+          token,
+        });
+        req.session.errMessage = false;
+        return;
+      }
+
       await OtpData.create({
         userID: user._id,
         otp,
-        expiresAt: Date.now() + 10 * 60 * 1000
+        expiresAt: Date.now() + 10 * 60 * 1000,
       });
 
       await userOtpSent(user._id, otp, expiresAt);
@@ -414,36 +370,10 @@ const emailVerify = asyncHandler(async (req, res, next) => {
         token,
       });
       req.session.errMessage = false;
-      return;
     }
-
-    const userOtp = await OtpData.findOne({ userID: user._id }).sort({
-      createdAt: -1,
-    });
-    if (userOtp && Date.now() < userOtp.expiresAt) {
-      res.render("user/signup-otp-page", {
-        userID: user._id,
-        errMessage: req.session.errMessage,
-        token,
-      });
-      req.session.errMessage = false;
-      return;
-    }
-
-    await OtpData.create({
-      userID: user._id,
-      otp,
-      expiresAt: Date.now() + 10 * 60 * 1000,
-    });
-
-    await userOtpSent(user._id, otp, expiresAt);
-
-    res.render("user/signup-otp-page", {
-      userID: user._id,
-      errMessage: req.session.errMessage,
-      token,
-    });
-    req.session.errMessage = false;
+  } catch (error) {
+    const err = new Error("Oops... Something Went Wrong")
+    return next({ error: err, message: err })
   }
 });
 
@@ -453,38 +383,41 @@ const resendOtp = asyncHandler(async (req, res, next) => {
   if (!token) {
     return res.status(400).send(`Verification Token is Required`);
   }
+  try {
+    let user = await UserData.findOne({ verificationToken: token });
 
-  let user = await UserData.findOne({ verificationToken: token });
+    if (!user) {
+      return res.status(400).send("Invalid Verification Token.");
+    }
 
-  if (!user) {
-    return res.status(400).send("Invalid Verification Token.");
+    if (
+      user.verificationTokenExpires &&
+      Date.now() > user.verificationTokenExpires
+    ) {
+      return res.status(400).send("Token has expired..., try getting new verification link ");
+    }
+
+    const otp = await otpGenerate();
+
+    await OtpData.create({
+      userID: user._id,
+      otp,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+    });
+
+    await userOtpSent(user._id, otp);
+
+    return res.json({ status: true, message: "otp resend successfully" })
+  } catch (error) {
+    console.error(error)
   }
 
-  if (
-    user.verificationTokenExpires &&
-    Date.now() > user.verificationTokenExpires
-  ) {
-    return res.status(400).send("Token has expired..., try getting new verification link ");
-  }
-
-  const otp = await otpGenerate();
-
-  await OtpData.create({
-    userID: user._id,
-    otp,
-    expiresAt: Date.now() + 10 * 60 * 1000,
-  });
-
-  await userOtpSent(user._id, otp);
-
-  return res.json({ status: true, message: "otp resend successfully" })
 })
 
 const otpVerify = asyncHandler(async (req, res, next) => {
 
   const token = req.body.uniqueID;
   let userOtp = req.body.userOtp;
-  console.log(`Token: ${token}`);
   const user = await UserData.findOne({ verificationToken: token });
 
   if (!user) {
@@ -494,7 +427,6 @@ const otpVerify = asyncHandler(async (req, res, next) => {
   let generatedOtp = await OtpData.findOne({ userID: user._id }).sort({
     createdAt: -1,
   });
-  console.log(`Generated OTP`);
 
   if (generatedOtp.otp == userOtp) {
     await UserData.findByIdAndUpdate(
@@ -508,7 +440,6 @@ const otpVerify = asyncHandler(async (req, res, next) => {
       }
     );
     await OtpData.deleteMany({ userID: user._id });
-    console.log(`User Created Successfully with verified Email`);
 
     return res.json({ status: true, redirected: '/login', message: 'OTP validated' })
   } else {
@@ -526,56 +457,64 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
 });
 
 const checkEmailForPassword = asyncHandler(async (req, res, next) => {
-  let { email } = req.body;
-  email = email.trim();
-  let user = await UserData.findOne({ email: email });
+  try {
+    let { email } = req.body;
+    email = email.trim();
+    let user = await UserData.findOne({ email: email });
 
-  if (!user) {
-    const error = new Error("No User Found! Try another Email");
-    const redirectPath = "/forgot-password";
-    return next({ error, redirectPath });
+    if (!user) {
+      const error = new Error("No User Found! Try another Email");
+      const redirectPath = "/forgot-password";
+      return next({ error, redirectPath });
+    }
+
+    if (user.isBlocked) {
+      const error = new Error("User is Blocked");
+      const redirectPath = "/forgot-password";
+      return next({ error, redirectPath });
+    }
+
+    if (!user.isVerified) {
+      const error = new Error(
+        "Email is not verified yet! Please Verify it First"
+      );
+      const redirectPath = "/forgot-password";
+      return next({ error, redirectPath });
+    }
+
+    await changePasswordOtpSent(user._id)
+    req.session.userSuccess = "Password reset link is sent to your Email";
+    res.redirect("/login");
+  } catch (error) {
+    const err = new Error("Oops... Something Went Wrong")
+    return next({ error: err, message: err })
   }
-
-  if (user.isBlocked) {
-    const error = new Error("User is Blocked");
-    const redirectPath = "/forgot-password";
-    return next({ error, redirectPath });
-  }
-
-  if (!user.isVerified) {
-    const error = new Error(
-      "Email is not verified yet! Please Verify it First"
-    );
-    const redirectPath = "/forgot-password";
-    return next({ error, redirectPath });
-  }
-
-  changePasswordOtpSent(user._id);
-  req.session.userSuccess = "Password reset link is sent to your Email";
-  res.redirect("/login");
 });
 
 const resetPassword = asyncHandler(async (req, res, next) => {
   const userID = req.query.userID;
   let user = await UserData.findById({ _id: userID }).lean();
-  console.log(user);
   res.render("user/reset-password", { user });
 });
 
 // forgot password (saving new password)
 const recoveredPassword = asyncHandler(async (req, res, next) => {
-  const { newPassword, confirmPassword, userID } = req.body;
-  console.log(req.body);
-  if (newPassword == confirmPassword) {
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await UserData.findByIdAndUpdate(
-      { _id: userID },
-      { $set: { password: hashedPassword } }
-    );
-    return res.redirect("/login");
-  } else {
-    req.session.passwordErr = "Password Doesn't Match";
-    return res.redirect("/reset-password");
+  try {
+    const { newPassword, confirmPassword, userID } = req.body;
+    if (newPassword == confirmPassword) {
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await UserData.findByIdAndUpdate(
+        { _id: userID },
+        { $set: { password: hashedPassword } }
+      );
+      return res.redirect("/login");
+    } else {
+      req.session.passwordErr = "Password Doesn't Match";
+      return res.redirect("/reset-password");
+    }
+  } catch (error) {
+    const err = new Error("Oops... Something Went Wrong")
+    return next({ error: err, message: err })
   }
 });
 
@@ -611,8 +550,7 @@ const cancelOrder = asyncHandler(async (req, res, next) => {
 
     if (order.paymentStatus === 'Paid') {
       ordertotal = order.totalPrice
-      console.log(`totalPrice`)
-      console.log(ordertotal)
+
       let transactionID = await generateTransactionID(userID)
       await WalletData.findOneAndUpdate({ userID }, {
         $push: {
@@ -634,6 +572,7 @@ const cancelOrder = asyncHandler(async (req, res, next) => {
       let quantity = Number(prod.quantity);
       await ProductData.findByIdAndUpdate(prod.productID, {
         $inc: { quantities: quantity },
+        $inc: { totalSales: -quantity }
       });
     }
 
@@ -647,7 +586,11 @@ const cancelOrder = asyncHandler(async (req, res, next) => {
 
     return res.json({ status: true, message: "Your order has been Cancelled", redirected: '/user/dashboard/orders' });
   } catch (error) {
-    console.error(error);
+    return res.json({
+      message: "Oops Something went wrong",
+      status: false,
+      redirected: "/404",
+    });
   }
 });
 
@@ -657,254 +600,303 @@ const cancelProduct = asyncHandler(async (req, res, next) => {
   if (!req.session.user) {
     return res.json({ status: false, redirected: "/login" });
   }
+  try {
 
-  let totalPrice = 0;
-  let originalPrice = 0;
-  let deliveryFee = 0;
-  const userID = req.session.user._id
-  const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
-  const { orderID, productID } = req.body;
+    let totalPrice = 0;
+    let originalPrice = 0;
+    let deliveryFee = 0;
+    const userID = req.session.user._id
+    const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+    const { orderID, productID } = req.body;
 
-  if (!user) {
-    req.session.user = null;
-    return res.json({ status: false, redirected: "/login" });
-  }
+    if (!user) {
+      req.session.user = null;
+      return res.json({ status: false, redirected: "/login" });
+    }
 
-  let isOrderCancelled = false;
-  let order = await OrderData.findById({ _id: orderID });
+    let isOrderCancelled = false;
+    let order = await OrderData.findById({ _id: orderID }).lean()
 
-  if (!order) {
-    return res.json({ status: false, message: `No order found` });
-  }
-
-
-  let orderProduct = await Promise.all(
-    order.products.filter((prod) => {
-      if (prod.productID.toString() === productID) {
-        return prod;
-      }
-    })
-  );
+    if (!order) {
+      return res.json({ status: false, message: `No order found` });
+    }
 
 
-  if (!orderProduct) {
-    return res.json({ status: false, message: `No product found!..` });
-  }
-
-  let updatedOrder = await OrderData.findOneAndUpdate(
-    { _id: orderID, "products.productID": productID },
-    { $set: { "products.$.status": "Cancelled", deliveryFee: deliveryFee } },
-    { new: true }
-  );
-
-  if (!updatedOrder) {
-    return res.json({ status: false, message: `No product found!..` });
-  }
-
-  let walletAmount
-  if (updatedOrder.paymentMethod == 'Razorpay' || updatedOrder.paymentMethod == 'myWallet') {
-
-    let productStock = updatedOrder.products.reduce((acc, product) => {
-      acc += product.quantity
-      return acc
-    }, 0)
-
-    walletAmount = productStock <= 3 ? updatedOrder.totalSalePrice / 2 : updatedOrder.totalSalePrice
-    console.log(walletAmount)
-
-    let paymentType = updatedOrder.paymentMethod
-    const transactionID = await generateTransactionID(userID)
-    // walletAmount = updatedOrder.totalSalePrice
-    walletAmount = Number(walletAmount)
-    const wallet = await WalletData.findOneAndUpdate(
-      { userID: userID },
-      {
-        $inc: { balance: walletAmount },
-        $push:
-        {
-          transactions:
-          {
-            transactionID,
-            amount: walletAmount,
-            transactionType: 'credit',
-            paymentType: paymentType,
-            description: "The amount has been credited for the product cancellation.",
-            status: "Success"
-          }
+    let orderProduct = await Promise.all(
+      order.products.filter((prod) => {
+        if (prod.productID.toString() === productID) {
+          return prod;
         }
-      }
-    )
-  }
+      })
+    );
 
-  let cancelledProduct = updatedOrder.products.filter(
-    (prod) => prod.productID.toString() === productID
-  );
-  let productStatus = cancelledProduct[0].status;
 
-  let isOrderCancel = updatedOrder.products.every(
-    (prod) => prod.status === "Cancelled"
-  );
+    if (!orderProduct) {
+      return res.json({ status: false, message: `No product found!..` });
+    }
 
-  if (isOrderCancel) {
-    order = await OrderData.findByIdAndUpdate(
-      { _id: orderID },
-      {
-        $set: { status: "Cancelled" },
-        $push: {
-          orderActivity: {
-            orderStatus: "Cancelled",
-            message: "Your order has been cancelled",
-          },
-        },
-      },
+    let updatedOrder = await OrderData.findOneAndUpdate(
+      { _id: orderID, "products.productID": productID },
+      { $set: { "products.$.status": "Cancelled", deliveryFee: deliveryFee } },
       { new: true }
     );
 
-    isOrderCancelled = true;
+    if (!updatedOrder) {
+      return res.json({ status: false, message: `No product found!..` });
+    }
+
+    let walletAmount
+    if (updatedOrder.paymentMethod == 'Razorpay' || updatedOrder.paymentMethod == 'myWallet') {
+
+      let productStock = updatedOrder.products.reduce((acc, product) => {
+        acc += product.quantity
+        return acc
+      }, 0)
+
+      walletAmount = productStock <= 3 ? updatedOrder.totalSalePrice / 2 : updatedOrder.totalSalePrice
+
+      let paymentType = updatedOrder.paymentMethod
+      const transactionID = await generateTransactionID(userID)
+      // walletAmount = updatedOrder.totalSalePrice
+      walletAmount = Number(walletAmount)
+      const wallet = await WalletData.findOneAndUpdate(
+        { userID: userID },
+        {
+          $inc: { balance: walletAmount },
+          $push:
+          {
+            transactions:
+            {
+              transactionID,
+              amount: walletAmount,
+              transactionType: 'credit',
+              paymentType: paymentType,
+              description: "The amount has been credited for the product cancellation.",
+              status: "Success"
+            }
+          }
+        }
+      )
+    }
+
+    let cancelledProduct = updatedOrder.products.filter(
+      (prod) => prod.productID.toString() === productID
+    );
+    let productStatus = cancelledProduct[0].status;
+
+    let isOrderCancel = updatedOrder.products.every(
+      (prod) => prod.status === "Cancelled"
+    );
+
+    if (isOrderCancel) {
+      order = await OrderData.findByIdAndUpdate(
+        { _id: orderID },
+        {
+          $set: { status: "Cancelled" },
+          $push: {
+            orderActivity: {
+              orderStatus: "Cancelled",
+              message: "Your order has been cancelled",
+            },
+          },
+        },
+        { new: true }
+      );
+
+      isOrderCancelled = true;
+    }
+
+    const orderTotal = await OrderData.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(orderID),
+          userID: new mongoose.Types.ObjectId(userID),
+        },
+      },
+      {
+        $unwind: "$products",
+      },
+      {
+        $match: {
+          "products.status": { $ne: "Cancelled" },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          originalPrice: {
+            $sum: { $multiply: ["$products.quantity", "$products.price"] },
+          },
+          totalPrice: {
+            $sum: { $multiply: ["$products.quantity", "$products.salePrice"] },
+          },
+          deliveryFee: { $first: "$deliveryFee" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          originalPrice: 1,
+          totalPrice: 1,
+          deliveryFee: 1,
+        },
+      },
+    ]);
+
+    originalPrice = (orderTotal[0] && orderTotal[0].originalPrice) || 0;
+    totalPrice = (orderTotal[0] && orderTotal[0].totalPrice) || 0;
+    deliveryFee = (orderTotal[0] && orderTotal[0].deliveryFee) || 0;
+
+
+    deliveryFee = originalPrice >= 4500 ? 100 : 0;
+    totalPrice += deliveryFee;
+
+    // Coupon Checking after Cancellation (Checking whether the coupon can be used after Deduction)
+    let isValidCoupon;
+    let couponPrice = 0;
+    let coupons = await Promise.all(
+      order.coupons.map(async (coupon) => {
+        isValidCoupon = await CouponData.findOne({ code: coupon.code });
+        //  if() Coupon Expiry
+
+        // cheking the coupon is valid to use
+        if (isValidCoupon) {
+          return originalPrice >= isValidCoupon.minOrderValue
+            ? isValidCoupon
+            : null;
+        } else {
+          return null;
+        }
+      })
+    );
+
+    coupons = coupons.filter((coupon) => coupon !== null);
+
+    couponPrice = !coupons
+      ? 0
+      : coupons.reduce((acc, coupon) => {
+        couponDiscount =
+          originalPrice >= coupon.maxDiscount
+            ? coupon.maxDiscount
+            : originalPrice * (1 - discountPercentage / 100);
+        return acc + couponDiscount;
+      }, 0);
+
+    totalPrice -= couponPrice;
+
+    let productQuantity = orderProduct[0].quantity;
+
+    await ProductData.findByIdAndUpdate({ _id: productID },
+      {
+        $inc: { quantities: productQuantity },
+        $inc: { totalSales: -productQuantity }
+      }
+    )
+
+    await OrderData.findByIdAndUpdate(
+      { _id: orderID },
+      { $set: { totalPrice: totalPrice } }
+    );
+
+    return res.json({
+      status: true,
+      productStatus,
+      totalPrice,
+      order,
+      orderActivity: order.orderActivity,
+      isOrderCancelled,
+    });
+  } catch (error) {
+    return res.json({
+      message: "Oops Something went wrong",
+      status: false,
+      redirected: "/404",
+    });
   }
 
-  const orderTotal = await OrderData.aggregate([
-    {
-      $match: {
-        _id: new mongoose.Types.ObjectId(orderID),
-        userID: new mongoose.Types.ObjectId(userID),
-      },
-    },
-    {
-      $unwind: "$products",
-    },
-    {
-      $match: {
-        "products.status": { $ne: "Cancelled" },
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        originalPrice: {
-          $sum: { $multiply: ["$products.quantity", "$products.price"] },
-        },
-        totalPrice: {
-          $sum: { $multiply: ["$products.quantity", "$products.salePrice"] },
-        },
-        deliveryFee: { $first: "$deliveryFee" },
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        originalPrice: 1,
-        totalPrice: 1,
-        deliveryFee: 1,
-      },
-    },
-  ]);
-
-  console.log(`orderTotal`);
-  console.log(orderTotal);
-  originalPrice = (orderTotal[0] && orderTotal[0].originalPrice) || 0;
-  totalPrice = (orderTotal[0] && orderTotal[0].totalPrice) || 0;
-  deliveryFee = (orderTotal[0] && orderTotal[0].deliveryFee) || 0;
-
-
-  deliveryFee = originalPrice >= 4500 ? 100 : 0;
-  totalPrice += deliveryFee;
-
-  // Coupon Checking after Cancellation (Checking whether the coupon can be used after Deduction)
-  let isValidCoupon;
-  let couponPrice = 0;
-  let coupons = await Promise.all(
-    order.coupons.map(async (coupon) => {
-      isValidCoupon = await CouponData.findOne({ code: coupon.code });
-      //  if() Coupon Expiry
-
-      // cheking the coupon is valid to use
-      if (isValidCoupon) {
-        return originalPrice >= isValidCoupon.minOrderValue
-          ? isValidCoupon
-          : null;
-      } else {
-        return null;
-      }
-    })
-  );
-
-  coupons = coupons.filter((coupon) => coupon !== null);
-
-  console.log(coupons);
-
-  couponPrice = !coupons
-    ? 0
-    : coupons.reduce((acc, coupon) => {
-      couponDiscount =
-        originalPrice >= coupon.maxDiscount
-          ? coupon.maxDiscount
-          : originalPrice * (1 - discountPercentage / 100);
-      return acc + couponDiscount;
-    }, 0);
-
-  totalPrice -= couponPrice;
-
-  console.log(couponPrice);
-  console.log(totalPrice);
-
-  let productQuantity = orderProduct[0].quantity;
-
-  await ProductData.findByIdAndUpdate({ _id: productID },
-    { $inc: { quantities: productQuantity } }
-  )
-
-  await OrderData.findByIdAndUpdate(
-    { _id: orderID },
-    { $set: { totalPrice: totalPrice } }
-  );
-
-  return res.json({
-    status: true,
-    productStatus,
-    totalPrice,
-    orderActivity: order.orderActivity,
-    isOrderCancelled,
-  });
 });
+
+const retryPayment = asyncHandler(async (req, res) => {
+  if (!req.session.user) {
+    return res.json({ status: false, redirected: "/login" });
+  }
+
+  try {
+    const userID = req.session.user._id
+    const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+
+    if (!user) {
+      req.session.user = null;
+      return res.json({ status: false, redirected: "/login" });
+    }
+
+    const orderID = req.body.orderID
+    const order = await OrderData.findById(orderID)
+    let orderNumber = order.orderNumber
+
+    if (!order) {
+      return res.json({ status: false, message: `No order found`, redirected: '/user/dashboard/orders' });
+    }
+
+    let totalPrice = order.totalPrice
+    totalPrice = Number(totalPrice)
+
+    var options = {
+      amount: totalPrice * 100,
+      currency: "INR",
+      receipt: orderNumber,
+    };
+    let razorpayOrder = await instance.orders.create(options);
+
+    return res.json({ status: true, user, order: razorpayOrder, RAZORPAY_KEY_ID })
+  } catch (error) {
+    console.log(error)
+    return res.json({
+      message: "Oops Something went wrong",
+      status: false,
+      redirected: "/404",
+    });
+  }
+
+})
 
 // view categories
 const categories = asyncHandler(async (req, res, next) => {
+  try {
+    const userID = req.session.user._id
+    const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
 
-  const userID = req.session.user._id
-  const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
-  
-  if (!user) {
-    req.session.user = null;
-    const err = new Error("User not Found")
-    const redirectPath = "/login";
-    return next({ error: err, redirectPath });
+    if (!user) {
+      req.session.user = null;
+      const err = new Error("User not Found")
+      const redirectPath = "/login";
+      return next({ error: err, redirectPath });
+    }
+    const categoryName = req.params.categoryName;
+    const category = await CategoryData.findOne({ name: categoryName })
+
+    if (!category) {
+      return res.redirect('/')
+    }
+
+    const products = await ProductData.find({ quantities: { $gt: 0 }, categoryName }).lean();
+
+    res.render("user/categories-page", {
+      auth: true,
+      categoryName,
+      products,
+      user: req.session.user,
+    });
+  } catch (error) {
+    const err = new Error("Oops... Something Went Wrong")
+    return next({ error: err, message: err })
   }
-  const categoryName = req.params.categoryName;
-  const category = await CategoryData.findOne({ name: categoryName })
-
-  if (!category) {
-    return res.redirect('/')
-  }
-
-  const products = await ProductData.find({ quantities: { $gt: 0 }, categoryName }).lean();
-
-  res.render("user/categories-page", {
-    auth: true,
-    categoryName,
-    products,
-    user: req.session.user,
-  });
 });
 
 
 // Order Checkout
 const orderPreCheckout = asyncHandler(async (req, res, next) => {
   try {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
     const userID = req.session.user._id
     const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
 
@@ -916,12 +908,14 @@ const orderPreCheckout = asyncHandler(async (req, res, next) => {
     }
 
     const cartID = req.body.cartID;
-    let originalPrice = 0;
-    let totalPrice = 0;
-    let totalSalePrice = 0;
-    let totalDiscountPrice = 0;
     const address = await AddressData.findOne({ userID }).lean();
     const cart = await CartData.findOne({ _id: cartID, userID }).lean();
+
+    if (!cart) {
+      const error = new Error("No cart found!");
+      const redirectPath = "/cart";
+      return next({ error, redirectPath });
+    }
 
     if (cart.products.length <= 0) {
       const error = new Error("Cart is Empty");
@@ -953,81 +947,20 @@ const orderPreCheckout = asyncHandler(async (req, res, next) => {
       }
     }
 
-    let coupons = await Promise.all(
-      user.appliedCoupons.map(async (coupon) => {
-        if (coupon.cartID.toString() === cart._id.toString()) {
-          let appliedCoupons = await CouponData.findById({
-            _id: coupon.couponID,
-          }).lean();
-          return { appliedCoupons, coupon };
-        } else {
-          return null;
-        }
-      })
-    );
-
-    coupons = coupons.filter((coupon) => coupon !== null);
-
-    let cartTotal = await CartData.aggregate([
-      {
-        $match: {
-          _id: new mongoose.Types.ObjectId(cartID),
-          userID: new mongoose.Types.ObjectId(userID),
-        },
-      },
-      {
-        $unwind: "$products",
-      },
-      {
-        $group: {
-          _id: null,
-          originalPrice: {
-            $sum: { $multiply: ["$products.quantity", "$products.price"] },
-          },
-          totalSalePrice: {
-            $sum: { $multiply: ["$products.quantity", "$products.salePrice"] },
-          },
-          totalDiscountPrice: {
-            $sum: { $subtract: ["$products.price", "$products.salePrice"] },
-          },
-        },
-      },
-    ]);
-
-    originalPrice = cartTotal[0].originalPrice;
-    totalSalePrice = cartTotal[0].totalSalePrice;
-    totalDiscountPrice = cartTotal[0].totalDiscountPrice;
-
-    let taxPrice = 0;
-    let couponDiscountPercentage = 0;
-    let deliveryCharge = 0;
-    let discountPrice = originalPrice - totalSalePrice;
-    console.log(`Saved price: ${discountPrice}`);
-    let discountPercentage = (discountPrice / originalPrice) * 100;
-    discountPercentage = Math.trunc(discountPercentage);
-
-    let discountAmount = 0;
-    let couponPrice = !coupons
-      ? 0
-      : coupons.reduce((acc, currentValue) => {
-        discountAmount =
-          originalPrice >= currentValue.appliedCoupons.maxDiscount
-            ? currentValue.appliedCoupons.maxDiscount
-            : originalPrice * (1 - discountPercentage / 100);
-        return acc + discountAmount;
-      }, 0);
-    totalSalePrice -= couponPrice;
-    couponDiscountPercentage = Math.trunc((couponPrice / originalPrice) * 100);
+    let {
+      discountPercentage,
+      totalSalePrice,
+      originalPrice,
+      discountPrice,
+      deliveryCharge,
+      totalPrice,
+      coupons,
+      couponDiscountPrice,
+      couponDiscountPercentage,
+    } = await cartTotalPrice(userID)
 
 
-    deliveryCharge = originalPrice >= 4500 ? 100 : 0;
-    totalPrice = totalSalePrice + deliveryCharge;
-
-
-    let taxAmount = totalPrice - totalDiscountPrice;
-
-    let taxRate = (taxAmount / totalDiscountPrice) * 100;
-    console.log(taxAmount, taxRate, totalPrice);
+    // Tax calculation
 
 
     const wallet = await WalletData.findOne({ userID: userID }).lean()
@@ -1044,20 +977,19 @@ const orderPreCheckout = asyncHandler(async (req, res, next) => {
         user: req.session.user,
         discountPercentage,
         totalSalePrice,
-        discountPrice: discountPrice > 0 ? -discountPrice : 0,
+        discountPrice,
         totalPrice,
         coupons,
         couponDiscountPercentage,
-        couponPrice: couponPrice > 0 ? -couponPrice : 0,
+        couponDiscountPrice,
         originalPrice,
         deliveryCharge,
-        taxPrice,
+        // taxPrice,
         wallet,
         cart,
         user,
       });
     }
-
 
     res.render("user/view-checkout", {
       auth: true,
@@ -1065,14 +997,14 @@ const orderPreCheckout = asyncHandler(async (req, res, next) => {
       user: req.session.user,
       discountPercentage,
       totalSalePrice,
-      discountPrice: discountPrice > 0 ? -discountPrice : 0,
+      discountPrice,
       totalPrice,
       coupons,
       couponDiscountPercentage,
-      couponPrice: couponPrice > 0 ? -couponPrice : 0,
+      couponDiscountPrice,
       deliveryCharge,
       originalPrice,
-      taxPrice,
+      // taxPrice,
       wallet,
       cart,
       user,
@@ -1084,7 +1016,8 @@ const orderPreCheckout = asyncHandler(async (req, res, next) => {
     req.session.errMessage = false;
     return
   } catch (error) {
-    console.error(error);
+    const err = new Error("Oops... Something Went Wrong")
+    return next({ error: err, message: err })
   }
 });
 
@@ -1107,9 +1040,52 @@ const orderCheckout = asyncHandler(async (req, res, next) => {
 
     return res.render("user/post-checkout-page", {});
   } catch (error) {
-    console.error(error);
+    const err = new Error("Oops... Something Went Wrong")
+    return next({ error: err, message: err })
   }
 });
+
+
+// Download invoice
+const downloadInvoice = asyncHandler(async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.json({ status: false, redirected: "/login" });
+    }
+
+    const orderID = req.query.orderID
+    const userID = req.session.user._id
+    const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+    const order = await OrderData.findById(orderID).lean();
+    const totalProducts = await ProductData.find().lean()
+
+    if (!user) {
+      req.session.user = null;
+      return res.json({ status: false, redirected: '/login' })
+    }
+
+    if(!order) {
+      return res.json({
+        message: "No order found!",
+        status: false,
+        redirected: "/user/dashboard/orders",
+      })
+    }
+
+    let fileName = invoiceGenerator(order)
+    return res.json({
+      status: true,
+      fileName
+    })
+    
+  } catch (error) {
+    return res.json({
+      message: "Oops Something went wrong",
+      status: false,
+      redirected: "/404",
+    })
+  }
+})
 
 // Order placing
 const placeOrder = asyncHandler(async (req, res, next) => {
@@ -1117,7 +1093,7 @@ const placeOrder = asyncHandler(async (req, res, next) => {
     if (!req.session.user) {
       return res.json({ status: false, redirected: "/login" });
     }
-    // console.log(req.body)
+
     const userID = req.session.user._id
     const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
     const totalProducts = await ProductData.find().lean()
@@ -1148,116 +1124,48 @@ const placeOrder = asyncHandler(async (req, res, next) => {
       cartID,
     } = req.body;
 
-    if(shippingAddressID) {
+    if (shippingAddressID) {
       let isAddress = await AddressData.findOne({ 'shippingAddress._id': shippingAddressID })
-      if(!isAddress) {
+      if (!isAddress) {
         return res.json({ status: false, message: "Select any other address" })
       }
     }
 
     let customer = user.firstName + " " + user.lastName;
     orderNotes = orderNotes == "" ? "Nill" : orderNotes;
-    // converting to Numbers(zipcode and mobileNumber)
     zipcode = Number(zipcode);
     mobileNumber = Number(mobileNumber);
 
-    let originalPrice = 0;
-    let totalSalePrice = 0;
-    let totalPrice = 0;
-
-
-    // Cart Total
-    const cartTotal = await CartData.aggregate([
-      {
-        $match: {
-          _id: new mongoose.Types.ObjectId(cartID),
-          userID: new mongoose.Types.ObjectId(userID),
-        },
-      },
-      {
-        $unwind: "$products",
-      },
-      {
-        $group: {
-          _id: null,
-          originalPrice: {
-            $sum: { $multiply: ["$products.quantity", "$products.price"] },
-          },
-          totalSalePrice: {
-            $sum: { $multiply: ["$products.quantity", "$products.salePrice"] },
-          },
-        },
-      },
-    ]);
-
-    originalPrice = cartTotal[0].originalPrice;
-    totalSalePrice = cartTotal[0].totalSalePrice;
-
-    let tax = 0;
-    let deliveryFee;
-    let discountPrice = originalPrice - totalSalePrice;
-    let discountPercentage = (discountPrice / originalPrice) * 100;
-    discountPercentage = Math.trunc(discountPercentage);
+    let {
+      totalSalePrice,
+      originalPrice,
+      discountPrice,
+      deliveryCharge,
+      totalPrice,
+      coupons,
+    } = await cartTotalPrice(userID)
 
     // Cart Products
-    const cart = await CartData.findById({ _id: cartID });
-    if(!cart) {
+    const cart = await CartData.findById(cartID).lean()
+    if (!cart) {
       return res.json({ status: false, message: "Cart is missing" })
+    }
+
+    for (const product of cart.products) {
+      const prod = await ProductData.findById(product.productID)
+      if (!prod) {
+        return res.json({ status: false, message: "Product not found!" })
+      }
+    }
+
+    // COD > 1000 ? okk : restrict
+    if (paymentMethod == 'COD' && totalSalePrice >= 1000) {
+      return res.json({ status: false, message: "COD is available only for orders below ₹1000. Please choose another payment method" })
     }
 
     let products = cart.products.map((product) => {
       return { ...product, status: "Pending" };
     });
-
-    // Checking if the user has applied any Coupons
-    let coupons = await Promise.all(
-      user.appliedCoupons.map(async (coupon) => {
-        if (coupon.cartID.toString() === cart._id.toString()) {
-          const existingCoupon = await CouponData.findById({
-            _id: coupon.couponID,
-          }).lean();
-          return { coupon, existingCoupon };
-        } else {
-          return null;
-        }
-      })
-    );
-
-    coupons = coupons.filter((coupon) => coupon !== null);
-
-    let appliedCoupons = coupons.map((coupon) => {
-      let deductedPrice =
-        originalPrice >= coupon.existingCoupon.maxDiscount
-          ? coupon.existingCoupon.maxDiscount
-          : originalPrice * (1 - discountPercentage / 100);
-      return { code: coupon.existingCoupon.code, deductedPrice };
-    });
-
-
-    let couponPrice = !coupons
-      ? 0
-      : coupons.reduce((acc, coupon) => {
-        couponDiscount =
-          originalPrice >= coupon.existingCoupon.maxDiscount
-            ? coupon.existingCoupon.maxDiscount
-            : originalPrice * (1 - discountPercentage / 100);
-        return acc + couponDiscount;
-      }, 0);
-
-    totalPrice = totalSalePrice;
-    totalPrice -= couponPrice;
-
-    let couponDiscountPercentage = Math.trunc(
-      (couponPrice / originalPrice) * 100
-    );
-
-    // Tax Calculating
-    //  tax = orginalPrice >= 15000 ? 300 : 150;
-
-    deliveryFee = originalPrice >= 4500 ? 100 : 0;
-
-    totalPrice += deliveryFee;
-    console.log(totalPrice);
 
     if (paymentMethod == 'myWallet') {
       const wallet = await WalletData.findOne({ userID: userID })
@@ -1292,9 +1200,9 @@ const placeOrder = asyncHandler(async (req, res, next) => {
           $project: { shippingAddress: 1, userID: 1 },
         },
       ]);
-      console.log(`Shipping order Address`);
+
       orderAddress = addressData[0].shippingAddress;
-      console.log(orderAddress);
+
     } else if (!userAddress) {
       orderAddress = {
         firstName,
@@ -1319,36 +1227,46 @@ const placeOrder = asyncHandler(async (req, res, next) => {
     }
 
     let paymentStatus = paymentMethod === "COD" ? "Unpaid" : (paymentMethod == 'Razorpay' ? "Pending" : "Paid")
+    let orderActivity = paymentMethod === 'Razorpay'
+      ? {
+        orderStatus: "Failed",
+        message: "Your order is in Pending state."
+      }
+      : {
+        orderStatus: "Pending",
+        message: "Your order has been confirmed.",
+      }
 
-    // Order Expected date
     const deliveryDay = 7;
     let currentDate = new Date();
     let expectedDate = moment(currentDate).add(deliveryDay, "days").toDate();
 
     let existingOrder = await OrderData.findOne({ cartID });
-
+    let newOrder
     if (existingOrder) {
-      await OrderData.findByIdAndUpdate(
+      newOrder = await OrderData.findByIdAndUpdate(
         { _id: existingOrder._id },
         {
           $set: {
-            orderNumber: orderNumber,
+            // orderNumber: orderNumber,
             address: orderAddress,
+            originalPrice,
             totalPrice,
             totalSalePrice,
-            deliveryFee,
+            deliveryCharge,
             discountPrice,
             paymentStatus,
             paymentMethod,
             orderNote: orderNotes,
-            coupons: appliedCoupons,
+            coupons,
             products,
             expectedDate
           },
-        }
+        },
+        { new: true }
       );
     } else {
-      const newOrder = await OrderData.create({
+      newOrder = await OrderData.create({
         orderNumber,
         userID,
         cartID,
@@ -1356,21 +1274,19 @@ const placeOrder = asyncHandler(async (req, res, next) => {
         address: orderAddress,
         paymentStatus,
         paymentMethod,
+        originalPrice,
         totalPrice,
         totalSalePrice,
         orderNote: orderNotes,
-        deliveryFee,
+        deliveryCharge,
         discountPrice,
         orderActivity: [
-          {
-            orderStatus: "Pending",
-            message: "Your order has been confirmed.",
-          },
+          orderActivity
         ],
-        coupons: appliedCoupons,
+        coupons,
         products,
         expectedDate,
-      });
+      })
     }
 
     if (paymentMethod == "Razorpay") {
@@ -1381,7 +1297,6 @@ const placeOrder = asyncHandler(async (req, res, next) => {
         receipt: orderNumber,
       };
       let razorpayOrder = await instance.orders.create(options);
-      // console.log(razorpayOrder);
 
       return res.json({
         status: true,
@@ -1417,7 +1332,7 @@ const placeOrder = asyncHandler(async (req, res, next) => {
     }
 
     const couponsID = await Promise.all(
-      appliedCoupons.map(async (coupn) => {
+      coupons.map(async (coupn) => {
         return await CouponData.findOne({ code: coupn.code })
       })
     )
@@ -1453,7 +1368,8 @@ const placeOrder = asyncHandler(async (req, res, next) => {
       let quantity = -Number(prod.quantity);
       await ProductData.findByIdAndUpdate(prod.productID, {
         $inc: { quantities: quantity },
-      });
+        $inc: { totalSales: 1 }
+      },);
     }
 
     await CartData.findByIdAndDelete({ _id: cartID });
@@ -1464,7 +1380,12 @@ const placeOrder = asyncHandler(async (req, res, next) => {
       redirected: "/order-checkout",
     });
   } catch (error) {
-    console.error(error);
+    console.log(error)
+    return res.json({
+      message: "Oops Something went wrong",
+      status: false,
+      redirected: "/404",
+    });
   }
 });
 
@@ -1522,7 +1443,6 @@ const placeOrderRazorpay = asyncHandler(async (req, res, next) => {
     });
     // razorpayInstance.status = 'pending'
 
-    console.log(razorpayInstance);
     const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
 
     return res.json({ status: true, order: razorpayInstance, RAZORPAY_KEY_ID });
@@ -1534,77 +1454,88 @@ const verifyPaymentRazorpay = asyncHandler(async (req, res, next) => {
   if (!req.session.user) {
     return res.json({ status: false, redirected: "/login" });
   }
+  try {
+    const userID = req.session.user._id
+    const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
 
-  const userID = req.session.user._id
-  const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+    if (!user) {
+      req.session.user = null;
+      return res.json({ status: false, redirected: "/login" });
+    }
 
-  if (!user) {
-    req.session.user = null;
-    const err = new Error("User not Found")
-    const redirectPath = "/login";
-    return next({ error: err, redirectPath });
-  }
+    const { razorpay, order } = req.body;
 
-  const { razorpay, order } = req.body;
-  console.log(razorpay, order);
+    const secretKey = process.env.RAZORPAY_SECRET_KEY;
+    if (!secretKey) {
+      return res.json({ success: false, message: "Internal server error" });
+    }
 
-  const secretKey = process.env.RAZORPAY_SECRET_KEY;
-  if (!secretKey) {
-    return res.json({ success: false, message: "Internal server error" });
-  }
-
-  // hashing the razorpayOrderID and razorpayPaymentID with secretKey into SHA256
-  let hash = createHmac("sha256", secretKey).update(
-    razorpay.razorpay_order_id + "|" + razorpay.razorpay_payment_id
-  );
-
-  let generatedSignature = hash.digest("hex");
-
-  if (generatedSignature == razorpay.razorpay_signature) {
-    const orderDetails = await OrderData.findOneAndUpdate(
-      { orderNumber: order.receipt },
-      { $set: { paymentStatus: "Paid" } }
+    // hashing the razorpayOrderID and razorpayPaymentID with secretKey into SHA256
+    let hash = createHmac("sha256", secretKey).update(
+      razorpay.razorpay_order_id + "|" + razorpay.razorpay_payment_id
     );
 
-    console.log(`Recept Number: ${order.receipt}`)
-    console.log(`orderDetails`)
-    console.log(orderDetails)
+    let generatedSignature = hash.digest("hex");
 
-    const cart = await CartData.findById({ _id: orderDetails.cartID })
-    if(!cart) {
+    if (generatedSignature == razorpay.razorpay_signature) {
+      const orderDetails = await OrderData.findOneAndUpdate(
+        { orderNumber: order.receipt },
+        { $set: { paymentStatus: "Paid" } }
+      );
+
+      const cart = await CartData.findById({ _id: orderDetails.cartID })
+      if (!cart) {
+        return res.json({
+          status: true,
+          success: false,
+          redirected: "/cart",
+        });
+      }
+
+      for (const prod of cart.products) {
+        let quantity = -Number(prod.quantity);
+        let count = Number(prod.quantity)
+        await ProductData.findByIdAndUpdate(prod.productID, {
+          $inc: { quantities: quantity },
+          $inc: { totalSales: count }
+        });
+      }
+
+      const isPendingExists = orderDetails.orderActivity.some(activity => activity.orderStatus === 'Pending');
+
+      if (!isPendingExists) {
+        await OrderData.findOneAndUpdate(
+          { orderNumber: order.receipt },
+          { $push: { orderActivity: { orderStatus: 'Pending', message: "Your order has been confirmed." } } }
+        );
+      }
+
+      await CartData.findByIdAndDelete({ _id: cart._id })
+
+      return res.json({
+        status: true,
+        success: true,
+        redirected: "/order-checkout",
+      });
+    } else {
       return res.json({
         status: true,
         success: false,
         redirected: "/cart",
       });
     }
-
-    for (const prod of cart.products) {
-      let quantity = -Number(prod.quantity);
-      await ProductData.findByIdAndUpdate(prod.productID, {
-        $inc: { quantities: quantity },
-      });
-    }
-
-    await CartData.findByIdAndDelete({ _id: cart._id })
-
+  } catch (error) {
     return res.json({
-      status: true,
-      success: true,
-      redirected: "/order-checkout",
-    });
-  } else {
-    return res.json({
-      status: true,
-      success: false,
-      redirected: "/cart",
+      message: "Oops Something went wrong",
+      status: false,
+      redirected: "/404",
     });
   }
 });
 
 
 // Logout
-const logout = asyncHandler(async (req, res) => {
+const logout = asyncHandler(async (req, res, next) => {
   try {
     const user = req.session.user;
     if (!user) {
@@ -1616,9 +1547,27 @@ const logout = asyncHandler(async (req, res) => {
       return res.redirect("/login");
     }
   } catch (error) {
-    throw new Error("User Not Found");
+    const err = new Error("Oops... Something Went Wrong")
+    return next({ error: err, message: err })
   }
 });
+
+
+const testing = asyncHandler(async (req, res) => {
+  try {
+    let order = await OrderData.findOne({ orderNumber: '#PZf843fa5bb28e4a1' }).lean()
+    // let order = await OrderData.findOne().sort({ createdAt: -1 }).lean()
+    // let order = await OrderData.findOne().lean()
+    let orders = {
+      customer: 'Dr Strange'
+    }
+    let fileName = invoiceGenerator(orders)
+    
+    return res.render('testing', {})
+  } catch (error) {
+    console.log(error)
+  }
+})
 
 
 module.exports = {
@@ -1638,12 +1587,15 @@ module.exports = {
   resetPassword,
   recoveredPassword,
   cancelOrder,
+  retryPayment,
   cancelProduct,
   categories,
   orderPreCheckout,
   orderCheckout,
   placeOrder,
+  downloadInvoice,
   verifyPaymentRazorpay,
   // placeOrderRazorpay,
   logout,
+  testing
 };

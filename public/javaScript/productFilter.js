@@ -13,7 +13,6 @@
         event.stopPropagation()
       } else {
         event.preventDefault()
-
         const clickedButton = event.submitter.id
         const formData = $('form').serializeArray();
         const searchSort = document.querySelector('.search-sort');
@@ -40,15 +39,22 @@
                 
                 productFilters.forEach((productFilter, index) => {
                   html += `
-                  <div id="products" class="col-12 col-md-6 col-xxl-4">
+                  <div id="products" class="col-12 col-md-6 col-xxl-4 mt-3">
                   <div class=" mt-3 products-container">
-                      <a href="/product/${productFilter._id}" style="text-decoration: none;">
+                      <a href="/user/products/${productFilter._id}" style="text-decoration: none;">
                           <div class="card mx-auto shadow-lg"
                           style="width: 16rem;cursor: pointer;"
                           >
-                              <div class="offer-section px-2 text-center">
-                                  OFFER ${productFilter.offer}%
-                              </div>
+                          ${productFilter.offer > 0 
+                            ? 
+                             `
+                            <div class="offer-section px-2 text-center">
+                                OFFER ${productFilter.offer}%
+                            </div>
+                            `
+                            :
+                            ``
+                          }
                               <img style="height: 8rem; width: 10.5rem;" src="/uploads/${productFilter.imageUrl[0]}"
                                   class="card-img-top mt-4 mx-auto product-image pt-2" alt="..." />
                               <div class="card-body rounded-3"
@@ -83,7 +89,7 @@
                                     </div>`
                                     :
                                     `<div>
-                                    <a onclick="addToCart("${productFilter._id}")" class="btn mt-3"
+                                    <a onclick="addToCart("${productFilter._id}")" class="btn mt-3 w-100 shadow-sm"
                                     style="background-color: #F46F36; color: white;">ADD TO CART</a>
                                     </div>`
                                   }

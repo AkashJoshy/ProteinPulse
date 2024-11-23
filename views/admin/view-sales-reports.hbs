@@ -48,7 +48,7 @@
           </tr>
         </thead>
         <tbody id="salesTable">
-          <!-- Report data will be inserted here -->
+
         </tbody>
       </table>
 
@@ -142,8 +142,15 @@
                   tableBody.innerHTML = '';
 
                   if (orders.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="7" style="font-size: 1.3rem;" class="text-center">No Sales Report Found...</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="7" style="font-size: 1.3rem;" class="text-center fw-bold fs-4">No Sales Report Found...</td></tr>';
                     reportDownload.style.display = "none"
+                    totalCouponPrice.innerHTML = 0
+                    overallTotal.innerHTML = 0
+                    totalSales.innerHTML = 0
+                    priceTotal.classList.remove('lightColor', 'rounded-2', 'text-light', 'px-2')
+                    totalSales.classList.remove('bg-info', 'bg-gradient', 'rounded-2', 'text-light', 'px-2')
+                    couponPrice.classList.remove('bg-warning', 'rounded-2', 'text-light', 'px-2')
+                    totalPayment.classList.remove('orange', 'rounded-2', 'text-light', 'px-2')
                   } else {
                     priceTotal.classList.add('lightColor', 'rounded-2', 'text-light', 'px-2')
                     totalSales.classList.add('bg-info', 'bg-gradient', 'rounded-2', 'text-light', 'px-2')

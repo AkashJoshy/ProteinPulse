@@ -224,6 +224,23 @@
         </div>
 
         <div class="col-12 col-md-12 col-lg-4 mt-5">
+            <div class="d-flex justify-content-around align-items-center mb-4">
+                <div class="step-container">
+                    <div class="step active">1</div>
+                    <span class="step-label">Step 1</span>
+                </div>
+                <div class="step-line active"></div>
+                <div class="step-container">
+                    <div class="step active">2</div>
+                    <span class="step-label">Step 2</span>
+                </div>
+                <div class="step-line active"></div>
+                <div class="step-container">
+                    <div class="step">3</div>
+                    <span class="step-label">Step 3</span>
+                </div>
+            </div>
+
             <div class="shadow-lg rounded-2">
                 <div class="p-2">
                     <div class="bg-dark text-light px-2 p-1">
@@ -269,7 +286,7 @@
                             <h6 class="text-danger ms-auto py-2">
                                 ₹
                                 <span class="discount-price">
-                                    {{couponPrice}}
+                                    {{couponDiscountPrice}}
                                 </span>
                             </h6>
                         </div>
@@ -358,13 +375,13 @@
         paymentMethod.addEventListener('click', () => {
             if (paymentMethod.value == 'myWallet') {
                 document.querySelector('.wallet-method').addEventListener('click', () => {
-                    console.log('hh')
+
                 })
                 //    Swal.fire("Wallet")
             }
         })
     })
-      const errMessage = document.querySelector('.err-message');
+    const errMessage = document.querySelector('.err-message');
     if (errMessage) {
         Swal.fire(errMessage.innerHTML);
     }

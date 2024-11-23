@@ -1,0 +1,16 @@
+<div class="d-flex flex-column align-items-center justify-content-center vh-100 bg-light">
+    <h1 class="text-danger text-center">
+        <i class="fas fa-exclamation-triangle"></i>
+        Oops... Something Went Wrong
+    </h1>
+
+    {{#if message}}
+        <p class="text-center text-muted">{{message}}</p>
+    {{else}}
+        <p class="text-center text-muted">Oops! We’re sorry, but an unexpected error has occurred.</p>
+    {{/if}}
+    
+    <p class="text-center mt-3">
+        <a href="/" class="btn" style="background-color: #F46F36; color: white;">Return to Homepage</a>
+    </p>
+</div>

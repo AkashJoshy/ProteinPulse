@@ -4,6 +4,12 @@
     box-shadow: none;
     background-color: #f8f9fa;
   }
+
+  .page-item.active .page-link {
+    background-color: #F46F36;
+    color: white;
+    border-color: black;
+  }
 </style>
 
 <div class="mt-5 ">
@@ -33,7 +39,7 @@
 
 
     <div class="me-md-5 px-3 py-1 rounded-2 ms-1" style="border: 2px solid black;">
-      <i class="fa-solid fa-arrow-down-short-wide" ></i>
+      <i class="fa-solid fa-arrow-down-short-wide"></i>
     </div>
 
   </div>
@@ -87,7 +93,7 @@
       {{/each}}
     </tbody>
   </table>
-  <h3 style="display: none;" class="text-center fw-2 error-message"></h3>
+  <h3 style="display: none; color: rgb(165, 161, 161);" class="text-center fw-2 error-message"></h3>
 
   {{#if pagination}}
   <nav aria-label="Page navigation example" class="d-flex fixed-bottom " style="z-index: 2;">
@@ -122,8 +128,8 @@
       text: `You won't be able to revert this!`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#2196F3',
       confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'Cancel'
     }).then((result) => {
@@ -174,10 +180,10 @@
     `
     }
 
-  // Page numbers
-    if(pagination.totalPages) {
-      for(let i=1; i<=pagination.totalPages; i++) {
-    html += `
+    // Page numbers
+    if (pagination.totalPages) {
+      for (let i = 1; i <= pagination.totalPages; i++) {
+        html += `
     <li class="page-item">
       <a class="page-link page-number" href="?search=${search}&page=${i}">${i}</a>
     </li>
@@ -204,7 +210,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     const searchBar = document.querySelector('#search-bar')
 
-    searchBar.addEventListener('input', async (e) => {
+    searchBar.addEventListener('input', (e) => {
       console.log(e.target.value)
       const search = e.target.value
       //  console.log(e.target.value.length)
@@ -235,7 +241,7 @@
                   <input type="checkbox" />
                   <span class="slider round"></span>
                   </label>`
-                  }
+                }
                 </td>
                 <td>
                   <a href=/admin/edit-category/${category._id}>
@@ -275,7 +281,7 @@
     })
   })
 
-  // Pagination controlling
+
   paginationBody.addEventListener('click', e => {
     e.preventDefault()
     console.log(`Clicked`)
@@ -289,8 +295,8 @@
       url: `/admin/category/query?search=${search}&page=${page}`,
       method: 'GET',
       success: response => {
-        if(response.status) {
-            if (response.status) {
+        if (response.status) {
+          if (response.status) {
 
             let html = ``
             let categories = response.categories
@@ -313,7 +319,7 @@
                   <input type="checkbox" />
                   <span class="slider round"></span>
                   </label>`
-                  }
+                }
                 </td>
                 <td>
                   <a href=/admin/edit-category/${category._id}>
@@ -350,5 +356,5 @@
       }
     })
   })
- 
+
 </script>

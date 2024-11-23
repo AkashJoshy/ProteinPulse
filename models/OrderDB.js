@@ -126,6 +126,10 @@ const UserOrderSchema = new Schema({
         type: String,
         required: true,
     },
+    originalPrice: {
+        type: Number,
+        required: true,
+    },
     totalPrice: {
         type: Number,
         required: true,
@@ -138,7 +142,7 @@ const UserOrderSchema = new Schema({
     orderNote: {
         type: String
     },
-    deliveryFee: {
+    deliveryCharge: {
         type: Number,
         required: true
     },
@@ -174,7 +178,8 @@ module.exports = {
 
 cron.schedule('* * * * *', async () => {
     try {
-        let orders = await OrderData.find().lean()
+        let orders = await OrderData.find({'orderActivity.orderStatus': { $nin: ['Cancelled', 'Refunded', 'Returned'] }}).lean()
+        // console.log(orders)
 
         for (const order of orders) {
             let updatedProducts = await Promise.all(
@@ -191,6 +196,15 @@ cron.schedule('* * * * *', async () => {
                     return { ...product }
                 })
             )
+
+            let cancelledProducts = updatedProducts.filter(product => product.status === 'Cancelled')
+
+            if (cancelledProducts.length == updatedProducts.length && order.status !== 'Refunded' ) {
+                    await OrderData.findByIdAndUpdate({ _id: order._id },
+                        { $push: { orderActivity: { orderStatus: 'Cancelled', message: 'Your order has been cancelled' } } }
+                    )
+            }
+
             await OrderData.findByIdAndUpdate({ _id: order._id },
                 { products: updatedProducts }
             )
@@ -205,7 +219,7 @@ cron.schedule('* * * * *', async () => {
                     return acc
                 }, 0)
 
-                if(refundPrice > 0) {
+                if (refundPrice > 0) {
                     let transactionID = await generateUniqueTransactionIDHelper(order.userID)
                     await WalletData.findOneAndUpdate(
                         { userID: order.userID },
@@ -228,23 +242,29 @@ cron.schedule('* * * * *', async () => {
                 }
             }
 
-            
+
 
             let orderStatus = {
                 status: order.status
             }
 
-            if (updatedOrders.length < updatedProducts.length && updatedOrders.length !== 0) {
-                orderStatus.status = 'Partially Refunded'
+            if (updatedOrders.length < updatedProducts.length && updatedOrders.length !== 0 ) {
+                if(order.paymentMethod !== 'COD') {
+                    orderStatus.status = 'Partially Refunded'
+                }
             } else if (updatedOrders.length < updatedProducts.length && updatedOrders.length === 0) {
-                orderStatus.status = 'Refunded'
+                if(order.paymentMethod !== 'COD') {
+                    orderStatus.status = 'Refunded'
+                }
             } else {
                 orderStatus.status = order.status
             }
 
-            await OrderData.findByIdAndUpdate({ _id: order._id },
-                { status: orderStatus.status }
-            )
+            if (order.status !== orderStatus.status) {
+                await OrderData.findByIdAndUpdate({ _id: order._id },
+                    { status: orderStatus.status }
+                )
+            }
 
         }
 

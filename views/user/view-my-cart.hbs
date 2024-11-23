@@ -6,7 +6,6 @@
         background-color: #f8f9fa;
     }
 
-    /* Ribbon styling */
     .ribbon {
         position: absolute;
         top: 0;
@@ -35,7 +34,6 @@
         box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
     }
 
-
     option:hover {
         cursor: pointer;
     }
@@ -61,7 +59,7 @@
                 {{!-- Cart Products --}}
                 <div class="border border-2 border-light rounded p-3">
                     <input type="text" class="d-none" name="cartID" value="{{cart._id}}">
-                    {{#each userCart}}
+                    {{#each cart.products}}
                     <div class="card mb-3 shadow" style="border: none;">
                         {{#if this.offer}}
                         <div class="ribbon">
@@ -124,13 +122,30 @@
                 <div class="rounded rounded-4 bg-secondary mx-auto" style="width: 10px; height: 10px;"></div>
                 <div class="rounded rounded-4 bg-secondary mx-auto left-cart-line" style="width: 3.2px; height: 50px;">
                 </div>
-                <h2 class="text-secondary w-25  border rounded-3 border-2 border-dark p-2 px-3 mx-auto">Cart is Empty
+                <h2 class="text-secondary w-50 text-center rounded-3 shadow p-2 px-4 py-2 mx-auto mb-3">Cart is Empty
                 </h2>
                 {{/if}}
         </div>
 
         {{!-- Cart Order Summary --}}
         <div class=" col-md-5 col-lg-4">
+            <div class="d-flex justify-content-around align-items-center mb-4">
+                <div class="step-container">
+                    <div class="step active">1</div>
+                    <span class="step-label">Step 1</span>
+                </div>
+                <div class="step-line active"></div>
+                <div class="step-container">
+                    <div class="step">2</div>
+                    <span class="step-label">Step 2</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-container">
+                    <div class="step">3</div>
+                    <span class="step-label">Step 3</span>
+                </div>
+            </div>
+
             <div class="shadow-lg">
                 <div class="py-3 px-3">
                     <h6 class="bg-dark text-light p-2" style="font-size: 1em;">Order Summary

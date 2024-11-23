@@ -101,9 +101,9 @@
     </table>
 
     <nav aria-label="Page navigation example" class="d-flex fixed-bottom" style="z-index: 2;">
-
+          
         <ul class="pagination mx-auto py-3 admin-pagination">
-            {{#if pagination.previousPage}}
+            {{#if pagination.isPrevious}}
             <li class="page-item">
                 <a class="page-link bg-dark prev-next-number"
                     href="/admin/orders?page={{paginationManipulation pagination.currentPage -1}}">Previous
@@ -114,7 +114,7 @@
             <li class="page-item"><a class="page-link page-number " href="/admin/orders?page={{pageNumber}}">
                     {{pageNumber}} </a></li>
             {{/each}}
-            {{#if pagination.nextPage}}
+            {{#if pagination.isNext}}
             <li class="page-item">
                 <a class="page-link bg-dark prev-next-number"
                     href="/admin/orders?page={{paginationManipulation pagination.currentPage 1}}">Next

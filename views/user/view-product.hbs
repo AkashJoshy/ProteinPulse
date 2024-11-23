@@ -191,9 +191,11 @@
 
                 <div>
                     <h3>₹{{product.salePrice}}
+                        {{#if (isSamePrice product.salePrice product.price)}}
                         <span class="px-2" style="color: grey; text-decoration: line-through;">
                             ₹{{product.price}}
                         </span>
+                        {{/if}}
                         {{#if (isStock product.quantities)}}
                         {{!-- Sold Out --}}
                         {{else}}
@@ -387,7 +389,9 @@
                                 {{this.name}}
                             </h6>
                             <h5 class="card-text text-black">₹{{this.salePrice}}
+                                {{#if (isSamePrice this.salePrice this.price)}}
                                 <span class="px-2 text-decoration-line-through text-secondary">₹{{this.price}}</span>
+                                {{/if}}
                             </h5>
                             <span class="fa fa-star checked"></span>
                             <span class="fa fa-star checked"></span>
@@ -616,7 +620,7 @@
                     }
                 }).showToast();
 
-    
+
                 return data;
             }
 

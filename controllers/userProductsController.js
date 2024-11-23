@@ -10,94 +10,97 @@ const productSortAndFilters = require('../utils/productSortAndFiltersHelper')
 
 
 const products = asyncHandler(async (req, res, next) => {
-    if (!req.session.user) {
-        return res.redirect("/login");
-    }
+    try {
+        const userID = req.session.user._id;
+        const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
 
-    const userID = req.session.user._id;
-    const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+        if (!user) {
+            req.session.user = null;
+            const err = new Error("User not Found")
+            const redirectPath = "/login";
+            return next({ error: err, redirectPath });
+        }
 
-    if (!user) {
-        req.session.user = null;
-        const err = new Error("User not Found")
-        const redirectPath = "/login";
-        return next({ error: err, redirectPath });
-    }
+        const products = await ProductData.find({ quantities: { $gt: 0 }, isActive: true }).lean()
+        if (products.length <= 0) {
+            return res.render("user/view-products", {
+                auth: true,
+                isDashboard: true,
+                user,
+                message: 'No products available',
+                products,
+            });
+        }
 
-    const products = await ProductData.find({ quantities: { $gt: 0 }, isActive: true }).lean()
-    if (products.length <= 0) {
         return res.render("user/view-products", {
             auth: true,
             isDashboard: true,
             user,
-            message: 'No products available',
             products,
         });
+    } catch (error) {
+        const err = new Error("Oops... Something Went Wrong")
+        return next({ error: err, message: err })
     }
-
-    return res.render("user/view-products", {
-        auth: true,
-        isDashboard: true,
-        user,
-        products,
-    });
 });
 
 // view product
 const product = asyncHandler(async (req, res, next) => {
-    if (!req.session.user) {
-        return res.redirect("/login");
+    try {
+        const userID = req.session.user._id
+        const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+
+        if (!user) {
+            req.session.user = null;
+            const err = new Error("User not Found")
+            const redirectPath = "/login";
+            return next({ error: err, redirectPath });
+        }
+
+        const productID = req.params.productID;
+        const product = await ProductData.findById({ _id: productID }).lean();
+
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found!' })
+        }
+
+        const isWishlisted = user.wishlist.some(product => productID.toString() === product.productID.toString())
+
+        let productName = product.name;
+        console.log(productName);
+        let similarProducts = product.name.includes("-")
+            ? await ProductData.find({ name: { $regex: productName } }).lean()
+            : await ProductData.find({ name: productName }).lean();
+        similarProducts = similarProducts.map((product) => {
+            let { flavour, size } = product;
+            return { flavour, size };
+        });
+        console.log(similarProducts);
+        const realtedProducts = await ProductData.find({
+            categoryName: product.categoryName,
+        }).lean();
+
+        res.render("user/view-product", {
+            auth: true,
+            product,
+            realtedProducts,
+            user: req.session.user,
+            similarProducts,
+            isWishlisted
+        });
+    } catch (error) {
+        const err = new Error("Oops... Something Went Wrong")
+        return next({ error: err, message: err })
     }
-    const userID = req.session.user._id
-    const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
-
-    if (!user) {
-        req.session.user = null;
-        const err = new Error("User not Found")
-        const redirectPath = "/login";
-        return next({ error: err, redirectPath });
-    }
-
-    const productID = req.params.productID;
-    const product = await ProductData.findById({ _id: productID }).lean();
-
-    if (!product) {
-        return res.status(404).json({ message: 'Product not found!' })
-    }
-
-    const isWishlisted = user.wishlist.some(product => productID.toString() === product.productID.toString())
-
-    // let productName = product.name.split('-')[0]
-    let productName = product.name;
-    console.log(productName);
-    let similarProducts = product.name.includes("-")
-        ? await ProductData.find({ name: { $regex: productName } }).lean()
-        : await ProductData.find({ name: productName }).lean();
-    similarProducts = similarProducts.map((product) => {
-        let { flavour, size } = product;
-        return { flavour, size };
-    });
-    console.log(similarProducts);
-    const realtedProducts = await ProductData.find({
-        categoryName: product.categoryName,
-    }).lean();
-
-    res.render("user/view-product", {
-        auth: true,
-        product,
-        realtedProducts,
-        user: req.session.user,
-        similarProducts,
-        isWishlisted
-    });
 });
 
 // Products Filters
 const productFilters = asyncHandler(async (req, res, next) => {
+    if (!req.session.user) {
+        return res.json({ status: false, redirected: "/login" });
+    }
+
     try {
-        if (!req.session.user) {
-            return res.json({ status: false, redirected: "/login" });
-        }
         const userID = req.session.user._id
         const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
 
@@ -133,6 +136,11 @@ const productFilters = asyncHandler(async (req, res, next) => {
         return res.json({ status: true, filterProducts, redirected: "/user/products" });
     } catch (error) {
         console.error(error.message);
+        return res.json({
+            message: "Oops Something went wrong",
+            status: false,
+            redirected: "/404",
+        });
     }
 });
 
@@ -146,85 +154,94 @@ const sortProducts = asyncHandler(async (req, res, next) => {
         });
     }
 
-    const userID = req.session.user._id
-    const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
-
-    if (!user) {
-        req.session.user = null;
-        return res.json({
-            status: false,
-            redirected: "/login",
-        })
-    }
-
-    let sort = req.query.sortType
-    let data = JSON.parse(decodeURIComponent(req.query.formData));
-    let allFilters = data.reduce((acc, current) => {
-        if (current.name === 'brands') {
-            if (!acc[current.name]) {
-                acc[current.name] = []
-            }
-            acc[current.name].push(current.value)
-        } else if (current.name === 'flavour') {
-            if (!acc[current.name]) {
-                acc[current.name] = []
-            }
-            acc[current.name].push(current.value)
-        } else {
-            acc[current.name] = current.value
+    try {
+        const userID = req.session.user._id
+        const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+    
+        if (!user) {
+            req.session.user = null;
+            return res.json({
+                status: false,
+                redirected: "/login",
+            })
         }
-        return acc
-    }, {})
-    let { availability, priceRange, brands, flavour, discountPercentage } = allFilters
-
-    let { sortOpt, filters } = productSortAndFilters(availability, priceRange, brands, flavour, discountPercentage, sort)
-    console.log(sortOpt)
-    console.log(filters)
-
-    let filterProducts = await ProductData.find(filters).sort(sortOpt).lean();
-
-    filterProducts = filterProducts = null ? 0 : filterProducts;
-
-    return res.json({ status: true, products: filterProducts });
+    
+        let sort = req.query.sortType
+        let data = JSON.parse(decodeURIComponent(req.query.formData));
+        let allFilters = data.reduce((acc, current) => {
+            if (current.name === 'brands') {
+                if (!acc[current.name]) {
+                    acc[current.name] = []
+                }
+                acc[current.name].push(current.value)
+            } else if (current.name === 'flavour') {
+                if (!acc[current.name]) {
+                    acc[current.name] = []
+                }
+                acc[current.name].push(current.value)
+            } else {
+                acc[current.name] = current.value
+            }
+            return acc
+        }, {})
+        let { availability, priceRange, brands, flavour, discountPercentage } = allFilters
+    
+        let { sortOpt, filters } = productSortAndFilters(availability, priceRange, brands, flavour, discountPercentage, sort)
+        console.log(sortOpt)
+        console.log(filters)
+    
+        let filterProducts = await ProductData.find(filters).sort(sortOpt).lean();
+    
+        filterProducts = filterProducts = null ? 0 : filterProducts;
+    
+        return res.json({ status: true, products: filterProducts });
+    } catch (error) {
+        return res.json({
+            message: "Oops Something went wrong",
+            status: false,
+            redirected: "/404",
+        });
+    }
 });
 
 const searchResults = asyncHandler(async (req, res, next) => {
-    if (!req.session.user) {
-        return res.redirect('/login')
+    try {
+        const userID = req.session.user._id;
+        const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+
+        if (!user) {
+            req.session.user = null;
+            const err = new Error("User not Found")
+            const redirectPath = "/login";
+            return next({ error: err, redirectPath });
+        }
+
+        let products
+        products = req.session.products
+
+        return res.render('user/view-searched-products', {
+            auth: true,
+            isDashboard: false,
+            user,
+            products,
+        })
+    } catch (error) {
+        const err = new Error("Oops... Something Went Wrong")
+        return next({ error: err, message: err })
     }
-
-    const userID = req.session.user._id;
-    const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
-
-    if (!user) {
-        req.session.user = null;
-        const err = new Error("User not Found")
-        const redirectPath = "/login";
-        return next({ error: err, redirectPath });
-    }
-
-    let products
-    products = req.session.products
-
-    return res.render('user/view-searched-products', {
-        auth: true,
-        isDashboard: false,
-        user,
-        products,
-    })
 })
 
 // Product Searching
 const searchProducts = asyncHandler(async (req, res, next) => {
-    try {
-        if (!req.session.user) {
-            return res.json({
-                status: false,
-                redirected: "/login",
-                message: "Please login to Continue",
-            });
-        }
+    if (!req.session.user) {
+        return res.json({
+            status: false,
+            redirected: "/login",
+            message: "Please login to Continue",
+        });
+    }
 
+    try {
         const userID = req.session.user._id
         const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
 
@@ -260,16 +277,18 @@ const searchProducts = asyncHandler(async (req, res, next) => {
             products
         });
     } catch (error) {
-        console.error(error);
+        console.error(error)
+        return res.json({
+            message: "Oops Something went wrong",
+            status: false,
+            redirected: "/404",
+        });
     }
 });
 
 // Product Review
 const productReview = asyncHandler(async (req, res, next) => {
     try {
-        if (!req.session.user) {
-            return res.redirect("/login");
-        }
         console.log(req.body);
         const userID = req.session.user._id
         const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
@@ -301,7 +320,8 @@ const productReview = asyncHandler(async (req, res, next) => {
         );
         return res.redirect(`/product/${productID}`);
     } catch (error) {
-        console.error(error);
+        const err = new Error("Oops... Something Went Wrong")
+        return next({ error: err, message: err })
     }
 });
 
@@ -314,49 +334,59 @@ const updateWishlist = asyncHandler(async (req, res, next) => {
             message: "Please Login to continue",
         });
     }
-    const userID = req.session.user._id
-    const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
 
-    if (!user) {
-        req.session.user = null;
-        return res.json({
-            status: false,
-            redirected: "/login",
-        })
-    }
-
-    let productID = req.params.productID;
-    let productIndex = user.wishlist.findIndex(
-        (product) => product.productID == productID
-    );
-
-    if (productIndex == -1) {
-        if (user.wishlist.length >= 4) {
+    try {
+        const userID = req.session.user._id
+        const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
+    
+        if (!user) {
+            req.session.user = null;
             return res.json({
-                status: true,
-                isFavourate: false,
-                message: "Maximum wishlist limit exceeded",
-            });
+                status: false,
+                redirected: "/login",
+            })
+        }
+    
+        let productID = req.params.productID;
+        let productIndex = user.wishlist.findIndex(
+            (product) => product.productID == productID
+        );
+    
+        if (productIndex == -1) {
+            if (user.wishlist.length >= 4) {
+                return res.json({
+                    status: true,
+                    isFavourate: false,
+                    message: "Maximum wishlist limit exceeded",
+                });
+            } else {
+                await UserData.findByIdAndUpdate(
+                    { _id: userID },
+                    { $push: { wishlist: { productID: productID } } }
+                );
+                return res.json({
+                    status: true,
+                    isFavourate: true,
+                    message: "Product added to Wishlist",
+                });
+            }
         } else {
             await UserData.findByIdAndUpdate(
                 { _id: userID },
-                { $push: { wishlist: { productID: productID } } }
+                { $pull: { wishlist: { productID: productID } } }
             );
             return res.json({
                 status: true,
-                isFavourate: true,
-                message: "Product added to Wishlist",
+                isFavourate: false,
+                message: "Product Removed from the Wishlist",
             });
         }
-    } else {
-        await UserData.findByIdAndUpdate(
-            { _id: userID },
-            { $pull: { wishlist: { productID: productID } } }
-        );
+    } catch (error) {
+        console.error(error);
         return res.json({
-            status: true,
-            isFavourate: false,
-            message: "Product Removed from the Wishlist",
+            message: "Oops Something went wrong",
+            status: false,
+            redirected: "/404",
         });
     }
 });

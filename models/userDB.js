@@ -10,7 +10,7 @@ const WishlistSchema = new Schema({
 }, { timestamps: true })
 
 
-const userSchema = new Schema({
+const UserSchema = new Schema({
     firstName: {
         type: String,
         required: true
@@ -91,7 +91,7 @@ const userSchema = new Schema({
 })
 
 
-let UserData = model('User', userSchema)
+let UserData = model('User', UserSchema)
 
 module.exports = {
     UserData

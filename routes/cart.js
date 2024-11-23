@@ -1,10 +1,10 @@
 const express = require('express')
 const router = express.Router()
 const cartController = require('../controllers/cartController')
-
+const userAuthController = require('../middlewares/userAuthMiddleware')
 
 // GET Requests
-router.get("/", cartController.myCart);
+router.get("/", userAuthController.authHandler, cartController.myCart);
 
 // PUT Requests
 router.put("/add-product", cartController.addToCart);

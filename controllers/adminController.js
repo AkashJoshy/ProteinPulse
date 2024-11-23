@@ -3,6 +3,7 @@ const { CategoryData } = require("../models/categoryDB");
 const { ProductData } = require("../models/productDB");
 const { CouponData } = require("../models/CouponDB");
 const { OfferData } = require("../models/OfferDB")
+const { CarouselData } = require('../models/CarouselDB')
 const asyncHandler = require("express-async-handler");
 const PDFDocument = require('pdfkit')
 const fs = require('fs')
@@ -12,6 +13,9 @@ const bcrypt = require("bcrypt");
 const { OrderData } = require("../models/OrderDB");
 const path = require("path");
 const { products } = require("./userController");
+const { getPaginatedData } = require('../utils/paginationHelper')
+const { getTopProducts, getTopCategories, getTopBrands } = require('../utils/topSellingHelper')
+
 
 // Admin Login In Page
 const login = asyncHandler(async (req, res) => {
@@ -52,57 +56,48 @@ const doLogin = asyncHandler(async (req, res, next) => {
 
 // Admin DashBoard
 const dashboard = asyncHandler(async (req, res, next) => {
+  try {
+    const products = await ProductData.find({}).countDocuments()
+    const users = await UserData.find({ isAdmin: false }).countDocuments()
+    const orders = await OrderData.find({ status: { $nin: ["Refunded", "Canceled"] } }).countDocuments()
 
-  // Total Products
-  const products = await ProductData.find({}).countDocuments()
+    const topProducts = getTopProducts()
+    const topCategories = getTopCategories()
+    const topBrands = getTopBrands()
 
-  // Total Users
-  const users = await UserData.find({ isAdmin: false }).countDocuments()
+    const totalSales = await OrderData.find({ paymentStatus: 'Paid', status: { $nin: ["Refunded", "Canceled"] } }).countDocuments()
 
-  // Total Orders
-  const orders = await OrderData.find({}).countDocuments()
+    return res.render("admin/dashboard", {
+      admin: true,
+      admin1: req.session.admin,
+      products,
+      users,
+      orders,
+      totalSales,
+      topProducts,
+      topCategories,
+      topBrands
+    });
+  } catch (error) {
+    console.error(error);
 
-  // Total sales [payment succesfull]
-  const totalSales = await OrderData.find({ paymentStatus: 'Paid' }).countDocuments()
-
-
-  return res.render("admin/dashboard", {
-    admin: true,
-    admin1: req.session.admin,
-    products,
-    users,
-    orders,
-    totalSales,
-  });
+  }
 });
 
 // All Customers
 const getCustomers = asyncHandler(async (req, res) => {
   try {
-    const page = req.query.page || 1;
-    const limit = 10;
+    const page = Number(req.query.page) || 1
+    const limit = req.query.limit || 4
 
-    const skip = (page - 1) * limit;
+    console.log(`Page: ${page}`)
 
-    const totalCustomers = await ProductData.countDocuments();
-    const totalPages = Math.ceil(totalCustomers / limit);
-
-    const users = await UserData.find({ isAdmin: false })
-      .skip(skip)
-      .limit(limit)
-      .lean();
-
-    // Pagination
-    const pagination = {
-      currentPage: page,
-      previousPage: page > 1,
-      nextPage: page < totalPages,
-      totalPages,
-    };
+    let query = { isAdmin: false }
+    let { data, pagination } = await getPaginatedData(UserData, page, limit, {}, query)
 
     res.render("admin/view-customers", {
       admin: true,
-      users,
+      users: data,
       admin1: req.session.admin,
       pagination,
     });
@@ -110,6 +105,42 @@ const getCustomers = asyncHandler(async (req, res) => {
     console.error(error);
   }
 });
+
+const searchCustomers = asyncHandler(async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const search = req.query.search || ''
+    const limit = 4;
+    let query
+
+    console.log(`Length: ${search.length}`)
+
+    if (search.length >= 1) {
+      query = {
+        isAdmin: false,
+        $or: [
+          { firstName: { $regex: search, $options: "i" } },
+          { lastName: { $regex: search, $options: "i" } }
+        ]
+      }
+    } else {
+      query = {
+        isAdmin: false,
+      }
+    }
+
+    let { data, pagination } = await getPaginatedData(UserData, page, limit, {}, query)
+
+    if(data.length <= 0) {
+      pagination = null
+    }
+
+    return res.json({ status: true, customers: data, pagination });
+  } catch (error) {
+    console.error(error)
+  }
+
+})
 
 // View Single Edit Customer
 const viewCustomer = async (req, res) => {
@@ -168,21 +199,19 @@ const restoreCustomer = asyncHandler(async (req, res) => {
 const getCategories = asyncHandler(async (req, res) => {
 
   const page = Number(req.query.page) || 1;
-
   const limit = req.query.limit || 3;
   const search = req.query.search || "";
   const skip = (page - 1) * limit;
 
   console.log(`Search: ${search}`);
 
-  // Define an Search Filter, cause countDocument expects object not array
   const searchFilter =
     search !== "" ? { name: { $regex: search, $options: `i` } } : {};
 
   const totalDoc = await CategoryData.countDocuments(searchFilter);
   const totalPages = Math.ceil(totalDoc / limit);
 
-  // Pagination
+
   const pagination = {
     isPrevious: page > 1,
     currentPage: page,
@@ -204,7 +233,7 @@ const getCategories = asyncHandler(async (req, res) => {
 
 // category queryies like search, filter, sort
 const categoryQuery = asyncHandler(async (req, res, next) => {
-  if(!req.session.admin) {
+  if (!req.session.admin) {
     return res.json({ status: false, redirected: '/admin/' })
   }
   const search = req.query.search || "";
@@ -212,15 +241,12 @@ const categoryQuery = asyncHandler(async (req, res, next) => {
   const limit = 3;
   const skip = (page - 1) * limit;
 
-  // Define an Search Filter, cause countDocument expects object not array
   const searchFilter =
     search !== "" ? { name: { $regex: search, $options: `i` } } : {};
 
-  // total Doc and total Pages
   const totalDoc = await CategoryData.countDocuments(searchFilter);
   const totalPages = Math.ceil(totalDoc / limit);
 
-  // Pagination
   const pagination = {
     isPrevious: page > 1,
     currentPage: page,
@@ -232,7 +258,7 @@ const categoryQuery = asyncHandler(async (req, res, next) => {
     .limit(limit)
     .skip(skip)
     .lean();
-  //  let categories = await CategoryData.find(searchFilter).lean()
+
   return res.json({
     status: true,
     categories,
@@ -286,7 +312,7 @@ const editCategory = asyncHandler(async (req, res) => {
 // Edit Category
 const saveEditCategory = asyncHandler(async (req, res) => {
   try {
-  
+
     let isImage;
     const categoryID = req.body.categoryID;
     if (req.files) {
@@ -326,34 +352,16 @@ const deleteCategory = asyncHandler(async (req, res, next) => {
 // View all Products
 const getProducts = asyncHandler(async (req, res) => {
   try {
-   
     const page = Number(req.query.page) || 1;
     const limit = 2;
 
-    // skip calculating for per Page
-    const skip = (page - 1) * limit;
+    let { data, pagination } = await getPaginatedData(ProductData, page, limit)
 
-    // Total Product calculation
-    const totalProduct = await ProductData.find().countDocuments();
-    // Total Page - Here limit is 2, so Total prod / limit
-    const totalPages = Math.ceil(totalProduct / limit);
-
-    // Products fetching to current page
-    let products = await ProductData.find().skip(skip).limit(limit).lean();
-
-    products = products.map((product) => {
+    let products = data.map((product) => {
       let { createdAt } = product;
       let formatedDate = moment(createdAt).format("MMMM Do YYYY HH:mm:ss");
       return { ...product, createdAt: formatedDate };
     });
-
-    // Pagination
-    const pagination = {
-      currentPage: page,
-      previousPage: page > 1,
-      nextPage: page < totalPages,
-      totalPages,
-    };
 
     res.render("admin/view-products", {
       admin: true,
@@ -439,7 +447,7 @@ const editProduct = asyncHandler(async (req, res) => {
     const categories = await CategoryData.find({}, { name: 1 }).lean();
     const formattedDate = new Date(product.bestBefore).toISOString().split("T")[0]
     product.bestBefore = formattedDate
-    console.log(product) 
+    console.log(product)
     res.render("admin/edit-product", {
       admin: true,
       categories,
@@ -456,7 +464,7 @@ const editProduct = asyncHandler(async (req, res) => {
 // Update Product
 const updateProduct = asyncHandler(async (req, res) => {
   try {
-   
+
     let {
       name,
       categoryName,
@@ -573,7 +581,7 @@ const deleteProductImage = asyncHandler(async (req, res, next) => {
     }
   })
 
-  // Delete from local storage(folder)
+
   let dirPath = path.dirname(__dirname)
   console.log(path.join(dirPath, '/public/uploads', imageUrl))
   let imgPath = path.join(dirPath, '/public/uploads', imageUrl)
@@ -621,6 +629,15 @@ const deleteProduct = asyncHandler(async (req, res) => {
       return res.json({ status: false, redirected: "/admin/" });
     }
     const productID = req.body.productID;
+    let product = await ProductData.findById({ _id: productID }).lean()
+    if (!product) {
+      return res.json({ status: true, islessPrice: true, message: `Product not found!` })
+    }
+
+    if (product.salePrice <= 200) {
+      return res.json({ status: true, islessPrice: true, message: `The Product can't be deleted` })
+    }
+
     await ProductData.findByIdAndDelete({ _id: productID });
     return res.json({ status: true, redirected: "/admin/products" });
   } catch (error) {
@@ -637,13 +654,7 @@ const sortProducts = asyncHandler(async (req, res) => {
     const filter = req.query.filter;
     const page = Number(req.query.page) || 1;
     const limit = 2;
-    const skip = (page - 1) * limit;
 
-    // Total Products
-    const totalProducts = await ProductData.countDocuments();
-    const totalPages = Math.ceil(totalProducts / limit);
-
-    // Sorting Dynamically with option
     let sortOpt = {};
 
     sortOpt =
@@ -660,22 +671,10 @@ const sortProducts = asyncHandler(async (req, res) => {
                 : filter == "newArrivals"
                   ? { createdAt: -1 }
                   : {};
-    // console.log(sortOpt);
 
-    // Pagination
-    const pagination = {
-      currentPage: page,
-      previousPage: page > 1,
-      nextPage: page < totalPages,
-      totalPages,
-    };
+    let { data, pagination } = await getPaginatedData(ProductData, page, limit, sortOpt)
 
-    let products = await ProductData.find({})
-      .sort(sortOpt)
-      .skip(skip)
-      .limit(limit)
-      .lean();
-    products = products.map((product) => {
+    let products = data.map((product) => {
       let { createdAt } = product;
       let formatedDate = moment(createdAt).format("MMMM Do YYYY HH:mm:ss");
       return { ...product, createdAt: formatedDate };
@@ -686,33 +685,82 @@ const sortProducts = asyncHandler(async (req, res) => {
   }
 });
 
+// Search Products
+const searchProducts = asyncHandler(async (req, res) => {
+  if (!req.session.admin) {
+    return res.json({ status: false, redirected: "/admin/" });
+  }
+
+  const page = Number(req.query.page) || 1
+  const search = req.query.search
+  let limit = 2
+  let skip = (page - 1) * limit
+
+  try {
+    // console.log(`Search: ${search} & page: ${page}`)
+    let products
+    if (search.length >= 1) {
+      products = await ProductData.find({
+        $or: [
+          {
+            name: { $regex: search, $options: 'i' }
+          },
+          {
+            categoryName: { $regex: search, $options: 'i' }
+          }
+        ]
+      }).skip(skip).limit(limit).lean()
+    } else {
+      products = await ProductData.find().skip(skip).limit(limit).lean()
+    }
+
+    if (products.length <= 0) {
+      console.log(`products`)
+      console.log(products)
+      return res.json({ status: true, products, pagination: null });
+    }
+
+    console.log(products)
+
+    const totalDoc = await ProductData.find({
+      $or: [
+        {
+          name: { $regex: search, $options: 'i' }
+        },
+        {
+          categoryName: { $regex: search, $options: 'i' }
+        }
+      ]
+    }).countDocuments()
+
+    const totalPages = Math.ceil(totalDoc / limit)
+
+    const pagination = {
+      previousPage: page > 1,
+      currentPage: page,
+      nextPage: page < totalPages,
+      totalPages
+    }
+
+    return res.json({ status: true, products, pagination });
+  } catch (error) {
+    console.error(error)
+  }
+})
+
 // Get Orders
 const getOrders = asyncHandler(async (req, res) => {
   try {
     const page = req.query.page || 1;
-    const limit = 7;
+    const limit = 2;
 
-    const skip = (page - 1) * limit;
+    let { data, pagination } = await getPaginatedData(OrderData, page, limit)
 
-    const totalOrders = await OrderData.countDocuments();
-    const totalPages = Math.ceil(totalOrders / limit);
-
-    let orders = await OrderData.find({}).skip(skip).limit(limit).lean();
-
-    // Pagination
-    const pagination = {
-      currentPage: page,
-      previousPage: page > 1,
-      nextPage: page < totalPages,
-      totalPages,
-    };
-
-    orders = orders.map((order) => {
+    let orders = data.map((order) => {
       let { createdAt } = order;
       let formatedDate = moment(createdAt).format("MMMM Do YYYY HH:mm:ss");
       return { ...order, createdAt: formatedDate };
     });
-    console.log(orders);
 
     res.render("admin/view-orders", {
       admin: true,
@@ -889,6 +937,84 @@ const updateOrderProductStatus = asyncHandler(async (req, res, next) => {
   return res.json({ status: true, orderStatus: orderProductStatus })
 })
 
+
+// edit carousel
+const editCarousel = asyncHandler(async (req, res) => {
+  try {
+
+    if (!req.session.admin) {
+      return res.json({ status: false, redirected: '/admin/' })
+    }
+
+    const {
+      name,
+      subDestination,
+      destinationID,
+      expiryDate,
+      carouselID
+    } = req.body
+
+    console.log(req.body)
+
+    let carousel = await CarouselData.findById(carouselID)
+
+    if (!carousel) {
+      return res.json({ status: false, message: 'No carousel found', redirected: '/admin/carousel-management' })
+    }
+
+    let carouselLink
+    let type
+    if (subDestination == 'product') {
+      let product = await ProductData.findById(destinationID)
+      if (!product) {
+        carouselLink = '/404'
+      }
+      type = 'Product'
+      carouselLink = `user/products/${product._id}`
+    } else {
+      let category = await CategoryData.findById(destinationID)
+      console.log(category);
+      if (!category) {
+        carouselLink = '/404'
+      }
+      type = 'Category'
+      carouselLink = `/user-categories/${category.name}`
+    }
+
+    // console.log(req.files)
+    let data = {}
+
+    if (req.files?.[0]?.fileName) {
+      let imageUrl = req.files[0].fileName
+      data.name = name
+      data.link = carouselLink
+      data.imageUrl = imageUrl
+      data.type = type
+    } else {
+      data.name = name
+      data.link = carouselLink
+      data.type = type
+    }
+
+    if (expiryDate) {
+      data.expiryDate = expiryDate
+    }
+
+    await CarouselData.findByIdAndUpdate(carouselID,
+      { $set: data }
+    )
+
+    return res.json({
+      status: true,
+      message: `${name} updated`,
+      redirected: '/admin/carousel-management'
+    })
+  } catch (error) {
+    console.log(error)
+  }
+})
+
+
 // Order Sorting
 const orderSorting = asyncHandler(async (req, res) => {
   try {
@@ -934,25 +1060,10 @@ const couponPage = asyncHandler(async (req, res, next) => {
   let page = req.query.page || 1
   let limit = 2;
 
-  let skip = (page - 1) * limit
+  let sortOption = { isActive: -1 }
+  let { data, pagination } = await getPaginatedData(CouponData, page, limit, sortOption)
 
-  let coupons = await CouponData.find({}).skip(skip).limit(limit).lean();
-
-  // Total Coupons Count
-  let totalCoupons = await CouponData.find().countDocuments()
-
-  // Total Pages
-  let totalPages = Math.ceil(totalCoupons / limit)
-
-  // Pagination
-  const pagination = {
-    isPrevious: page > 1,
-    current: page,
-    isNext: page < totalPages,
-    totalPages
-  }
-
-  coupons = coupons.map((coupon) => {
+  let coupons = data.map((coupon) => {
     let { expiryDate } = coupon;
     let formattedDate = moment(expiryDate).format("YYYY-MM-DD");
     return { ...coupon, expiryDate: formattedDate };
@@ -1011,7 +1122,6 @@ const addCoupon = asyncHandler(async (req, res, next) => {
     return res.redirect("/admin/coupon-management");
   }
 
-  // Avoid the duplication of Coupon Code
   const error = new Error("Coupon already existed");
   const redirectPath = "/admin/coupon-management";
   return next({ error, redirectPath });
@@ -1024,10 +1134,37 @@ const deleteCoupon = asyncHandler(async (req, res, next) => {
   }
   const couponID = req.params.couponID;
   await CouponData.findByIdAndDelete({ _id: couponID });
-  console.log(couponID);
   return res.json({ status: true, message: "Coupon Deleted" });
 });
 
+// Delete Carousel
+const deleteCarousel = asyncHandler(async (req, res) => {
+  if (!req.session.admin) {
+    return res.json({ status: false, redirected: "/admin/" });
+  }
+
+  const carouselID = req.params.carouselID
+  const carousel = await CarouselData.findById(carouselID)
+
+  if (!carousel) {
+    return res.json({
+      status: false,
+      message: `No Carousel found`,
+      redirected: "/admin/"
+    });
+  }
+
+  let dirPath = path.dirname(__dirname)
+  let imgPath = path.join(dirPath, '/public/uploads', carousel.imageUrl)
+  fs.unlink(imgPath, err => {
+    if (err) {
+      return res.json({ status: false, message: "Image not deleted" })
+    }
+  })
+
+  await CarouselData.findByIdAndDelete(carouselID)
+  return res.json({ status: true, message: "Carousel Deleted" });
+})
 
 // Delete Offer
 const deleteOffer = asyncHandler(async (req, res, next) => {
@@ -1064,34 +1201,38 @@ const getSalesReports = asyncHandler(async (req, res, next) => {
   let orders = await OrderData.find({
     createdAt: { $gte: startDate, $lte: endDate },
     paymentStatus: "Paid",
+    status: { $nin: ["Refunded", "Canceled"] }
   }).lean();
+
+  console.log(orders)
+  console.log(`orders`)
 
   // Order Total
   const orderSalesTotal = await OrderData.aggregate([
     {
       $match: {
         paymentStatus: { $eq: "Paid" },
-        createdAt: { $gte: startDate, $lte: endDate }
+        createdAt: { $gte: startDate, $lte: endDate },
+        status: { $nin: ["Refunded", "Canceled"] },
       },
     },
     {
-      $unwind: {
-        path: "$coupons",
-        preserveNullAndEmptyArrays: true,
+      $group: {
+        _id: "$_id",
+        totalPrice: { $first: "$totalPrice" },
+        totalCouponPrice: { $sum: "$coupons.deductedPrice" },
       },
     },
     {
       $group: {
         _id: null,
         totalPrice: { $sum: "$totalPrice" },
-        totalCouponPrice: { $sum: "$coupons.deductedPrice" },
+        totalCouponPrice: { $sum: "$totalCouponPrice" },
         salesCount: { $sum: 1 },
       },
     },
   ]);
 
-  console.log(`Order Sales Total`);
-  console.log(orderSalesTotal);
 
   // calculating sales total and coupon based on the specific date
   const totalPrice = orderSalesTotal && orderSalesTotal[0] ? orderSalesTotal[0].totalPrice : 0;
@@ -1122,56 +1263,83 @@ const downloadSalesReport = asyncHandler(async (req, res, next) => {
   let orders = await OrderData.find({
     createdAt: { $gte: startDate, $lte: endDate },
     paymentStatus: "Paid",
+    status: { $nin: ["Refunded", "Canceled"] }
   }).lean();
-
 
   const formattedStartDate = new Date(startDate).toISOString().split('T')[0];
   const formattedEndDate = new Date(endDate).toISOString().split('T')[0];
 
-  const filename = `sales_report_${formattedStartDate}_to_${formattedEndDate}.pdf`
+  const filename = `sales_report_${formattedStartDate}_to_${formattedEndDate}.pdf`;
+  const parentDir = path.dirname(__dirname);
+  const filePath = path.join(parentDir, 'public', 'reports', filename);
 
-  const parentDir = path.dirname(__dirname)
-
-  let filePath = path.join(parentDir, 'public', 'reports', filename)
-
-  let dir = path.dirname(filePath)
+  const dir = path.dirname(filePath);
   if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true })
+    fs.mkdirSync(dir, { recursive: true });
   }
 
   const writeStream = fs.createWriteStream(filePath);
   const doc = new PDFDocument();
-  doc.pipe(writeStream)
+  doc.pipe(writeStream);
 
+  const logoPath = path.join(parentDir, 'public', 'picture', 'logo', 'logoUser.png');
+  if (fs.existsSync(logoPath)) {
+    doc.image(logoPath, 30, 20, {
+      width: 50,
+      height: 50,
+      align: 'left',
+      valign: 'top',
+    });
+  }
 
-  doc.font('Helvetica-Bold').fontSize(20).fillColor('orange')
+  doc.font('Helvetica')
+    .fontSize(12)
+    .text('PROTEIN PULZE PLAZA', 90, 45);
+
+  doc.font('Helvetica-Bold')
+    .fontSize(20)
+    .fillColor('#F46F36')
     .text('Sales Report', { align: 'center' })
-    .moveDown(0.5)
-    .fontSize(18)
-    .fillColor('black')
-    .text(`Coverage Period: ${formattedStartDate} to ${formattedEndDate}`, { align: 'center' })
-    .moveDown(1.5)
+    .moveDown(1);
 
-  orders.forEach(order => {
-    doc.font('Helvetica').fontSize(14).text(`Order No: ${order.orderNumber}`, { underline: true }).moveDown(0.2)
-    doc.font('Helvetica').fontSize(12).text(`Customer Name: ${order.customer}`)
-    doc.text(`Total Price: ${order.totalPrice}`, { continued: true }).fillColor('green')
-    doc.text(`Payment Method: ${order.paymentMethod}`, { align: 'right' }).fillColor('black');
-    doc.text(`Payment Status: ${order.paymentStatus}`);
-    doc.text(`Date: ${order.createdAt.toISOString().split('T')[0]}`, { align: "right" })
-    doc.moveDown(2);
+
+  doc.fontSize(18)
+    .fillColor('black')
+    .text(`Coverage Period: ${formattedStartDate} to ${formattedEndDate}`, {
+      align: 'center',
+    })
+    .moveDown(1.5);
+
+
+  orders.forEach((order) => {
+    doc.font('Helvetica-Bold')
+      .fontSize(14)
+      .text(`Order No: ${order.orderNumber}`, 50, doc.y);
+
+    doc.moveDown(0.5);
+    doc.font('Helvetica')
+      .fontSize(12)
+      .fillColor('black')
+      .text(`Customer Name: ${order.customer}`, 50)
+      .text(`Date: ${new Date(order.createdAt).toISOString().split('T')[0]}`, 300, doc.y, { align: 'right' })
+      .text(`Payment Method: ${order.paymentMethod}`, 50)
+      .fillColor('green')
+      .text(`Payment Status: ${order.paymentStatus}`, 300, doc.y, { align: 'right' })
+      .fillColor('black')
+      .text(`Total Price: ₹${order.totalPrice}`, 50, doc.y);
+
+    doc.moveDown(1.5);
 
     doc.lineWidth(1)
       .moveTo(50, doc.y)
       .lineTo(doc.page.width - 50, doc.y)
       .strokeColor('#cccccc')
-      .stroke()
+      .stroke();
 
-    doc.moveDown(2);
+    doc.moveDown(1.5);
   });
 
   doc.end();
-
 
   writeStream.on('error', (err) => {
     console.error(`Error writing PDF: ${err.message}`);
@@ -1183,7 +1351,7 @@ const downloadSalesReport = asyncHandler(async (req, res, next) => {
 
 // Sales chart
 const salesChart = asyncHandler(async (req, res, next) => {
-  if(!req.session.admin) {
+  if (!req.session.admin) {
     return res.json({ status: false, redirected: '/admin/' })
   }
   const filter = req.query.filter;
@@ -1335,37 +1503,149 @@ const salesChart = asyncHandler(async (req, res, next) => {
 
 
 
-// Carousal Management
+// Carousel Management
 const getCarousels = asyncHandler(async (req, res, next) => {
+  try {
+    let page = req.query.page || 1
+    let limit = req.query.limit || 2
 
-  return res.render("admin/view-carousels", {
-    admin: true,
-    admin1: req.session.admin,
-  });
+    let { data, pagination } = await getPaginatedData(CarouselData, page, limit)
+
+    res.render("admin/view-carousels", {
+      admin: true,
+      admin1: req.session.admin,
+      carousels: data,
+      pagination,
+      errMsg: req.session.errMessage,
+    })
+    req.session.errMessage = false
+    return
+  } catch (error) {
+    console.log(error)
+  }
 });
+
+// Carousel Pagination Query
+const carouselQuery = asyncHandler(async (req, res) => {
+  try {
+    if (!req.session.admin) {
+      return res.json({ status: false, redirected: '/admin/' })
+    }
+
+    let page = Number(req.query.page) || 1
+    let limit = Number(req.query.limit) || 2
+    let { data, pagination } = await getPaginatedData(CarouselData, page, limit)
+
+    data.forEach(carousel => {
+      carousel.expiryDate = moment(carousel.expiryDate).format('ddd MMM DD YYYY HH:mm:ss [GMT]ZZ') + ' (India Standard Time)'
+    })
+
+    console.log(`data`)
+    console.log(data)
+    return res.json({ status: true, carousels: data, pagination })
+  } catch (error) {
+    console.error(error)
+  }
+})
+
+// View Carousel
+const viewCarousel = asyncHandler(async (req, res, next) => {
+  try {
+    let carouselID = req.params.carouselID
+    let carousel = await CarouselData.findById(carouselID).lean()
+
+    if (!carousel) {
+      const error = new Error("No carousal found!")
+      const redirectPath = "/admin/carousel-management"
+      return next({ error, redirectPath });
+    }
+
+    let subDestination = carousel.link.split('/')
+    subDestination = subDestination[subDestination.length - 1]
+
+    let destination = carousel.type == 'Product'
+      ? await ProductData.findById(subDestination, { name: 1 }).lean()
+      : await CategoryData.findOne({ name: subDestination }, { name: 1 }).lean()
+
+    return res.render('admin/edit-carousel', {
+      admin: true,
+      admin1: req.session.admin,
+      carousel,
+      destination
+    })
+
+  } catch (error) {
+    console.error(error)
+  }
+})
 
 // View Add Carousel page
 const viewAddCarousel = asyncHandler(async (req, res, next) => {
-  return res.render("admin/add-carousel", {
-    admin: true,
-    admin1: req.session.admin,
-  });
+  try {
+
+    let categories = await CategoryData.find({ isActive: true }, { name: 1 }).lean()
+    let products = await ProductData.find({ isActive: true }, { name: 1 }).lean()
+
+    return res.render("admin/add-carousel", {
+      admin: true,
+      admin1: req.session.admin,
+      categories,
+      products
+    })
+
+  } catch (error) {
+
+  }
 });
+
+const getCarouselOptions = asyncHandler(async (req, res) => {
+  if (!req.session.admin) {
+    return res.json({ status: false, redirected: "/admin/" })
+  }
+
+  try {
+    const option = req.query.option
+
+    if (!option) {
+      return res.json({ status: false, message: "Select any option" })
+    }
+
+    let destinations
+    if (option == 'category') {
+      destinations = await CategoryData.find({ isActive: true }, { name: 1 }).lean()
+    } else if (option == 'product') {
+      destinations = await ProductData.find({ isActive: true }, { name: 1 }).lean()
+    } else {
+      return res.json({ status: false, message: "Select any option" })
+    }
+    console.log(destinations)
+    return res.json({ status: true, destinations })
+  } catch (error) {
+    console.error(error)
+  }
+})
 
 // Products and categories Offer page
 const offerPage = asyncHandler(async (req, res, next) => {
+  try {
+    let page = req.query.page || 1
+    let limit = req.query.limit || 5
 
-  let products = await ProductData.find({}).lean()
-  let categories = await CategoryData.find({}).lean()
-  const offers = await OfferData.find({}).lean()
+    let { data, pagination } = await getPaginatedData(OfferData, page, limit)
+    let products = await ProductData.find({}).lean()
+    let categories = await CategoryData.find({}).lean()
 
-  return res.render("admin/view-offers", {
-    admin: true,
-    admin1: req.session.admin,
-    products,
-    categories,
-    offers
-  });
+    return res.render("admin/view-offers", {
+      admin: true,
+      admin1: req.session.admin,
+      products,
+      categories,
+      offers: data,
+      pagination
+    });
+  } catch (error) {
+    console.log(error)
+  }
 });
 
 
@@ -1442,6 +1722,49 @@ const addOffers = asyncHandler(async (req, res, next) => {
 
 })
 
+// Add Carousal
+const addCarousel = asyncHandler(async (req, res, next) => {
+  try {
+    let {
+      name,
+      subDestination,
+      destinationID,
+      expiryDate
+    } = req.body
+
+    const imageUrl = req.files[0].filename
+    let carouselLink
+    let type
+    if (subDestination == 'product') {
+      let product = await ProductData.findById(destinationID)
+      if (!product) {
+        carouselLink = '/404'
+      }
+      type = 'Product'
+      carouselLink = `user/products/${product._id}`
+    } else {
+      let category = await CategoryData.findById(destinationID)
+      console.log(category);
+      if (!category) {
+        carouselLink = '/404'
+      }
+      type = 'Category'
+      carouselLink = `/user-categories/${category.name}`
+    }
+
+    await CarouselData.create({
+      name,
+      type,
+      link: carouselLink,
+      imageUrl,
+      expiryDate
+    })
+    return res.redirect('/admin/carousel-management')
+  } catch (error) {
+    console.error(error)
+  }
+})
+
 // Settings
 const settings = asyncHandler(async (req, res) => {
 
@@ -1477,6 +1800,7 @@ module.exports = {
   getCategories,
   categoryQuery,
   viewCustomer,
+  searchCustomers,
   editCustomer,
   softDeleteCustomer,
   restoreCustomer,
@@ -1494,6 +1818,7 @@ module.exports = {
   updateProductStock,
   deleteProduct,
   sortProducts,
+  searchProducts,
   getOrders,
   viewOrder,
   updateOrderStatus,
@@ -1503,14 +1828,20 @@ module.exports = {
   addCoupon,
   deleteCoupon,
   deleteOffer,
+  deleteCarousel,
+  editCarousel,
   salesReports,
   getSalesReports,
   downloadSalesReport,
   salesChart,
   getCarousels,
+  carouselQuery,
+  viewCarousel,
   viewAddCarousel,
+  getCarouselOptions,
   offerPage,
   addOffers,
+  addCarousel,
   settings,
   logout,
 };

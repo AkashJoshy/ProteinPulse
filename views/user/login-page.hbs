@@ -1,72 +1,66 @@
 <div class="container mt-5">
   <h2 class="text-center" style="margin-bottom: 45px;">LOGIN</h2>
-   <div class="d-flex ">
-        <div class="btn btn-outline-dark mx-auto rounded-circle">
-          <a href="/auth/google">
-          <i class="fa-brands fa-google"></i>
-        </a>
-        </div>
-      </div>
-      <h5 class="text-center mt-3">OR</h5>
-  <div
-    class="loginContainer shadow-lg bg-body-tertiary rounded d-flex justify-content-center border border-1"
-  >
+  <div class="d-flex ">
+    <div class="btn btn-outline-dark mx-auto rounded-circle">
+      <a href="/auth/google">
+        <i class="fa-brands fa-google"></i>
+      </a>
+    </div>
+  </div>
+  <h5 class="text-center mt-3">OR</h5>
+  <div class="loginContainer shadow-lg bg-body-tertiary rounded d-flex justify-content-center border border-1">
     <div class="row">
-      <div class="col-sm-12 col-md-7 col-lg-5" >
-        <img
-          src="/picture/auths/login page.jpg"
-          class="img-fluid "
-          alt="login-image"
-        />
+      <div class="col-sm-12 col-md-7 col-lg-5">
+        <img src="/picture/auths/login page.jpg" class="img-fluid " alt="login-image" />
       </div>
-      
+
       <div class="col-sm-12 col-md-5 col-lg-7 formColumn">
-        <form action="/login" method="post" class="p-2 p-md-2 p-lg-2 p-xl-5 needs-validation mt-3 mt-md-0 mt-lg-0 mt-xl-0" style="margin-top: -30px;" novalidate>
+        <form action="/login" method="post"
+          class="p-2 p-md-2 p-lg-2 p-xl-5 needs-validation mt-3 mt-md-0 mt-lg-0 mt-xl-0" style="margin-top: -30px;"
+          novalidate>
           <div class="mb-3">
             <label for="exampleInputEmail1" class="form-label">EMAIL</label>
             <div class="input-group has-validation">
-      <input type="email" name="email" class="form-control input-field" id="email" aria-describedby="inputGroupPrepend" required>
-      <div class="invalid-feedback">
-        Please enter your email
-      </div>
-    </div>
+              <input type="email" name="email" class="form-control input-field" id="email"
+                aria-describedby="inputGroupPrepend" required>
+              <div class="invalid-feedback">
+                Please enter your email
+              </div>
+            </div>
 
           </div>
           <div class="mb-3">
-            <label
-              for="exampleInputPassword1"
-              class="form-label"
-            >PASSWORD</label>
-            <input type="password" name="password" class="form-control input-field" id="password"  required>
-    <div class="invalid-feedback">
-      Please enter your password
-    </div>
+            <label for="exampleInputPassword1" class="form-label">PASSWORD</label>
+            <input type="password" name="password" class="form-control input-field" id="password" required>
+            <div class="invalid-feedback">
+              Please enter your password
+            </div>
           </div>
           {{!-- login Error messages --}}
           {{#if loginErr}}
-            <p class="text-danger login-messages"> {{loginErr}} </p>
+          <p class="text-danger login-messages"> {{loginErr}} </p>
           {{/if}}
           {{!-- // login Error messages --}}
 
           {{!-- login Success messages --}}
           {{#if loginSuccess}}
-            <p class="text-success login-messages"> {{loginSuccess}} </p>
+          <p class="text-success login-messages"> {{loginSuccess}} </p>
           {{/if}}
           {{!-- // login Success messages --}}
 
-           <div class="d-flex">
+          <div class="d-flex">
             <div class="me-auto">
-            <a href="/signup" class="" style="text-decoration: none; color: black;">
+              <a href="/signup" class="" style="text-decoration: none; color: black;">
                 NEW USER ? CREATE AN ACCOUNT
-            </a>
+              </a>
             </div>
             <div>
               <a href="/forgot-password" class="">FORGOT PASSWORD</a>
-          <button type="submit" class="btn mt-3 d-flex ms-auto" style="background-color: #F46F36;">Submit</button>
+              <button type="submit" class="btn mt-3 d-flex ms-auto" style="background-color: #F46F36;">Submit</button>
 
             </div>
-           </div>
-           
+          </div>
+
         </form>
       </div>
     </div>
@@ -76,31 +70,31 @@
 
 
 <script>
-    (() => {
-  'use strict'
+  (() => {
+    'use strict'
 
-  // Fetch all the forms we want to apply custom Bootstrap validation styles to
-  const forms = document.querySelectorAll('.needs-validation')
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    const forms = document.querySelectorAll('.needs-validation')
 
-  // Loop over them and prevent submission
-  Array.from(forms).forEach(form => {
-    form.addEventListener('submit', event => {
-      if (!form.checkValidity()) {
-        event.preventDefault()
-        event.stopPropagation()
-      }
+    // Loop over them and prevent submission
+    Array.from(forms).forEach(form => {
+      form.addEventListener('submit', event => {
+        if (!form.checkValidity()) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
 
-      form.classList.add('was-validated')
-    }, false)
+        form.classList.add('was-validated')
+      }, false)
+    })
+  })()
+
+  const loginMessages = document.querySelectorAll('.login-messages')
+
+  loginMessages.forEach(msg => {
+    setTimeout(() => {
+      msg.style.display = "none"
+    }, 4000)
   })
-})()
-
-const loginMessages = document.querySelectorAll('.login-messages')
-
-loginMessages.forEach(msg => {
-  setTimeout(()=> {
-    msg.style.display = "none" 
-  }, 4000)
-})
 
 </script>

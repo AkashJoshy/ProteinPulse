@@ -1,9 +1,9 @@
 <div class="mt-5">
   <h3 class="category-title ms-3 ms-md-5 " style="cursor: pointer;">
     Carousels <a href="/admin/add-carousel">
-     <i class="fa-solid fa-square-plus text-success fs-2 ms-1"></i>
+      <i class="fa-solid fa-square-plus text-success fs-2 ms-1"></i>
     </a>
-    </h3>
+  </h3>
 </div>
 
 <div class="container table-responsive shadow-lg rounded mt-4">
@@ -11,69 +11,186 @@
     <thead class="table-dark">
       <tr>
         <th scope="col">NO</th>
-        <th scope="col">Carousal</th>
-        <th scope="col">Destination</th>
+        <th scope="col">Carousel Name</th>
+        <th scope="col">Image</th>
+        {{!-- <th scope="col">Destination</th> --}}
         <th scope="col">Expiry Date</th>
-        <th scope="col">Status</th>
         <th scope="col">Edit</th>
         <th scope="col">Delete</th>
       </tr>
     </thead>
     <tbody>
-      {{#each categories}}
+      {{#if carousels}}
+      {{#each carousels}}
       <tr>
         <th scope="row"> {{increment @index}} </th>
         <td> {{this.name}} </td>
-        <td> {{this.description}} </td>
+        <td> <img src="/uploads/{{this.imageUrl}}" style="height: 100px;" alt=""> </td>
+        <td> {{this.expiryDate}} </td>
         <td>
-          {{#if this.isActive}}
-          <label class="switch">
-            <input type="checkbox" checked />
-            <span class="slider round"></span>
-          </label>
-          {{else}}
-          <label class="switch">
-            <input type="checkbox" />
-            <span class="slider round"></span>
-          </label>
-          {{/if}}
-        </td>
-        <td>
-          <a href="/admin/edit-category/{{this._id}}">
+          <a href="/admin/edit-carousel/{{this._id}}">
             <i class="fa-solid fa-pen" style="cursor: pointer; color: rgb(15, 223, 15);">
             </i>
           </a>
         </td>
-        <td>
-          <a onclick="deleteCategory(`{{this._id}}`, this.parentElement.parentElement)" class="btn-category-action">
-            <i class="fa-solid fa-trash mx-auto px-3" style="cursor: pointer; color: red;">
-            </i>
-          </a>
-        </td>
+        {{#if (isActive this.isActive)}}
+        <td><i class="fa-solid fa-trash text-danger" style="margin-left: 20px;"
+            onclick="deleteCarousel(`{{this._id}}`, this.parentElement.parentElement)"></i></td>
+        {{else}}
+        <td>Expired</td>
+        {{/if}}
+
       </tr>
       {{/each}}
+      {{else}}
     </tbody>
   </table>
-  <h3 style="display: none;" class="text-center fw-2 error-message"></h3>
+  <td class="">
+    <h3 class="text-center text-danger">
+      No Carousels
+    </h3>
+  </td>
+  {{/if}}
+
+  {{#if errMsg}}
+  <h3 style="display: none;" class="text-center fw-2 error-message">
+  </h3>
+  {{/if}}
 
   {{#if pagination}}
   <nav aria-label="Page navigation example" class="d-flex fixed-bottom " style="z-index: 2;">
     <ul class="pagination mx-auto py-3 admin-pagination" id="pagination-body">
       {{#if pagination.isPrevious}}
       <li class="page-item"><a class="page-link bg-dark prev-next-number"
-          href="/admin/category?page={{paginationManipulation pagination.currentPage -1}}">Previous</a></li>
+          href="/admin/carousel/query?page={{paginationManipulation pagination.currentPage -1}}">Previous</a></li>
       {{/if}}
       {{#each (paginationNumbers 1 pagination.totalPages)}}
       <li class="page-item">
-        <a class="page-link page-number" href="/admin/category?page={{this}}">{{this}}</a>
+        <a class="page-link page-number" data-page="{{this}}" href="/admin/carousel/query?page={{this}}">{{this}}</a>
       <li>
         {{/each }}
 
         {{#if pagination.isNext}}
       <li class="page-item"><a class="page-link bg-dark prev-next-number"
-          href="/admin/category?page={{paginationManipulation pagination.currentPage 1}}">Next</a></li>
+          href="/admin/carousel/query?page={{paginationManipulation pagination.currentPage 1}}">Next</a></li>
       {{/if}}
     </ul>
   </nav>
   {{/if}}
 </div>
+
+
+<script>
+
+  let paginationBody = document.querySelector('#pagination-body')
+
+  paginationBody.addEventListener('click', (e) => {
+    e.preventDefault()
+    const page = parseInt(e.target.getAttribute('data-page'))
+    if (page >= 1) {
+      $.ajax({
+        url: `/admin/carousel/query`,
+        method: 'GET',
+        data: { page },
+        success: response => {
+          if (response.status) {
+            let pagination = response.pagination
+            let carousels = response.carousels
+            if (carousels) {
+              let html = ``
+              carousels.forEach((carousel, index) => {
+                html += `
+                <tr>
+                  <th scope="row"> ${index + 1} </th>
+                  <td> ${carousel.name} </td>
+                  <td> <img src="/uploads/${carousel.imageUrl}" style="height: 100px;" alt=""> </td>
+                  <td> ${carousel.expiryDate} </td>
+                  <td>
+                    <a href="/admin/edit-category/${carousel._id}">
+                    <i class="fa-solid fa-pen" style="cursor: pointer; color: rgb(15, 223, 15);">
+                    </i>
+                    </a>
+                  </td>
+                  ${carousel.isActive
+                    ?
+                    `
+                  <td><i class="fa-solid fa-trash text-danger" style="margin-left: 20px;"
+                    onclick="deleteCarousel(${carousel._id}, this.parentElement.parentElement)"></i></td>
+                  `
+                    :
+                    `
+                  <td>Expired</td>
+                  `
+                  }
+                </tr>
+                `
+              })
+              document.querySelector('tbody').innerHTML = html
+              //  document.querySelector('.error-message').innerHTML = ``
+            } else {
+              //  document.querySelector('.error-message').style.display = `block`
+              document.querySelector('tbody').innerHTML = `No Carousels`
+            }
+          } else {
+            window.location.href = response.redirected
+          }
+        }
+      })
+    }
+  })
+
+  const errMsg = document.querySelector('.error-message')
+
+  if (errMsg) {
+    Swal.fire(errMsg.value)
+  }
+
+
+  function deleteCarousel(carouselID, element) {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: `You won't be able to revert this!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#2196F3',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: `/admin/delete-carousel/${carouselID}`,
+          method: "DELETE",
+          success: response => {
+            if (response.status) {
+              Toastify({
+                text: response.message,
+                duration: 3000,
+                close: true,
+                gravity: "bottom",
+                position: "right",
+                style: {
+                  background: "black",
+                  color: "white",
+                  borderRadius: "10px"
+                }
+              }).showToast()
+              if (element) {
+                $(element).remove()
+              }
+            } else {
+              if (response.message) {
+                Swal.fire(response.message)
+                  .then(() => window.location.href = response.redirected)
+                return
+              }
+              window.location.href = response.redirected
+            }
+          }
+        })
+      }
+    })
+  }
+
+
+</script>

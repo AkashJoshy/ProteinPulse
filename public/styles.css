@@ -56,11 +56,9 @@
 /* Home Page */
 
 .banner-img {
-  /*
   object-fit: fill;
-   */
-   object-fit: cover;
-   height: 300px; 
+   /* object-fit: cover; */
+   height: 300px;
    width: 100%;
    border: 4px solid black;
 }
@@ -115,6 +113,124 @@ background: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(113,57,13,1) 47%, rgba
   translateX(26px); transform: translateX(26px); } /* Rounded sliders */
   .slider.round { border-radius: 34px; } .slider.round:before { border-radius:
   50%; }
+/*  */
+
+/* Step number for the payment */
+/* Step container */
+.step-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* Step circle */
+.step {
+  width: 40px;
+  height: 40px;
+  background-color: #ddd;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  color: #fff;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+/* Active step styling */
+.step.active {
+  background-color: #4caf50;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.1);
+}
+
+/* Step label */
+.step-label {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #555;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Line between steps */
+.step-line {
+  width: 50px;
+  height: 4px;
+  background-color: #ddd;
+  margin: 0 10px;
+  position: relative;
+}
+
+.step-line.active {
+  background-color: #4caf50;
+}
+
+/* Active line */
+.step-container.active ~ .step-line {
+  background-color: #4caf50;
+  transition: background-color 0.3s ease;
+}
+
+
+/* Slick Carousal */
+.carousal-homepage {
+  visibility: hidden;
+}
+
+div.slick-prev, div.slick-next {
+  background-color: red !important;
+  border-radius: 50%; 
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white !important;
+  font-size: 20px;
+  z-index: 1000;
+}
+
+div.slick-prev:hover, div.slick-next:hover {
+  background-color: darkred !important;
+}
+
+div.slick-prev {
+  left: -50px !important;
+}
+
+div.slick-next {
+  right: -50px !important;
+}
+
+ul.slick-dots li button:before {
+  color: white !important; /* White dots */
+  font-size: 8px;
+}
+
+ul.slick-dots li.slick-active button:before {
+  color: #ffffff !important;
+}
+
+/*  */
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .step-line {
+    width: 30px;
+  }
+  .step {
+    width: 35px;
+    height: 35px;
+    font-size: 0.85rem;
+  }
+  .step-label {
+    font-size: 0.8rem;
+  }
+}
+
 /*  */
 
 /* Category page - all products */
@@ -400,3 +516,4 @@ background: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(113,57,13,1) 47%, rgba
 
 
 }
+
