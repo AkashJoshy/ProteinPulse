@@ -5,8 +5,8 @@
         </div>
 
         <div class="col-md-9 mt-3">
-            <div class="d-flex me-2 me-md-5">
-                <h6 class="ms-auto px-2 py-1">Sort</h6>
+            <div class="d-flex me-2 me-md-1">
+                <h6 class="ms-auto px-2 py-1 mt-1">Sort</h6>
                 <select class="search-sort"
                     style="border-radius: 10px; color: rgb(17, 17, 17) ;padding-left: 5px; border: 2px solid black;"
                     aria-label="Default select example">
@@ -139,9 +139,15 @@
                             <a href="/user/products/${productFilter._id}" style="text-decoration: none;">
                             <div class="card mx-auto shadow-lg"
                                 style="width: 16rem;cursor: pointer;">
+                            ${productFilter.salePrice == productFilter.price
+                                    ? ``
+                                    :
+                                    `
                             <div class="offer-section px-2 text-center">
                                   OFFER ${productFilter.offer}%
                             </div>
+                            `
+                                }
                             <img style="height: 8rem; width: 10.5rem;" src="/uploads/${productFilter.imageUrl[0]}"
                                   class="card-img-top mt-4 mx-auto product-image pt-2" alt="..." />
                             <div class="card-body rounded-3"
@@ -208,5 +214,20 @@
         })
     })
 
+    const productContainer = document.querySelectorAll('.products-container')
+    const productImage = document.querySelectorAll('.product-image')
+    const offerSection = document.querySelectorAll('.offer-section')
+
+    productContainer.forEach((image, index) => {
+        image.addEventListener('mouseover', () => {
+            productImage[index].style.transform = "translateX(55px)"
+            productImage[index].style.transition = "transform 0.4s ease"
+
+        })
+        image.addEventListener('mouseout', () => {
+            productImage[index].style.transform = "translateX(0px)"
+            productImage[index].style.transition = "transform 0.4s ease"
+        })
+    })
 
 </script>

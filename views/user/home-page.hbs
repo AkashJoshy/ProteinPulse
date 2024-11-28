@@ -72,12 +72,13 @@
     {{! // products list }}
   </div>
   <div class="d-flex">
-    <a class="btn mt-5 mx-auto px-4 rounded-3" style="background-color: #F46F36;" href="">
+    <a class="btn mt-5 mx-auto px-4 rounded-3" style="background-color: #F46F36;" href="/user/products">
       More
     </a>
   </div>
 </div>
 
+{{#if categories}}
 {{! categories }}
 <div class="container mt-4 rounded-3" style="background-color: rgb(241, 241, 241);">
   <h5 class="py-4">Try Some Workout plans ?</h5>
@@ -99,6 +100,13 @@
   </div>
 </div>
 {{! // Categories }}
+{{else}}
+<div style="text-align: center; margin-top: 50px;">
+  <img src="https://via.placeholder.com/150" alt="Construction Icon" />
+  <h2>Oops! No categories yet!</h2>
+  <p>Our categories are still under construction 🚧. Stay tuned for something amazing!</p>
+</div>
+{{/if}}
 
 {{#if errMessage}}
 <input type="text" class="d-none" value="{{errMessage}}" id="error-message">
