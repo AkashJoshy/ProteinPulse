@@ -20,9 +20,11 @@
     <div class="col-sm-6 col-md-6 col-lg-4 col-xl-3 mt-3 products-container">
       <a href="/user/products/{{this._id}}" style="text-decoration: none;">
       <div class="card mx-auto shadow-lg" style="width: 18rem;cursor: pointer;">
+        {{#if (isOffer this.offer)}}
         <div class="offer-section px-2 text-center">
           OFFER {{this.offer}}%
         </div>
+        {{/if}}
         <img 
         style="height: 8rem; width: 10.5rem;"
         src="/uploads/{{this.imageUrl.[0]}}" class="card-img-top mt-4 mx-auto product-image pt-2" alt="..." />
