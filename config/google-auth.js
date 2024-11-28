@@ -5,7 +5,7 @@ require('dotenv').config()
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
-const PORT = process.env.port || 4000
+const PORT = process.env.PORT || 4000
 
 passport.use(new GoogleStrategy({
     clientID: GOOGLE_CLIENT_ID,
