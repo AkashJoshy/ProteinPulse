@@ -14,6 +14,7 @@ router.get("/verify-email", userController.emailVerify);
 router.get("/resend-signup-otp", userController.resendOtp);
 router.get("/forgot-password", userController.forgotPassword);
 router.get("/reset-password", userController.resetPassword);
+router.get("/brands", userAuthController.authHandler, userController.getBrands)
 router.get("/user-categories/:categoryName", userAuthController.authHandler, userController.categories);
 router.get("/order-checkout", userAuthController.authHandler, userController.orderCheckout)
 router.get("/dashboard/orders/download-invoice", userController.downloadInvoice)
