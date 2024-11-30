@@ -1,26 +1,68 @@
-const express = require('express')
-const router = express.Router()
-const adminController = require('../controllers/adminController')
+const express = require("express");
+const router = express.Router();
+const adminController = require("../controllers/adminController");
+const adminAuthHandler = require('../middlewares/adminAuthMiddleware')
 
-// Admin requests
-// get requests
-router.get('/', adminController.login)
-router.get('/home-page', adminController.homePage)
-router.get('/customers', adminController.getCustomers)
-router.get('/category', adminController.getCategories)
-router.get('/edit-customer/:userID', adminController.viewCustomer)
-router.get('/delete-customer/:userID', adminController.softDeleteCustomer)
-router.get('/add-category', adminController.addCategory)
-router.get('/edit-category/:categoryID', adminController.editCategory)
-router.get('/products', adminController.getProducts)
-router.get('/add-product', adminController.addProduct)
-router.get('/edit-product/:productID', adminController.editProduct)
+// ADMIN REQUESTS
+// GET REQUESTS
+router.get("/", adminController.login)
+router.get("/dashboard", adminAuthHandler.authHandler, adminController.dashboard);
+router.get("/customers", adminAuthHandler.authHandler, adminController.getCustomers);
+router.get("/customers/query", adminAuthHandler.authHandler, adminController.searchCustomers);
+router.get("/category", adminAuthHandler.authHandler, adminController.getCategories);
+router.get("/category/query", adminController.categoryQuery);
+router.get("/add-category", adminAuthHandler.authHandler, adminController.addCategory);
+router.get("/edit-category/:categoryID", adminAuthHandler.authHandler, adminController.editCategory);
+router.get("/products", adminAuthHandler.authHandler, adminController.getProducts);
+router.get("/add-product", adminAuthHandler.authHandler, adminController.addProduct);
+router.get("/edit-product/:productID", adminAuthHandler.authHandler, adminController.editProduct);
+router.get("/products/sort", adminController.sortProducts);
+router.get("/products/query", adminController.searchProducts);
+router.get("/orders", adminAuthHandler.authHandler, adminController.getOrders);
+router.get("/orders/view-details/:orderID", adminAuthHandler.authHandler, adminController.viewOrder);
+router.get("/orders/:filter", adminController.orderSorting);
+router.get("/coupon-management", adminAuthHandler.authHandler, adminController.couponPage);
+router.get("/sale-reports", adminAuthHandler.authHandler, adminController.salesReports);
+router.get("/sales-chart", adminController.salesChart);
+router.get("/get-sales-reports", adminController.getSalesReports);
+router.get("/download-sales-reports", adminController.downloadSalesReport);
+router.get("/carousel-management", adminAuthHandler.authHandler, adminController.getCarousels);
+router.get("/carousel/query", adminAuthHandler.authHandler, adminController.carouselQuery);
+router.get("/edit-carousel/:carouselID", adminAuthHandler.authHandler, adminController.viewCarousel);
+router.get("/add-carousel", adminAuthHandler.authHandler, adminController.viewAddCarousel);
+router.get("/carousel-destinations", adminAuthHandler.authHandler, adminController.getCarouselOptions);
+router.get("/offer-management", adminAuthHandler.authHandler, adminController.offerPage);
+router.get("/settings", adminAuthHandler.authHandler, adminController.settings);
+router.get("/logout/:adminID", adminAuthHandler.authHandler, adminController.logout);
 
 
-// post requests
-router.post('/', adminController.doLogin)
-router.post('/edit-customer', adminController.editCustomer)
-router.post('/add-category', adminController.saveAddCategory)
-router.post('/edit-category', adminController.saveEditCategory)
+// POST REQUESTS
+router.post("/", adminController.doLogin);
+router.post("/add-category", adminAuthHandler.authHandler, adminController.saveAddCategory);
+router.post("/add-product", adminAuthHandler.authHandler, adminController.saveProduct);
+router.post("/add-coupon", adminAuthHandler.authHandler, adminController.addCoupon);
+router.post("/add-offers", adminController.addOffers);
+router.post("/add-carousel", adminAuthHandler.authHandler, adminController.addCarousel);
+router.post("/edit-category", adminAuthHandler.authHandler, adminController.saveEditCategory);
 
-module.exports = router
+
+// PUT REQUESTS
+router.put("/edit-product", adminAuthHandler.authHandler, adminController.updateProduct);
+router.put("/product/update-stock", adminController.updateProductStock);
+router.put("/product/delete-image/:prodID/:imageUrl", adminController.deleteProductImage);
+router.put("/delete-customer", adminController.softDeleteCustomer);
+router.put("/restore-customer", adminController.restoreCustomer);
+router.put("/orders/update-status", adminController.updateOrderStatus);
+router.put("/orders/update-product-status", adminController.updateOrderProductStatus);
+router.put("/edit-carousel", adminController.editCarousel);
+
+
+// DELETE REQUESTS
+router.delete("/delete-product", adminController.deleteProduct);
+router.delete("/delete-coupon/:couponID", adminController.deleteCoupon);
+router.delete("/delete-carousel/:carouselID", adminController.deleteCarousel);
+router.delete("/delete-offer/:offerID", adminController.deleteOffer);
+router.delete("/delete-category/:categoryID", adminController.deleteCategory);
+
+
+module.exports = router;

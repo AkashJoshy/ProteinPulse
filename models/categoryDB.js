@@ -1,8 +1,9 @@
-const {Schema, model, Types} = require('mongoose')
+const {Schema, model} = require('mongoose')
 
-const categorySchema = new Schema({
+const CategorySchema = new Schema({
     name: {
-        type: String, 
+        type: String,
+        unique: true, 
         required: true
     },
     description: {
@@ -13,17 +14,17 @@ const categorySchema = new Schema({
         type: Boolean,
         default: true,
     },
-    // pagePath: {
-    //     type: String,
-    //     required: true
-    // },
+    image: {
+        type: String,
+        required: true
+    },
     createdAt: {
         type: Date,
         default: Date.now
     }    
 })
 
-const CategoryData = model('category', categorySchema)
+const CategoryData = model('Category', CategorySchema)
 
 module.exports = {
     CategoryData

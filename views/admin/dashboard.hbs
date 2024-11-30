@@ -1,0 +1,327 @@
+<style>
+  #salesChart {
+    background-color: #1c1d1d;
+    /*  
+  background-color: #000000;  
+  */
+  }
+
+  .chart-div {
+    height: 350px;
+    position: relative;
+  }
+</style>
+
+<div class="mt-5">
+  <h3 class="ms-3 ms-md-5">Dashboard</h3>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="d-flex flex-wrap justify-content-between"
+        style="border-radius: 15px; padding: 20px; background-color: #f8f9fa;">
+
+        <div class="bg-success text-center rounded-3 p-4 m-2 shadow-sm flex-fill" style="min-width: 200px;">
+          <p class="fw-bold text-white">Total Sales</p>
+          {{#if totalSales}}
+          <h3 class="text-white"> {{totalSales}} </h3>
+          {{else}}
+          <h3 class="text-white"> 0 </h3>
+          {{/if}}
+        </div>
+        <div class="bg-primary text-center rounded-3 p-4 m-2 shadow-sm flex-fill" style="min-width: 200px;">
+          <p class="fw-bold text-white">Total Orders</p>
+          {{#if orders}}
+          <h3 class="text-white"> {{orders}} </h3>
+          {{else}}
+          <h3 class="text-white">0</h3>
+          {{/if}}
+        </div>
+        <div class="bg-warning text-center rounded-3 p-4 m-2 shadow-sm flex-fill" style="min-width: 200px;">
+          <p class="fw-bold text-light">Total Users</p>
+          {{#if users}}
+          <h3 class="text-light"> {{users}} </h3>
+          {{else}}
+          <h3 class="text-light">0</h3>
+          {{/if}}
+        </div>
+        <div class="bg-info text-center rounded-3 p-4 m-2 shadow-sm flex-fill" style="min-width: 200px;">
+          <p class="fw-bold text-white">Total Products</p>
+          {{#if products}}
+          <h3 class="text-white">{{products}}</h3>
+          {{else}}
+          <h3 class="text-white">0</h3>
+          {{/if}}
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+{{!-- Sales Chart --}}
+{{!-- haeding --}}
+<div class="d-flex mt-2 justify-content-between">
+  <h3 class="p-2 ms-3 " style="color: #F46F36;"> Sales Chart </h3>
+  <div class="me-5">
+    <label for="">Filters</label>
+    <select name="" style="border:2px solid; border-radius: 5px;" class="p-1" id="salesCharts">
+      <option value="day">Daily</option>
+      <option value="week">Weekly</option>
+      <option value="month">Monthly</option>
+      <option value="year">Yearly</option>
+    </select>
+  </div>
+</div>
+
+{{!-- Download Options --}}
+<div class="d-flex justify-content-end me-5">
+  <button type="button" class="btn btn-sm btn-outline-success me-2 download-chart">Download</button>
+  <select name="" class="p-1" style="border:1px solid; border-radius: 5px;" class="p-1" id="export-options">
+    <option value="image">Export as Image</option>
+    <option value="csv">Export as CSV</option>
+  </select>
+</div>
+
+{{!-- chart --}}
+<div class="chart-div mt-4 mt-md-0 p-md-4 px-3 ">
+  <canvas id="salesChart" style="width: 100%; height: 100%;"></canvas>
+</div>
+
+
+<h3 class="ms-3 ms-md-4 mt-5">Best Selling Products</h3>
+<div class="mx-4 px-1 py-0 table-responsive shadow-sm rounded">
+  <table class="table mt-3">
+    <thead class="table-dark">
+      <tr class="text-center">
+        <th scope="col">NO</th>
+        <th scope="col">Image</th>
+        <th scope="col" >Name</th>
+        <th scope="col" class="text-center">Total Sales</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#if (isEmpty topProducts.length)}}
+      {{#each topProducts}}
+      <tr class="text-center">
+        <th scope="row"> {{increment @index}} </th>
+        <td> <img src="/uploads/{{this.imageUrl.[0]}}" class="text-center" style="height: 120px;" alt="top-selling-product"> </td>
+        <td > {{this.name}} </td>
+        <td class="text-center"> {{this.totalSales}} </td>
+      </tr>
+      {{/each}}
+    </tbody>
+      {{else}}
+      <th colspan="12" class="fw-semibold text-danger fs-4 text-center">No Products Available</th>
+      {{/if}}
+  </table>
+</div>
+
+<h3 class="ms-3 ms-md-4 mt-5">Best Selling Categories</h3>
+<div class="mx-4 px-1 py-0 table-responsive shadow-sm rounded">
+  <table class="table mt-3">
+    <thead class="table-dark">
+      <tr>
+        <th scope="col">NO</th>
+        <th scope="col" >Name</th>
+        <th scope="col" class="text-center">Total Sales</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#if (isEmpty topCategories.length)}}
+      {{#each topCategories}}
+      <tr>
+        <th scope="row"> {{increment @index}}</th>
+        <td > {{this._id}} </td>
+        <td class="text-center"> {{this.totalSales}} </td>
+      </tr>
+      {{/each}}
+    </tbody>
+      {{else}}
+      <th colspan="12" class="text-danger fw-semibold fs-4 text-center">No Categories Available</th>
+      {{/if}}
+  </table>
+</div>
+
+<h3 class="ms-3 ms-md-5 mt-5">Best Selling Brands</h3>
+<div class="mx-4 px-1 py-0 table-responsive shadow-sm rounded">
+  <table class="table mt-3">
+    <thead class="table-dark">
+      <tr>
+        <th scope="col">NO</th>
+        <th scope="col" >Name</th>
+        <th scope="col" class="text-center">Total Sales</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#if (isEmpty topBrands.length)}}
+      {{#each topBrands}}
+      <tr>
+        <th scope="row"> {{increment @index}}</th>
+        <td > {{this._id}} </td>
+        <td class="text-center"> {{this.totalSales}} </td>
+      </tr>
+      {{/each}}
+    </tbody>
+      {{else}}
+      <th colspan="12" class="text-danger fw-semibold fs-4 text-center">No Brands Available</th>
+      {{/if}}
+  </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+  // When pages loads
+  document.addEventListener('DOMContentLoaded', () => {
+    let salesChartFilters = document.querySelector('#salesCharts');
+    // 
+    // api calling using ajax
+    let salesData = []
+    let labels
+    let chartFilter = salesChartFilters.value
+
+    const ctx = document.getElementById('salesChart').getContext('2d');
+
+
+    $.ajax({
+      url: '/admin/sales-chart',
+      method: 'get',
+      data: {
+        filter: chartFilter
+      },
+      success: response => {
+        if (response.status) {
+          salesChart.data.datasets[0].data = response.updatedSalesChartData
+          salesChart.data.labels = response.labels
+          salesChart.update()
+        } else {
+          location.href = response.redirected
+        }
+      }
+    })
+
+    // Create the chart
+    const salesChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Total Sales',
+          data: salesData,
+          fill: false,
+          backgroundColor: 'rgba(240, 110, 110, 1)',
+          borderColor: 'rgba(244, 111, 54, 1)',
+          tension: 0.4 // Set tension for smooth lines
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false, // Allows the chart to fill its container
+        animations: {
+          tension: {
+            duration: 1000,
+            easing: 'linear',
+            from: 1,
+            to: 0,
+            loop: true
+          }
+        },
+        scales: {
+          y: {
+            grid: {
+              display: true,
+              color: 'rgba(120, 10, 10, 1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 1)'
+            },
+            beginAtZero: true
+          },
+          x: {
+            grid: {
+              display: true,
+              color: 'rgba(240, 110, 110, 1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 1)'
+            }
+          }
+        }
+      }
+    });
+
+
+
+
+    // Handle filter change to update chart data
+    if (salesChartFilters) {
+      salesChartFilters.addEventListener('change', e => {
+        let filter = e.target.value
+        $.ajax({
+          url: '/admin/sales-chart',
+          method: 'get',
+          data: {
+            filter: filter
+          },
+          success: response => {
+            if (response.status) {
+              salesData = response.updatedSalesChartData
+              salesChart.data.datasets[0].data = salesData
+              salesChart.data.labels = response.labels
+              salesChart.update()
+            } else {
+              location.href = response.redirected
+            }
+          }
+        })
+
+      });
+    }
+
+    // Download Sales Chart
+    const exportOptions = document.querySelector('#export-options')
+    const downloadChart = document.querySelector('.download-chart')
+    downloadChart.addEventListener('click', (e) => {
+      console.log(exportOptions.value)
+      let option = exportOptions.value
+      if (option === 'image') {
+        // Download saleschart in Image
+        let link = document.createElement('a')
+        // Converting the object into base64
+        let base64Image = salesChart.toBase64Image()
+        link.href = base64Image
+        console.log(base64Image)
+        link.download = 'sales_chart.png'
+        link.click()
+      } else if (option === 'csv') {
+        // Download saleschart in CSV
+        const csv = "data:text/csv;charset=utf-8," +
+          "Label,Sales\n" +
+          salesChart.data.labels.map((label, index) => {
+            if (salesChart.data.datasets[0].data[index]) {
+              return `${label}, ${salesChart.data.datasets[0].data[index]}`
+            } else {
+              return `${label}, 0`
+            }
+          }).join("\n")
+        let link = document.createElement('a')
+        const csvLink = encodeURI(csv)
+        link.href = csvLink
+        link.download = 'sales_chart.csv'
+        link.click()
+      } else {
+        Swal.fire(`Select a format to Download`)
+      }
+    })
+
+  });
+
+
+
+</script>

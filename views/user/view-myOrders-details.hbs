@@ -1,0 +1,818 @@
+<style>
+    .no-border-icon {
+        font-size: 2rem;
+        color: #f39c12;
+        /* Adjust color as needed */
+    }
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-11">
+            <div class=" mt-3 main border border-1">
+                <div class="d-flex border border-2 p-3 justify-content-between">
+                    <div>
+                        <h6 class="d-flex">
+                            <i id="orderPageRedirect" style="font-size: 1.3rem; color: black;"
+                                class="fa-solid fa-arrow-left"></i>
+                            <div class="px-2">
+                                ORDER RATING
+                            </div>
+                        </h6>
+                    </div>
+                    <div>
+                        <h6 class="" style="color: rgb(19, 107, 249);">
+                            Leave a Rating
+                            <i class="fa-solid fa-plus"></i>
+                        </h6>
+                    </div>
+                </div>
+                {{!-- --}}
+                <div class="border border-1 mt-1 py-4">
+
+                    <div class="rounded-1 mb-2 mt-3 p-3 ms-3 me-3" style="background-color: rgb(225, 225, 225);">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="px-0 px-md-3">
+                                <h5>{{order.orderNumber}}</h5>
+                                <p class="order-details"><span> {{ orderCount order.products}} </span>
+                                    <span>{{productCheck order.products.length}}.</span>
+                                    {{#if (isorderStatusPending order.paymentStatus)}}
+                                    {{else}}
+                                    <span>Order Placed on <span>{{order.createdAt}}</span></span>
+                                    {{/if}}
+
+                                </p>
+                            </div>
+                            <div class="ms-auto px-0">
+                                <h4 class="order-details-total-amount">
+                                    ₹ <span id="total-price-{{order._id}}">{{order.totalPrice}}</span>.00
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+                    {{!-- Order Expect Date --}}
+                    <div class="py-1">
+                        <p class="px-3 order-status-message">
+                            {{#if (isorderStatusPending order.paymentStatus)}}
+                            {{else}}
+                            {{orderTimelineMessage}}
+                            {{/if}}
+                        </p>
+                    </div>
+
+                    {{!-- Order progress --}}
+                    <div class="px-md-5 px-3">
+                        <div class="px-md-5 px-0">
+                            <div class="progress" role="progressbar" aria-label="info striped example"
+                                aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+                                {{#if (isCancelled order.status)}}
+                                <div class="progress-bar progress-bar-striped bg-danger"
+                                    style="width: {{orderProgress order.status}}%"></div>
+                                {{else}}
+                                <div class="progress-bar progress-bar-striped bg-info"
+                                    style="width: {{orderProgress order.status}}%"></div>
+                                {{/if}}
+
+                            </div>
+                            {{!-- order ID for Cancelling/.. --}}
+                            <div class="d-none">
+                                <h2 type="text" class="orderID">{{order._id}}</h2>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-2">
+                                <div class="mt-2">
+                                    <i style="font-size: 1.5rem; color: rgb(46, 201, 11);"
+                                        class="fa-regular fa-clipboard ms-2 "></i>
+                                    <div class="progress-names">
+                                        Order Placed
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <i style="font-size: 1.5rem; color: rgb(15, 80, 244);"
+                                        class="fa-solid fa-box-archive ms-3"></i>
+                                    <div class="progress-names">
+                                        Packaging
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <i style="font-size: 1.5rem; color: rgba(254, 24, 24, 0.864);"
+                                        class="fa-solid fa-truck-fast ms-3"></i>
+                                    <div class="progress-names">
+                                        Out for Delivery
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <i style="font-size: 1.5rem; color: rgb(46, 201, 11);"
+                                        class="fa-regular fa-handshake ms-2 ms-md-3"></i>
+                                    <div class="progress-names">
+                                        Delivered
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{!-- --}}
+                <div class="border border-1">
+                    <h5 class="p-3 px-3">Order Activity</h5>
+                    <div id="order-activities">
+
+                        {{#each order.orderActivity}}
+                        <div class="d-flex">
+
+                            {{#if (isorderStatusPending this.orderStatus)}}
+                            <div class="ms-3 mb-3 mb-md-2 rounded-1 d-flex justify-content-center align-items-center"
+                                style="background-color: rgb(112, 246, 112); ">
+                                <i class="fa-solid fa-clipboard-check px-4"
+                                    style="font-size: 2rem; color: rgb(9, 145, 4);"></i>
+                            </div>
+                            {{else}}
+                            {{#if (isorderStatusProcessing this.orderStatus)}}
+
+                            <div style="background-color: rgb(87, 184, 248);"
+                                class="ms-3 mb-3 mb-md-2 rounded-1 d-flex justify-content-center align-items-center">
+                                <i style="font-size: 2rem; color: rgb(211, 234, 250);"
+                                    class="fa-solid fa-hourglass-half px-4"></i>
+                            </div>
+                            {{else}}
+                            {{#if (isorderStatusShipped this.orderStatus)}}
+                            <div style="background-color: rgb(112, 246, 112);"
+                                class="ms-3 mb-3 mb-md-2 rounded-1 d-flex justify-content-center align-items-center">
+                                <i style="font-size: 1.4rem; color: rgb(9, 145, 4);" class="fa-solid fa-ship px-4"></i>
+                            </div>
+                            {{else}}
+                            {{#if (isorderStatusOutForDelivery this.orderStatus)}}
+                            <div style="background-color: rgb(87, 184, 248);"
+                                class="ms-3 mb-3 mb-md-2 rounded-1 d-flex justify-content-center align-items-center">
+                                <i style="font-size: 1.3rem; color: rgb(211, 234, 250);"
+                                    class="fa-solid fa-truck-fast px-4"></i>
+                            </div>
+                            {{else}}
+                            {{#if (isorderStatusDelivery this.orderStatus)}}
+                            <div style="background-color: rgb(112, 246, 112);"
+                                class="ms-3 mb-3 mb-md-2 rounded-1 d-flex justify-content-center align-items-center">
+                                <i style="font-size: 1.3rem;color: rgb(9, 145, 4); "
+                                    class="fa-solid fa-truck-ramp-box px-4"></i>
+                            </div>
+                            {{else}}
+                            <div
+                                class="bg-danger ms-3 mb-3 mb-md-2 rounded-1 d-flex justify-content-center align-items-center">
+                                <i style="font-size: 1.3rem;" class="fa-solid fa-rotate-right px-4"></i>
+                            </div>
+                            {{/if}}
+                            {{/if}}
+                            {{/if}}
+                            {{/if}}
+                            {{/if}}
+                            <div class="mt-2 px-2">
+                                <h6> {{this.message}} </h6>
+                                <p class="text-secondary">{{this.createdAt}}</p>
+                            </div>
+
+                        </div>
+                        {{/each}}
+
+                    </div>
+                </div>
+
+                <div class="border border-1">
+                    <h5 class="mt-4 px-3">Product ( <span> {{productNumbercheck order.products.length}} </span> )</h5>
+                    <div class="px-4 py-2 table-responsive">
+                        <table class="table table-borderless">
+                            <thead class="table-secondary border border-light">
+                                <tr>
+                                    <th class="text-dark font-sm" scope="col">PRODUCTS</th>
+                                    <th class="text-dark font-sm" scope="col">PRICE</th>
+                                    <th class="text-dark font-sm" scope="col">STATUS</th>
+                                    <th class="text-dark font-sm" scope="col">QUANTITY</th>
+                                    <th class="text-dark font-sm" scope="col">SUB-TOTAL</th>
+                                    <th class="text-dark font-sm" scope="col"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{!-- Products --}}
+                                {{#if (isorderStatusPending order.paymentStatus)}}
+
+                                {{#each products}}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex">
+                                            <div>
+                                                <img style="height: 6rem; width: 8rem;" src="/uploads/{{this.image}}"
+                                                    class="card-img-top mx-auto product-image pt-1" alt="..." />
+                                            </div>
+                                            <div class="pt-0 pt-md-5" style="color: rgb(4, 120, 244)">
+                                                {{this.productName}}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="mt-5">
+                                            ₹<span> {{this.salePrice}} </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="mt-5" id="status-{{this._id}}">
+                                            {{this.status}}
+                                        </div>
+
+                                    </td>
+                                    <td>
+                                        <div class="mt-5 px-3">
+                                            x<span> {{this.quantity}} </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="mt-5 px-3">
+                                            ₹<span> {{productTotal this.quantity this.salePrice}} </span>
+                                        </div>
+                                    </td>
+
+                                </tr>
+                                {{/each}}
+
+                                {{else}}
+
+                                {{#each products}}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex">
+                                            <div>
+                                                <img style="height: 6rem; width: 8rem;" src="/uploads/{{this.image}}"
+                                                    class="card-img-top mx-auto product-image pt-1" alt="..." />
+                                            </div>
+                                            <div class="pt-0 pt-md-5" style="color: rgb(4, 120, 244)">
+                                                {{this.productName}}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="mt-5">
+                                            ₹<span> {{this.salePrice}} </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="mt-5" id="status-{{this._id}}">
+                                            {{this.status}}
+                                        </div>
+
+                                    </td>
+                                    <td>
+                                        <div class="mt-5 px-3">
+                                            x<span> {{this.quantity}} </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="mt-5 px-3">
+                                            ₹<span> {{productTotal this.quantity this.salePrice}} </span>
+                                        </div>
+                                    </td>
+                                    {{#if (isCancelled this.status)}}
+
+                                    {{else}}
+
+                                    <td>
+                                        <div onclick="cancelProduct(`{{this.productID}}`, `{{this._id}}`, `{{this.productName}}`, this)"
+                                            class="btn btn-danger btn-sm mt-5">REMOVE
+                                        </div>
+                                    </td>
+
+                                    {{/if}}
+
+                                </tr>
+                                {{/each}}
+                                {{/if}}
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+                {{!-- Address part --}}
+                <div class="border border-1">
+                    <div class="d-md-flex d-block justify-content-evenly">
+                        <div class="card py-2" style="width: 18rem; border: none;">
+                            {{#if billingAddress}}
+                            <div class="card-body">
+                                <h5 class="card-title">Billing Address</h5>
+                                <h6 class="card-subtitle mb-2 text-body-secondary mt-2"> {{order.address.firstName}}
+                                    {{order.address.lastName}} </h6>
+                                <p class="card-text">
+                                    {{billingAddress.address}}
+                                </p>
+                                <p class="card-text">
+                                    Phone: <span>{{billingAddress.mobile}}</span>
+                                </p>
+                                <p class="card-text">
+                                    Email: <span> {{user.email}} </span>
+                                </p>
+                            </div>
+
+                            {{else}}
+
+                            <div class="card-body">
+                                <h5 class="card-title">Billing Address</h5>
+                                <h6 class="card-subtitle mb-2 text-body-secondary mt-2"> {{order.address.firstName}}
+                                    {{order.address.lastName}} </h6>
+                                <p class="card-text">
+                                    {{order.address.address}}
+                                </p>
+                                <p class="card-text">
+                                    Phone: <span>{{order.address.mobileNumber}}</span>
+                                </p>
+                                <p class="card-text">
+                                    Email: <span> {{user.email}} </span>
+                                </p>
+                            </div>
+
+
+                            {{/if}}
+                        </div>
+                        <div class="border"></div>
+                        <div class="card py-2" style="width: 18rem; border: none;">
+                            <div class="card-body">
+                                <h5 class="card-title">Shipping Address</h5>
+                                <h6 class="card-subtitle mb-2 text-body-secondary mt-2"> {{order.address.firstName}}
+                                    {{order.address.lastName}} </h6>
+                                {{#if (isCompany order.address.companyName)}}
+                                <p class="card-text">
+                                    {{order.address.companyName}}
+                                </p>
+                                {{/if}}
+                                <p class="card-text">
+                                    {{order.address.address}}
+                                </p>
+                                <p class="card-text">
+                                    Phone: <span> {{order.address.mobileNumber}} </span>
+                                </p>
+                                <p class="card-text">
+                                    Email: <span> {{user.email}} </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="border"></div>
+                        <div class="card py-2" style="width: 18rem; border: none;">
+                            <div class="card-body">
+                                <h5 class="card-title">Order Notes</h5>
+                                <p class="card-text">
+                                    Nill
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div id="order-management" class="col-md-1">
+            {{!-- return , invoice, cancel --}}
+            {{#if (isorderStatusPending order.paymentStatus)}}
+            <div class="col-md-1">
+                <div class="ms-auto me-2 me-md-4 mt-4 d-md-block d-flex justify-content-center">
+                    <div class="invoice w-100">
+                        <div class="btn text-light" onclick="retryPayment(`{{order._id}}`)"
+                            style="background-color: #F46F36; border: 1px solid white;">
+                            Pay Now
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{else}}
+            {{#if (isCancelled order.status)}}
+            <div class="col-md-1">
+                <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
+                    <div class="invoice" onclick="downloadInvoice(`{{order._id}}`, this)">
+                        <div class="btn text-light" style="background-color: #F46F36; border: 1px solid white;">
+                            Invoice
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{else}}
+            {{#if (isDelivered order.status)}}
+            <div class="col-md-1" id="order-return">
+                <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
+                    <div class="cancel" {{!-- onclick="myOrderUpdate('{{order._id}}', 'Cancelled', 'cancel-order')"
+                        --}}>
+                        <div class="btn text-light" style="background-color: black; border: 1px solid white;">
+                            Return
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-1">
+                <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
+                    <div class="invoice" onclick="downloadInvoice(`{{order._id}}`, this)">
+                        <div class="btn text-light" style="background-color: #F46F36; border: 1px solid white;">
+                            Invoice
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{else}}
+            {{#if (isReturned order.status)}}
+            <div class="col-md-1">
+                <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
+                    <div class="invoice" onclick="downloadInvoice(`{{order._id}}`, this)">
+                        <div class="btn text-light" style="background-color: #F46F36; border: 1px solid white;">
+                            Invoice
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{else}}
+            {{#if (isorderStatusRefunded order.status)}}
+            <div class="col-md-1">
+                <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
+                    <div class="invoice" onclick="downloadInvoice(`{{order._id}}`, this)">
+                        <div class="btn text-light" style="background-color: #F46F36; border: 1px solid white;">
+                            Invoice
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{else}}
+            <div class="col-md-1" id="order-cancel">
+                <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
+                    <div class="cancel" onclick="myOrderUpdate('{{order._id}}', 'Cancelled', 'cancel-order')">
+                        <div class="btn text-light" style="background-color: black; border: 1px solid white;">
+                            Cancel
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{/if}}
+            {{/if}}
+            {{/if}}
+            {{/if}}
+            {{/if}}
+            {{!-- --}}
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+
+    /*
+    // Order Detail Page back Button
+    const backBtn = document.querySelector('#orderPageRedirect')
+    backBtn.addEventListener('click', () => {
+        window.location.href = "/dashboard/orders"
+    })
+    */
+
+    // Cancel My order
+    function myOrderUpdate(orderID, orderUpdate, urlEndpoint) {
+        Swal.fire({
+            title: 'Are you sure you want to cancel this order?',
+            text: `Cancelling this order will prevent you from receiving the products and may not be reversible. Are you sure you want to proceed?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#c82333',
+            confirmButtonText: 'Yes, cancel the order',
+            cancelButtonText: 'No, Keep the order',
+        }).then(result => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/dashboard/orders/${urlEndpoint}`,
+                    method: 'PUT',
+                    data: {
+                        orderID,
+                        orderUpdate
+                    },
+                    success: response => {
+                        if (response.status) {
+                            Swal.fire(response.message)
+                            setTimeout(() => {
+                                window.location.href = response.redirected
+                            }, 500)
+                        } else {
+                            if (response.message) {
+                                Swal.fire(response.message)
+                                    .then(() => location.href = response.redirected)
+                                    .catch(err => Swal.fire('Error while cancelling order'))
+                                return
+                            }
+                            window.location.href = response.redirected
+                        }
+                    }
+                })
+            }
+        })
+    }
+
+
+    // single Product status changes to Cancelled
+    let orderID = document.querySelector('.orderID')
+    orderID = orderID.innerHTML
+    function cancelProduct(productID, orderProdID, productName, element) {
+        Swal.fire({
+            title: `Do you want to remove ${productName} from your order?`,
+            text: 'Removing this product will update your order and adjust the total price. Do you want to proceed?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: `Yes, remove the product`,
+            cancelButtonText: 'No, keep the product',
+        }).then(result => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/dashboard/orders/cancel-product`,
+                    method: 'PUT',
+                    data: {
+                        orderID,
+                        productID
+                    },
+                    success: response => {
+                        if (response.status) {
+                            let orderActivity = response.orderActivity
+                            let html = ``
+                            let statusOption = ``
+
+                            orderActivity.forEach(activity => {
+                                if (activity.orderStatus === `Pending`) {
+                                    statusOption = `
+                            <div style="background-color: rgb(112, 246, 112);" class="ms-3 mb-3 mb-md-2 rounded-1">
+                            <i style="font-size: 2rem; color: rgb(9, 145, 4);" class="fa-solid fa-clipboard-check mt-4 mt-md-3 px-4"></i>
+                            </div>
+                            `
+                                } else if (activity.orderStatus === `Processing`) {
+                                    statusOption = `
+                            <div style="background-color: rgb(87, 184, 248);" class="ms-3 mb-3 mb-md-2 rounded-1">
+                            <i style="font-size: 2rem; color: rgb(211, 234, 250);" class="fa-solid fa-hourglass-half mt-4 mt-md-3 px-4"></i>
+                            </div
+                            `
+                                } else if (activity.orderStatus === `Shipped`) {
+                                    statusOption = `
+                            <div style="background-color: rgb(112, 246, 112);" class="ms-3 mb-3 mb-md-2 rounded-1">
+                            <i style="font-size: 1.4rem; color: rgb(9, 145, 4);" class="fa-solid fa-ship mt-4 px-4"></i>
+                            </div>
+                            `
+                                } else if (activity.orderStatus === `OutForDelivery`) {
+                                    statusOption = `
+                            <div style="background-color: rgb(87, 184, 248);" class="ms-3 mb-3 mb-md-2 rounded-1">
+                            <i style="font-size: 1.3rem; color: rgb(211, 234, 250);" class="fa-solid fa-truck-fast mt-4 px-4"></i>
+                            </div>
+                            `
+                                } else if (activity.orderStatus === `Delivered`) {
+                                    statusOption = `
+                            <div style="background-color: rgb(112, 246, 112);" class="ms-3 mb-3 mb-md-2 rounded-1">
+                            <i style="font-size: 1.3rem; color: rgb(9, 145, 4);" class="fa-solid fa-truck-ramp-box mt-4 px-4"></i>
+                            </div>
+                            `
+                                } else {
+                                    statusOption = `
+                            <div class="bg-danger ms-3 mb-3 mb-md-2 rounded-1">
+                            <i style="font-size: 1.3rem;" class="fa-solid fa-rotate-right mt-4 px-4"></i>
+                            </div>
+                            `
+                                }
+
+                                html += `
+                            <div class="d-flex">
+                            ${statusOption}
+                            <div class="mt-2 px-2">
+                            <h6>${activity.message}</h6>
+                            <p class="text-secondary">19 Jan, 2021 at 2:61 PM</p>
+                            </div>
+                            </div>
+                            `
+                            })
+
+                            document.querySelector('#order-activities').innerHTML = html
+
+                            // If the Order is Cancelled
+                            if (response.isOrderCancelled) {
+                                document.querySelector('#order-cancel').innerHTML = `
+                            <div class="col-md-1">
+                            <div class="ms-auto me-1 me-md-4 mt-4 d-md-block d-flex justify-content-center">
+                                <div class="invoice" onclick="downloadInvoice(${response.order._id}, this)">
+                                    <div class="btn text-light" style="background-color: #F46F36; border: 1px solid white;">Invoice
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                            `
+                            document.querySelector('.order-status-message').innerHTML = `Order has been Cancelled`
+                            }
+
+                            if (element) {
+                                $(element).remove()
+                            }
+
+                            // Show Oder Cancellation msg
+                            Toastify({
+                                text: `Product ${response.productStatus}`,
+                                duration: 3000,
+                                close: true,
+                                gravity: "bottom",
+                                position: "right",
+                                style: {
+                                    background: "black",
+                                    color: "white",
+                                    borderRadius: "10px"
+                                }
+                            }).showToast();
+                            document.querySelector(`#status-${orderProdID}`).innerHTML = response.productStatus
+                            document.querySelector(`#total-price-${orderID}`).innerHTML = response.totalPrice
+                        } else {
+                            if (response.redirected) {
+                                window.location.href = response.redirected
+                            } else {
+                                // Toastify
+                                Toastify({
+                                    text: response.message,
+                                    duration: 3000,
+                                    close: true,
+                                    gravity: "bottom",
+                                    position: "right",
+                                    style: {
+                                        background: "black",
+                                        color: "white",
+                                        borderRadius: "10px"
+                                    }
+                                }).showToast();
+                            }
+                        }
+                    }
+                })
+
+            }
+        })
+    }
+
+
+    function downloadInvoice(orderID, parentElement) {
+        const btnElement = parentElement.querySelector('.btn')
+        let elementValue = btnElement.innerText
+        const spinner = document.createElement('span');
+        spinner.className = 'spinner-border spinner-border-sm text-light';
+        spinner.style.marginLeft = '10px'
+        spinner.style.marginRight = '10px'
+        btnElement.innerText = ''
+        btnElement.appendChild(spinner)
+        setTimeout(() => {
+            btnElement.innerText = elementValue
+            $.ajax({
+                url: `/dashboard/orders/download-invoice`,
+                method: 'GET',
+                data: {
+                    orderID
+                },
+                success: response => {
+                    if (response.status) {
+                        let link = document.createElement('a')
+                        link.href = `/invoices/${response.fileName}`
+                        link.download = `${response.fileName}`
+                        link.click()
+                    } else {
+                        if (response.message) {
+                            Swal.fire(response.message).then(() => window.location.href = response.redirected)
+                            return
+                        }
+                        window.location.href = response.redirected
+                    }
+                }
+            })
+
+        }, 2000)
+    }
+
+    function retryPayment(orderID) {
+        Swal.fire({
+            title: `Do you want to Retry the order?`,
+            text: 'Do you want to retry the payment?',
+            iconHtml: '🔄',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: `Yes, retry payment`,
+            cancelButtonText: 'No, cancel',
+            customClass: {
+                icon: 'no-border-icon'
+            }
+        }).then(result => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/dashboard/orders/retry-payment`,
+                    method: 'PUT',
+                    data: {
+                        orderID
+                    },
+                    success: response => {
+                        if (response.status) {
+                            // Swal.fire(response.orderID)
+                            razorPayPayment(response.order, response.RAZORPAY_KEY_ID, response.user)
+                        } else {
+                            if (response.message) {
+                                Swal.fire(response.message).then(() => window.location.href = response.redirected)
+                                return
+                            }
+                        }
+                    }
+                })
+            }
+        });
+    }
+
+
+    function razorPayPayment(order, keyID, userDetails) {
+        var options = {
+            "key": keyID,
+            "amount": order.amount,
+            "currency": "INR",
+            "name": "PROTEIN PULZE PLAZA",
+            "description": "Test Transaction",
+            "image": "/picture/logo/logoUser.png",
+            "order_id": order.id,
+            "handler": function (response) {
+                // alert(response.razorpay_payment_id);
+                // alert(response.razorpay_order_id);
+                // alert(response.razorpay_signature);
+                // calls the Fn to verify Razorpay Payment
+                verifyPayment(response, order)
+            },
+            "prefill": {
+                "name": userDetails.firstName + " " + userDetails.lastName,
+                "email": userDetails.email,
+                "contact": userDetails.mobileNumber
+            },
+            "notes": {
+                "address": "Razorpay Corporate Office"
+            },
+            "theme": {
+                "color": "#F46F36"
+            }
+        };
+
+        var rzp1 = new Razorpay(options);
+        rzp1.on('payment.failed', function (response) {
+            // alert("Payment failed!");
+            // alert(response.error.description);
+            Swal.fire({
+                title: 'Payment Failed',
+                //text: 'Your payment could not be processed. Please try again.',
+                text: response.error.description,
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonText: 'Retry Payment',
+                cancelButtonText: 'Go to Cart'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    rzp1.open();
+                } else {
+                    window.location.href = '/cart';
+                }
+            });
+        });
+        rzp1.open();
+
+    }
+
+    function verifyPayment(razorpay, order) {
+        if (razorpay.razorpay_payment_id) {
+            $.ajax({
+                url: `/verify-payment`,
+                method: 'PUT',
+                data: {
+                    razorpay,
+                    order
+                },
+                success: response => {
+                    if (response.status) {
+                        if (response.success) {
+                            window.location.href = response.redirected
+                        } else {
+                            Swal.fire("Payment failed").then(() => window.location.href = response.redirected)
+                        }
+                    }
+                    else {
+                        if (!response.redirected) {
+                            window.location.href = response.redirected
+                            return
+                        }
+                        Swal.fire(response.message)
+                    }
+                },
+                error: (xhr, status, err) => {
+                    console.error(err);
+                }
+            })
+
+        } else {
+            // If the Payment failes
+            Swal.fire("Payment failed").then(() => window.location.href = '/dashboard/my-cart')
+        }
+    }
+
+</script>
