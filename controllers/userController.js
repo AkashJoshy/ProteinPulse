@@ -497,7 +497,7 @@ const resetPassword = asyncHandler(async (req, res, next) => {
   res.render("user/reset-password", { user });
 });
 
-// forgot password (saving new password)
+// forgot password
 const recoveredPassword = asyncHandler(async (req, res, next) => {
   try {
     const { newPassword, confirmPassword, userID } = req.body;
@@ -518,6 +518,29 @@ const recoveredPassword = asyncHandler(async (req, res, next) => {
   }
 });
 
+// Brands
+const getBrands = asyncHandler(async (req, res) => {
+  try {
+
+    const userID = req.session.user._id
+    const user = await UserData.findById(userID).lean()
+
+    if (!user) {
+      req.session.user = null;
+      const err = new Error("User not Found")
+      const redirectPath = "/login";
+      return next({ error: err, redirectPath });
+    }
+
+    return res.render("user/view-brands", {
+      auth: true,
+      user
+    })
+  } catch (error) {
+    const err = new Error("Oops... Something Went Wrong")
+    return next({ error: err, message: err })
+  }
+})
 
 // Order cancel
 const cancelOrder = asyncHandler(async (req, res, next) => {
@@ -872,6 +895,7 @@ const categories = asyncHandler(async (req, res, next) => {
       const redirectPath = "/login";
       return next({ error: err, redirectPath });
     }
+
     const categoryName = req.params.categoryName;
     const category = await CategoryData.findOne({ name: categoryName })
 
@@ -1064,7 +1088,7 @@ const downloadInvoice = asyncHandler(async (req, res) => {
       return res.json({ status: false, redirected: '/login' })
     }
 
-    if(!order) {
+    if (!order) {
       return res.json({
         message: "No order found!",
         status: false,
@@ -1077,7 +1101,7 @@ const downloadInvoice = asyncHandler(async (req, res) => {
       status: true,
       fileName
     })
-    
+
   } catch (error) {
     return res.json({
       message: "Oops Something went wrong",
@@ -1562,7 +1586,7 @@ const testing = asyncHandler(async (req, res) => {
       customer: 'Dr Strange'
     }
     let fileName = invoiceGenerator(orders)
-    
+
     return res.render('testing', {})
   } catch (error) {
     console.log(error)
@@ -1586,6 +1610,7 @@ module.exports = {
   checkEmailForPassword,
   resetPassword,
   recoveredPassword,
+  getBrands,
   cancelOrder,
   retryPayment,
   cancelProduct,
