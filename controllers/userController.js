@@ -524,7 +524,18 @@ const getBrands = asyncHandler(async (req, res) => {
 
     const userID = req.session.user._id
     const user = await UserData.findById(userID).lean()
-
+    let brands = [`BPI Sports`,
+      `Dragon Pharma`,
+      `Dymatize`,
+      `BNC`,
+      `GNC`,
+      `Muscleblaze`,
+      `Muscle Science`,
+      `One Science`,
+      `Optimum Nutrition`,
+      `QNT`,
+      `Ritebite`,
+    ]
     if (!user) {
       req.session.user = null;
       const err = new Error("User not Found")
@@ -534,7 +545,8 @@ const getBrands = asyncHandler(async (req, res) => {
 
     return res.render("user/view-brands", {
       auth: true,
-      user
+      user,
+      brands
     })
   } catch (error) {
     const err = new Error("Oops... Something Went Wrong")
