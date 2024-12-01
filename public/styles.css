@@ -424,7 +424,7 @@ ul.slick-dots li.slick-active button:before {
   }
 
   .table-responsive {
-    max-height: 350px; 
+    /* max-height: 350px;  */
     overflow-y: auto;
 }
   
@@ -454,7 +454,7 @@ ul.slick-dots li.slick-active button:before {
   }
 
   .table-responsive {
-    max-height: 350px; 
+    /* max-height: 350px;  */
     overflow-y: auto;
 }
 

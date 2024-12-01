@@ -15,8 +15,6 @@ const { WalletData } = require('../models/WalletDB')
 const { getPaginatedData } = require('../utils/paginationHelper')
 require("dotenv").config();
 
-
-// Razorpay
 const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
 
 // Dashboard
@@ -35,7 +33,6 @@ const dashboard = asyncHandler(async (req, res, next) => {
         const address = await AddressData.findOne({ userID: userID }).lean();
         const orders = await OrderData.find({ userID });
 
-        // User's Order Count and status
         const userOrdersDetails = await OrderData.aggregate([
             {
                 $match: { userID: new mongoose.Types.ObjectId(userID) },
@@ -44,7 +41,6 @@ const dashboard = asyncHandler(async (req, res, next) => {
                 $group: {
                     _id: null,
                     pendingOrders: {
-                        // Here, if Status is "Pending", return 1 and 0 otherwise and then sum all values
                         $sum: {
                             $cond: [{ $eq: ["$status", "Pending"] }, 1, 0],
                         },
@@ -99,7 +95,6 @@ const dashboard = asyncHandler(async (req, res, next) => {
             });
         }
 
-        // User Order Details
         totalOrders = orders == null ? 0 : userOrdersDetails[0].totalOrders;
         pendingOrders = orders == null ? 0 : userOrdersDetails[0].pendingOrders;
         completedOrders = orders == null ? 0 : userOrdersDetails[0].completedOrders;
@@ -418,7 +413,6 @@ const viewAddresses = asyncHandler(async (req, res, next) => {
         }
         const address = await AddressData.findOne({ userID }).lean();
 
-        // If the user doesnt have saved address before
         if (!address) {
             return res.render("user/view-saved-address", {
                 auth: true,
@@ -476,7 +470,7 @@ const getAddressEdit = asyncHandler(async (req, res, next) => {
                     $project: { shippingAddress: 1 },
                 },
             ]);
-            console.log(address);
+
             return res.render("user/edit-address", {
                 auth: true,
                 isDashboard: true,
@@ -506,7 +500,6 @@ const getAddressEdit = asyncHandler(async (req, res, next) => {
                     $project: { billingAddress: 1 },
                 },
             ]);
-            // console.log(address);
 
             return res.render("user/edit-address", {
                 auth: true,
@@ -544,10 +537,7 @@ const wallet = asyncHandler(async (req, res, next) => {
         
         let page = Number(req.query.page) || 1
         let limit = Number(req.query.limit) || 5
-
-        console.log(page);
         let skip = (page - 1) * limit
-
 
         let walletTransactions
         if (wallet.transactions.length <= 0) {
@@ -721,7 +711,6 @@ const saveAddress = asyncHandler(async (req, res, next) => {
         }
 
         if (addressType == "billingAddress") {
-            // Updating
             await AddressData.findOneAndUpdate(
                 {
                     userID,
@@ -828,10 +817,8 @@ const addToWallet = asyncHandler(async (req, res, next) => {
                 }
             }, { new: true })
 
-
-        // Razorpay instance creation
         var options = {
-            amount: amount * 100, // amount in the smallest currency unit
+            amount: amount * 100,
             currency: "INR",
             receipt: transactionID,
         };
@@ -866,10 +853,8 @@ const verifyWalletTopup = asyncHandler(async (req, res, next) => {
             })
         }
 
-        console.log(topUp)
         let topUpAmount = Number(topUp.amount)
         topUpAmount = topUpAmount / 100
-        console.log(`Topup Amount: ${topUpAmount}`)
         const secretKey = process.env.RAZORPAY_SECRET_KEY;
         if (!secretKey) {
             return res.json({ success: false, message: "Internal server error" });
@@ -884,14 +869,12 @@ const verifyWalletTopup = asyncHandler(async (req, res, next) => {
         let generatedSignature = hash.digest("hex");
 
         if (generatedSignature == razorpay.razorpay_signature) {
-            // Top-Up is Success
             await WalletData.findOneAndUpdate(
                 { 'transactions.transactionID': topUp.receipt, userID: userID },
                 { $set: { 'transactions.$.status': "Success" }, $inc: { balance: topUpAmount } },
                 { new: true }
             );
 
-            // Total Wallet Balance
             let walletBalance = await WalletData.aggregate([
                 {
                     $match: { userID: new mongoose.Types.ObjectId(userID) }
@@ -957,7 +940,6 @@ const updateUserDetails = asyncHandler(async (req, res, next) => {
             return res.json({ status: false, redirected: "/login" });
         }
 
-        // updating User data
         await UserData.findByIdAndUpdate({ _id: userID }, req.body);
         return res.json({
             status: true,
@@ -988,7 +970,6 @@ const updateUserProfilePic = asyncHandler(async (req, res, next) => {
             return res.json({ status: false, redirected: "/login" });
         }
 
-        console.log(req.files[0]);
         let profilePicUrl = req.files[0].filename;
         await UserData.findByIdAndUpdate(
             { _id: userID },
@@ -1029,7 +1010,7 @@ const changePassword = asyncHandler(async (req, res, next) => {
             password,
             user.password
         );
-        console.log(isPasswordValid);
+    
         if (!isPasswordValid) {
             req.session.passwordErr = "Password is Incorrect";
             return res.json({
@@ -1074,7 +1055,6 @@ const deleteAddress = asyncHandler(async (req, res, next) => {
     }
     
     try {
-        console.log(req.body);
         let { _id, addressField } = req.body;
         const userID = req.session.user._id
         const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
@@ -1087,7 +1067,6 @@ const deleteAddress = asyncHandler(async (req, res, next) => {
             })
         }
 
-        // Shipping Address Deletion
         if (addressField == "shippingAddress") {
             const address = await AddressData.findOneAndUpdate(
                 { userID, "shippingAddress._id": _id },
@@ -1095,7 +1074,7 @@ const deleteAddress = asyncHandler(async (req, res, next) => {
                     $pull: { shippingAddress: { _id: _id } },
                 }
             );
-            console.log(address);
+      
             return res.json({
                 status: true,
                 redirected: "/user/dashboard/address/saved-address",
@@ -1108,7 +1087,7 @@ const deleteAddress = asyncHandler(async (req, res, next) => {
             { $project: { billingAddress: 1 } },
         ]);
 
-        // Billing Address deletion failed if it only one billing Address
+
         if (address[0].billingAddress.length === 1) {
             return res.json({
                 status: true,
@@ -1117,7 +1096,7 @@ const deleteAddress = asyncHandler(async (req, res, next) => {
             });
         }
 
-        // Billing Address Deletion
+
         await AddressData.findOneAndUpdate(
             { userID, "billingAddress._id": _id },
             {

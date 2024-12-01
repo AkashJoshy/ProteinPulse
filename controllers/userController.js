@@ -63,9 +63,8 @@ let transporter = nodemailer.createTransport({
 // Otp Sending to Email
 const userOtpSent = async (userID, otp) => {
   try {
-    // Finding the User
-    const user = await UserData.findById(userID);
 
+    const user = await UserData.findById(userID);
     const mailOptions = {
       from: email,
       to: user.email,
@@ -222,7 +221,6 @@ const doSignup = asyncHandler(async (req, res, next) => {
       if (referralCode) {
         referredUser = await UserData.findOne({ referralCode: referralCode })
       }
-      // referredUser = referralCode ? await UserData.findOne({ referralCode: referralCode }) : null
       let walletBalance = referredUser !== undefined ? 50 : 0
 
       let referredBy
@@ -692,7 +690,6 @@ const cancelProduct = asyncHandler(async (req, res, next) => {
 
       let paymentType = updatedOrder.paymentMethod
       const transactionID = await generateTransactionID(userID)
-      // walletAmount = updatedOrder.totalSalePrice
       walletAmount = Number(walletAmount)
       const wallet = await WalletData.findOneAndUpdate(
         { userID: userID },
@@ -786,15 +783,12 @@ const cancelProduct = asyncHandler(async (req, res, next) => {
     deliveryFee = originalPrice >= 4500 ? 100 : 0;
     totalPrice += deliveryFee;
 
-    // Coupon Checking after Cancellation (Checking whether the coupon can be used after Deduction)
     let isValidCoupon;
     let couponPrice = 0;
     let coupons = await Promise.all(
       order.coupons.map(async (coupon) => {
         isValidCoupon = await CouponData.findOne({ code: coupon.code });
-        //  if() Coupon Expiry
-
-        // cheking the coupon is valid to use
+   
         if (isValidCoupon) {
           return originalPrice >= isValidCoupon.minOrderValue
             ? isValidCoupon
@@ -1181,7 +1175,6 @@ const placeOrder = asyncHandler(async (req, res, next) => {
       coupons,
     } = await cartTotalPrice(userID)
 
-    // Cart Products
     const cart = await CartData.findById(cartID).lean()
     if (!cart) {
       return res.json({ status: false, message: "Cart is missing" })
@@ -1194,7 +1187,6 @@ const placeOrder = asyncHandler(async (req, res, next) => {
       }
     }
 
-    // COD > 1000 ? okk : restrict
     if (paymentMethod == 'COD' && totalSalePrice >= 1000) {
       return res.json({ status: false, message: "COD is available only for orders below ₹1000. Please choose another payment method" })
     }
@@ -1468,7 +1460,6 @@ const placeOrderRazorpay = asyncHandler(async (req, res, next) => {
   let originalPrice = cartTotal[0].originalPrice;
   let totalSalePrice = cartTotal[0].totalSalePrice;
 
-  // Create a Order Number
   const orderNumber = await generateOrderNumber();
 
   if (req.body.paymentMethod === "Razorpay") {
@@ -1477,7 +1468,6 @@ const placeOrderRazorpay = asyncHandler(async (req, res, next) => {
       currency: "INR",
       receipt: orderNumber,
     });
-    // razorpayInstance.status = 'pending'
 
     const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
 
@@ -1592,8 +1582,6 @@ const logout = asyncHandler(async (req, res, next) => {
 const testing = asyncHandler(async (req, res) => {
   try {
     let order = await OrderData.findOne({ orderNumber: '#PZf843fa5bb28e4a1' }).lean()
-    // let order = await OrderData.findOne().sort({ createdAt: -1 }).lean()
-    // let order = await OrderData.findOne().lean()
     let orders = {
       customer: 'Dr Strange'
     }
@@ -1607,7 +1595,6 @@ const testing = asyncHandler(async (req, res) => {
 
 
 module.exports = {
-  // verifyUser,
   homePage,
   Login,
   doLogin,
