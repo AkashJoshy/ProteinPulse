@@ -36,7 +36,7 @@ const login = asyncHandler(async (req, res) => {
 const doLogin = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
   const admin = await UserData.findOne({ email: email, isAdmin: true });
-  console.log(admin);
+
   if (admin) {
     const matchedPassword = await bcrypt.compare(password, admin.password);
     if (matchedPassword) {
@@ -90,8 +90,6 @@ const getCustomers = asyncHandler(async (req, res) => {
     const page = Number(req.query.page) || 1
     const limit = req.query.limit || 4
 
-    console.log(`Page: ${page}`)
-
     let query = { isAdmin: false }
     let { data, pagination } = await getPaginatedData(UserData, page, limit, {}, query)
 
@@ -113,8 +111,6 @@ const searchCustomers = asyncHandler(async (req, res) => {
     const limit = 4;
     let query
 
-    console.log(`Length: ${search.length}`)
-
     if (search.length >= 1) {
       query = {
         isAdmin: false,
@@ -131,7 +127,7 @@ const searchCustomers = asyncHandler(async (req, res) => {
 
     let { data, pagination } = await getPaginatedData(UserData, page, limit, {}, query)
 
-    if(data.length <= 0) {
+    if (data.length <= 0) {
       pagination = null
     }
 
@@ -146,7 +142,7 @@ const searchCustomers = asyncHandler(async (req, res) => {
 const viewCustomer = async (req, res) => {
   const userID = req.params.userID;
   let user = await UserData.findById({ _id: userID }).lean();
-  // console.log(user)
+
   res.render("admin/edit-customer", {
     admin: true,
     user,
@@ -157,7 +153,6 @@ const viewCustomer = async (req, res) => {
 // Edit Customer
 const editCustomer = asyncHandler(async (req, res) => {
   try {
-    console.log(req.body);
     await UserData.findByIdAndUpdate(
       { _id: req.body.userID },
       {
@@ -197,35 +192,18 @@ const restoreCustomer = asyncHandler(async (req, res) => {
 
 // Category
 const getCategories = asyncHandler(async (req, res) => {
-
   const page = Number(req.query.page) || 1;
   const limit = req.query.limit || 3;
   const search = req.query.search || "";
-  const skip = (page - 1) * limit;
-
-  console.log(`Search: ${search}`);
 
   const searchFilter =
     search !== "" ? { name: { $regex: search, $options: `i` } } : {};
 
-  const totalDoc = await CategoryData.countDocuments(searchFilter);
-  const totalPages = Math.ceil(totalDoc / limit);
+  let { data, pagination } = await getPaginatedData(CategoryData, page, limit, searchFilter)
 
-
-  const pagination = {
-    isPrevious: page > 1,
-    currentPage: page,
-    isNext: page < totalPages,
-    totalPages,
-  };
-
-  let categories = await CategoryData.find(searchFilter)
-    .limit(limit)
-    .skip(skip)
-    .lean();
   return res.render("admin/view-categories", {
     admin: true,
-    categories,
+    categories: data,
     admin1: req.session.admin,
     pagination,
   });
@@ -239,29 +217,15 @@ const categoryQuery = asyncHandler(async (req, res, next) => {
   const search = req.query.search || "";
   const page = Number(req.query.page) || 1;
   const limit = 3;
-  const skip = (page - 1) * limit;
 
   const searchFilter =
     search !== "" ? { name: { $regex: search, $options: `i` } } : {};
 
-  const totalDoc = await CategoryData.countDocuments(searchFilter);
-  const totalPages = Math.ceil(totalDoc / limit);
-
-  const pagination = {
-    isPrevious: page > 1,
-    currentPage: page,
-    isNext: page < totalPages,
-    totalPages,
-  };
-
-  let categories = await CategoryData.find(searchFilter)
-    .limit(limit)
-    .skip(skip)
-    .lean();
+  let { data, pagination } = await getPaginatedData(CategoryData, page, limit, searchFilter)
 
   return res.json({
     status: true,
-    categories,
+    categories: data,
     redirected: "/admin/category",
     pagination,
   });
@@ -281,7 +245,7 @@ const saveAddCategory = asyncHandler(async (req, res) => {
   try {
     const { name, description } = req.body;
     let isImage;
-    console.log(req.files);
+
     if (req.files) {
       isImage = req.files.map((file) => file.filename);
     }
@@ -317,7 +281,6 @@ const saveEditCategory = asyncHandler(async (req, res) => {
     const categoryID = req.body.categoryID;
     if (req.files) {
       isImage = req.files.map((file) => file.filename);
-      console.log(isImage);
     }
     const [image] = isImage;
     await CategoryData.findByIdAndUpdate(
@@ -341,7 +304,6 @@ const deleteCategory = asyncHandler(async (req, res, next) => {
   }
   const categoryID = req.params.categoryID;
 
-  // Deleting Category and storing details in a variable called category
   const category = await CategoryData.findByIdAndDelete({
     _id: categoryID,
   }).lean();
@@ -390,7 +352,7 @@ const addProduct = asyncHandler(async (req, res) => {
   }
 });
 
-//
+// Add new Product
 const saveProduct = asyncHandler(async (req, res) => {
   try {
     let {
@@ -407,7 +369,7 @@ const saveProduct = asyncHandler(async (req, res) => {
       origin,
       bestBefore,
     } = req.body;
-    console.log(req.body);
+
     price = Number(price);
     rating = Number(rating);
     size = size + units;
@@ -447,7 +409,7 @@ const editProduct = asyncHandler(async (req, res) => {
     const categories = await CategoryData.find({}, { name: 1 }).lean();
     const formattedDate = new Date(product.bestBefore).toISOString().split("T")[0]
     product.bestBefore = formattedDate
-    console.log(product)
+
     res.render("admin/edit-product", {
       admin: true,
       categories,
@@ -500,12 +462,9 @@ const updateProduct = asyncHandler(async (req, res) => {
     if (req.files && req.files.length > 0) {
       req.files.forEach((file, index) => {
         imageIndex.forEach((value) => {
-          console.log(file.filename);
-          console.log(value);
           if (value || value === index + 1) {
             imageUrl[value - 1] = file.filename;
           }
-          console.log(value);
         });
       });
     }
@@ -549,12 +508,8 @@ const deleteProductImage = asyncHandler(async (req, res, next) => {
     imageUrl
   } = req.params
 
-  console.log(imageUrl)
-  console.log(prodID)
-
   let product = await ProductData.findById({ _id: prodID })
 
-  // if the product is not existing
   if (!product) {
     return res.json({ status: false, message: "Product not Found" })
   }
@@ -565,14 +520,9 @@ const deleteProductImage = asyncHandler(async (req, res, next) => {
     return res.json({ status: false, message: "Product Image not Found" })
   }
 
-  // find index 
   let imageIndex = product.imageUrl.findIndex(url => url === imageUrl)
-
-  // Image spliced
-  console.log(imageIndex)
   const imageUrlsCopy = product.imageUrl.slice()
 
-  // pulling the imageUrl from DB
   let updatedImageUrls = imageUrlsCopy.filter(async (url, index) => {
     if (index === imageIndex) {
       await ProductData.findByIdAndUpdate({ _id: prodID },
@@ -583,7 +533,6 @@ const deleteProductImage = asyncHandler(async (req, res, next) => {
 
 
   let dirPath = path.dirname(__dirname)
-  console.log(path.join(dirPath, '/public/uploads', imageUrl))
   let imgPath = path.join(dirPath, '/public/uploads', imageUrl)
   fs.unlink(imgPath, err => {
     if (err) {
@@ -602,11 +551,8 @@ const updateProductStock = asyncHandler(async (req, res, next) => {
     }
     const productID = req.body.productID;
     const stock = req.body.stock;
-    console.log(productID)
 
     const product = await ProductData.findById({ _id: productID })
-    console.log(product);
-
 
     if (!product) {
       return res.json({ status: false, message: "Product not Found!" })
@@ -694,13 +640,11 @@ const searchProducts = asyncHandler(async (req, res) => {
   const page = Number(req.query.page) || 1
   const search = req.query.search
   let limit = 2
-  let skip = (page - 1) * limit
 
   try {
-    // console.log(`Search: ${search} & page: ${page}`)
-    let products
+    let query
     if (search.length >= 1) {
-      products = await ProductData.find({
+      query = {
         $or: [
           {
             name: { $regex: search, $options: 'i' }
@@ -709,40 +653,17 @@ const searchProducts = asyncHandler(async (req, res) => {
             categoryName: { $regex: search, $options: 'i' }
           }
         ]
-      }).skip(skip).limit(limit).lean()
+      }
     } else {
-      products = await ProductData.find().skip(skip).limit(limit).lean()
+      query = {}
+    }
+    let { data, pagination } = await getPaginatedData(ProductData, page, limit, {}, query)
+
+    if (data.length <= 0) {
+      return res.json({ status: true, pagination: null });
     }
 
-    if (products.length <= 0) {
-      console.log(`products`)
-      console.log(products)
-      return res.json({ status: true, products, pagination: null });
-    }
-
-    console.log(products)
-
-    const totalDoc = await ProductData.find({
-      $or: [
-        {
-          name: { $regex: search, $options: 'i' }
-        },
-        {
-          categoryName: { $regex: search, $options: 'i' }
-        }
-      ]
-    }).countDocuments()
-
-    const totalPages = Math.ceil(totalDoc / limit)
-
-    const pagination = {
-      previousPage: page > 1,
-      currentPage: page,
-      nextPage: page < totalPages,
-      totalPages
-    }
-
-    return res.json({ status: true, products, pagination });
+    return res.json({ status: true, products: data, pagination });
   } catch (error) {
     console.error(error)
   }
@@ -780,7 +701,6 @@ const getOrders = asyncHandler(async (req, res) => {
 const viewOrder = asyncHandler(async (req, res, next) => {
   const orderID = req.params.orderID;
 
-  // single Order Details
   let order = await OrderData.findById({ _id: orderID }).lean();
 
   if (!order) {
@@ -805,7 +725,6 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       return res.json({ status: false, redirected: "/admin/" });
     }
     let { orderID, orderStatus } = req.body;
-    console.log(orderStatus);
 
     let isOrder = await OrderData.findById({ _id: orderID })
 
@@ -869,9 +788,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
                       ? `Refund`
                       : `Your order is holding. Update soon`;
 
-    //  console.log(status)
 
-    // Order Status updating
     const order = await OrderData.findByIdAndUpdate(
       { _id: orderID },
       {
@@ -913,8 +830,6 @@ const updateOrderProductStatus = asyncHandler(async (req, res, next) => {
     orderProductStatus
   } = req.body
 
-  console.log(req.body)
-
   let order = await OrderData.findById({ _id: orderID }).lean()
   let product = await ProductData.findById({ _id: orderProductID }).lean()
 
@@ -927,8 +842,6 @@ const updateOrderProductStatus = asyncHandler(async (req, res, next) => {
   if (!product) {
     return res.json({ status: false, redirected: "/admin/orders", message: 'No order found!' });
   }
-
-  console.log(`Product Status is ${orderProductStatus}`)
 
   await OrderData.findOneAndUpdate({ _id: orderID, 'products.productID': orderProductID },
     { $set: { 'products.$.status': orderProductStatus, status: orderProductStatus } }
@@ -954,8 +867,6 @@ const editCarousel = asyncHandler(async (req, res) => {
       carouselID
     } = req.body
 
-    console.log(req.body)
-
     let carousel = await CarouselData.findById(carouselID)
 
     if (!carousel) {
@@ -973,7 +884,7 @@ const editCarousel = asyncHandler(async (req, res) => {
       carouselLink = `user/products/${product._id}`
     } else {
       let category = await CategoryData.findById(destinationID)
-      console.log(category);
+
       if (!category) {
         carouselLink = '/404'
       }
@@ -981,7 +892,6 @@ const editCarousel = asyncHandler(async (req, res) => {
       carouselLink = `/user-categories/${category.name}`
     }
 
-    // console.log(req.files)
     let data = {}
 
     if (req.files?.[0]?.fileName) {
@@ -1095,18 +1005,12 @@ const addCoupon = asyncHandler(async (req, res, next) => {
     expiryDate,
   } = req.body;
 
-  // Converting String's to Number
   (maxDiscount = Number(maxDiscount)), (limit = Number(limit));
   minOrderValue = Number(minOrderValue);
   discount = Number(discount);
 
-  // Expiry Date
-  //  expiryDate = moment(expiryDate)
-
-  // Check if the Coupon with same code already existed...
   const coupon = await CouponData.findOne({ code: code });
 
-  // If the Coupon code is new
   if (!coupon) {
     await CouponData.create({
       code,
@@ -1204,10 +1108,6 @@ const getSalesReports = asyncHandler(async (req, res, next) => {
     status: { $nin: ["Refunded", "Canceled"] }
   }).lean();
 
-  console.log(orders)
-  console.log(`orders`)
-
-  // Order Total
   const orderSalesTotal = await OrderData.aggregate([
     {
       $match: {
@@ -1233,8 +1133,6 @@ const getSalesReports = asyncHandler(async (req, res, next) => {
     },
   ]);
 
-
-  // calculating sales total and coupon based on the specific date
   const totalPrice = orderSalesTotal && orderSalesTotal[0] ? orderSalesTotal[0].totalPrice : 0;
   const totalSales = orderSalesTotal && orderSalesTotal[0] ? orderSalesTotal[0].salesCount : 0;
   const totalCouponPrice = orderSalesTotal && orderSalesTotal[0] ? orderSalesTotal[0].totalCouponPrice : 0;
@@ -1362,26 +1260,23 @@ const salesChart = asyncHandler(async (req, res, next) => {
   const now = new Date();
 
   if (filter === 'day') {
-    const currentDayOfWeek = now.getDay(); // 0 (Sunday) - 6 (Saturday)
-    console.log(currentDayOfWeek)
+    const currentDayOfWeek = now.getDay();
 
     // Calculate start date for the current week (Sunday)
     startDate = new Date(now);
-    startDate.setDate(now.getDate() - currentDayOfWeek); // Set to the Sunday of the current week
-    startDate.setHours(0, 0, 0, 0); // Start of the week
+    startDate.setDate(now.getDate() - currentDayOfWeek); 
+    startDate.setHours(0, 0, 0, 0); 
 
     // Calculate end date for today
     endingDate = new Date(now);
-    endingDate.setHours(23, 59, 59, 999); // End of today
-
-    console.log("Start Date:", startDate);
-    console.log("End Date:", endingDate);
+    endingDate.setHours(23, 59, 59, 999);
 
     // Group by day of the week
     groupBy = { $dayOfWeek: '$createdAt' };
     labels.push('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat');
   } else if (filter === 'week') {
     startDate = new Date(now)
+
     // start date is set to 6 weeks ago
     startDate.setDate(now.getDate() - 6 * 7)
     startDate.setHours(0, 0, 0, 0)
@@ -1393,12 +1288,10 @@ const salesChart = asyncHandler(async (req, res, next) => {
   } else if (filter === 'month') {
     startDate = new Date(now.getFullYear(), 0, 1)
     startDate.setHours(0, 0, 0, 0)
-    console.log(startDate)
 
     endingDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
     endingDate.setHours(23, 59, 59, 999)
 
-    // Label Month pushing
     for (let month = 0; month < 12; month++) {
       labels.push(new Date(now.getFullYear(), month).toLocaleString('default', { month: 'long' }))
     }
@@ -1415,15 +1308,9 @@ const salesChart = asyncHandler(async (req, res, next) => {
     for (let year = currentYear - 3; year <= currentYear; year++) {
       labels.push(year.toString())
     }
-
     groupBy = { $year: '$createdAt' }
-
   }
 
-  console.log(`Labelss`);
-  console.log(labels);
-
-  // Fetch the sales data for the given date range
   const salesChartData = await OrderData.aggregate([
     {
       $match: {
@@ -1449,13 +1336,10 @@ const salesChart = asyncHandler(async (req, res, next) => {
     : (filter === 'week' ? Array(6).fill(0)
       : (filter === 'month' ? Array(12).fill(0)
         : (filter === 'month' ? Array(4).fill(0) : Array(4).fill(0))))
-  console.log(salesData)
 
-  // Fill in sales data based on the aggregation results
   salesChartData.forEach(item => {
-    // item._id will be the day of the week (0 for Sunday, 1 for Monday, ...)
     if (filter === 'day') {
-      const dayIndex = item._id - 1; // Adjust to match the index in the dailySales array
+      const dayIndex = item._id - 1;
       if (dayIndex >= 0 && dayIndex < 7) {
         salesData[dayIndex] = item.totalSales;
         // salesData.reverse()
@@ -1473,11 +1357,7 @@ const salesChart = asyncHandler(async (req, res, next) => {
       }
     } else {
       let currentYear = now.getFullYear()
-      console.log(item._id)
-
       let yearIndex = currentYear - item._id;
-      console.log(`yearIndex`)
-      console.log(yearIndex)
 
       if (yearIndex >= 0 && yearIndex < 4) {
         salesData[3 - yearIndex] = item.totalSales;
@@ -1494,10 +1374,6 @@ const salesChart = asyncHandler(async (req, res, next) => {
     return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
   };
 
-
-  console.log(salesData)
-
-  // Return the sales data in the response
   res.json({ status: true, updatedSalesChartData: salesData, labels: labels });
 });
 
@@ -1540,8 +1416,6 @@ const carouselQuery = asyncHandler(async (req, res) => {
       carousel.expiryDate = moment(carousel.expiryDate).format('ddd MMM DD YYYY HH:mm:ss [GMT]ZZ') + ' (India Standard Time)'
     })
 
-    console.log(`data`)
-    console.log(data)
     return res.json({ status: true, carousels: data, pagination })
   } catch (error) {
     console.error(error)
@@ -1618,7 +1492,7 @@ const getCarouselOptions = asyncHandler(async (req, res) => {
     } else {
       return res.json({ status: false, message: "Select any option" })
     }
-    console.log(destinations)
+
     return res.json({ status: true, destinations })
   } catch (error) {
     console.error(error)
@@ -1671,7 +1545,6 @@ const addOffers = asyncHandler(async (req, res, next) => {
     ? await ProductData.findById({ _id: productID })
     : await CategoryData.findById({ _id: categoryID })
 
-  // Discount Price
   discountPrice = (discountPercentage * entity.price) / 100
 
   if (offerType == 'product') {
@@ -1682,7 +1555,6 @@ const addOffers = asyncHandler(async (req, res, next) => {
       existingOffer.startingDate = startingDate
       existingOffer.expiryDate = endingDate
       await existingOffer.save()
-      // Updating salesPrice
       entity.salePrice = entity.price - discountPrice
       await entity.save()
       const offers = await OfferData.find({}).lean()
@@ -1713,7 +1585,6 @@ const addOffers = asyncHandler(async (req, res, next) => {
     expiryDate: endingDate,
   })
 
-  // Updating salesPrice
   entity.salePrice = entity.price - discountPrice
   await entity.save()
   const offers = await OfferData.find({}).lean()
@@ -1744,7 +1615,7 @@ const addCarousel = asyncHandler(async (req, res, next) => {
       carouselLink = `user/products/${product._id}`
     } else {
       let category = await CategoryData.findById(destinationID)
-      console.log(category);
+
       if (!category) {
         carouselLink = '/404'
       }
@@ -1781,7 +1652,7 @@ const settings = asyncHandler(async (req, res) => {
 const logout = asyncHandler(async (req, res) => {
   try {
     const adminID = req.params.adminID;
-    console.log(adminID);
+
     const admin = await UserData.findOne({ _id: adminID });
     if (admin) {
       req.session.admin = null;

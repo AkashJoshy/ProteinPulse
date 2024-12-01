@@ -67,7 +67,6 @@ const product = asyncHandler(async (req, res, next) => {
         const isWishlisted = user.wishlist.some(product => productID.toString() === product.productID.toString())
 
         let productName = product.name;
-        console.log(productName);
         let similarProducts = product.name.includes("-")
             ? await ProductData.find({ name: { $regex: productName } }).lean()
             : await ProductData.find({ name: productName }).lean();
@@ -75,7 +74,6 @@ const product = asyncHandler(async (req, res, next) => {
             let { flavour, size } = product;
             return { flavour, size };
         });
-        console.log(similarProducts);
         const realtedProducts = await ProductData.find({
             categoryName: product.categoryName,
         }).lean();
@@ -121,7 +119,6 @@ const productFilters = asyncHandler(async (req, res, next) => {
             sortType,
         } = req.query;
 
-        console.log(req.query);
         let { sortOpt, filters } = productSortAndFilters(availability,
             priceRange,
             brands,
@@ -187,8 +184,7 @@ const sortProducts = asyncHandler(async (req, res, next) => {
         let { availability, priceRange, brands, flavour, discountPercentage } = allFilters
     
         let { sortOpt, filters } = productSortAndFilters(availability, priceRange, brands, flavour, discountPercentage, sort)
-        console.log(sortOpt)
-        console.log(filters)
+      
     
         let filterProducts = await ProductData.find(filters).sort(sortOpt).lean();
     
@@ -254,7 +250,6 @@ const searchProducts = asyncHandler(async (req, res, next) => {
         }
 
         req.session.products = []
-        // console.log(`hlooo`);
         let search = req.query.search.trim();
         let products = await ProductData.find({
             $or: [
@@ -262,7 +257,7 @@ const searchProducts = asyncHandler(async (req, res, next) => {
                 { categoryName: { $regex: search, $options: "i" } },
             ],
         });
-        console.log(products);
+
         if (products.length == 0) {
             return res.json({
                 status: false,
@@ -289,7 +284,6 @@ const searchProducts = asyncHandler(async (req, res, next) => {
 // Product Review
 const productReview = asyncHandler(async (req, res, next) => {
     try {
-        console.log(req.body);
         const userID = req.session.user._id
         const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
 

@@ -92,7 +92,7 @@ const addToCart = asyncHandler(async (req, res, next) => {
         }
 
         let count = req.body.count;
-        console.log(count);
+    
         const productLimit = 4;
         const cart = await CartData.findOne({ userID: userID });
 
@@ -205,9 +205,7 @@ const deleteCartProduct = asyncHandler(async (req, res, next) => {
         );
 
         if (cart.products.length <= 1) {
-            console.log(`Cart Deleted`)
             if (user.appliedCoupons.length >= 1) {
-                console.log(`Applied Coupons are available`)
                 await UserData.findByIdAndUpdate({ _id: userID },
                     { $pull: { appliedCoupons: { cartID: cart._id } } }
                 )
@@ -315,22 +313,17 @@ const updateCartProductQuantity = asyncHandler(async (req, res, next) => {
         }
 
         let {
-            // cart,
             discountPercentage,
             totalSalePrice,
             originalPrice,
             discountPrice,
             deliveryCharge,
             totalPrice,
-            // validoffers,
-            // coupons,
             couponDiscountPrice,
             couponDiscountPercentage,
         } = await cartTotalPrice(userID)
 
         productQuantity = isCart.products[cartProductIndex].quantity;
-
-        console.log(`couponDiscountPrice: ${couponDiscountPrice}`)
 
         return res.json({
             status: true,
@@ -430,7 +423,6 @@ const applyCoupon = asyncHandler(async (req, res, next) => {
             });
         }
     
-        // new Coupon pushing to userDB
         await UserData.findByIdAndUpdate(userID, {
             $push: { appliedCoupons: { couponID: isOfferexist._id, cartID: cart._id } },
         });
