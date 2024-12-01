@@ -52,19 +52,17 @@
                 };
                 var rzp1 = new Razorpay(options);
                 rzp1.on('payment.failed', function (response) {
-                  console.error('Payment failed:', response.error); // Log the full error for debugging
+                  console.error('Payment failed:', response.error);
                   alert(response.error.description);
-              
                   Swal.fire({
                       title: 'Payment Failed',
                       text: 'Your payment could not be processed. Please try again.',
                       icon: 'error',
                       showCancelButton: true,
                       confirmButtonText: 'Retry Payment',
-                      cancelButtonText: 'Go to Wallet'
+                      cancelButtonText: 'Cancel'
                   }).then((result) => {
                       if (result.isConfirmed) {
-                          // Re-open Razorpay
                           rzp1.open();
                       } else {
                           window.location.reload();

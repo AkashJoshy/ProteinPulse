@@ -578,7 +578,7 @@ const wallet = asyncHandler(async (req, res, next) => {
             totalPages
         }
 
-        // Total Wallet Balance
+    
         let walletBalance = await WalletData.aggregate([
             {
                 $match: { userID: new mongoose.Types.ObjectId(userID) }
@@ -611,7 +611,7 @@ const wallet = asyncHandler(async (req, res, next) => {
 
         
         const totalBalance = walletBalance.length > 0
-    ? (walletBalance[0].creditTotal - walletBalance[0].debitTotal) + walletBalance[0].refferalTotal
+    ? walletBalance[0].creditTotal  + walletBalance[0].refferalTotal
     : 0;
 
         return res.render("user/view-wallet", {
@@ -652,7 +652,6 @@ const walletTransactionPages = asyncHandler(async (req, res, next) => {
         let page = Number(req.query.page) || 1
         let limit = Number(req.query.limit) || 5
 
-        console.log(page);
         let skip = (page - 1) * limit
 
         let wallet = await WalletData.findOne({ userID: userID }).lean()
@@ -919,7 +918,7 @@ const verifyWalletTopup = asyncHandler(async (req, res, next) => {
                 }
             ])
 
-            const totalBalance = (walletBalance[0].creditTotal - walletBalance[0].debitTotal) + walletBalance[0].refferalTotal
+            const totalBalance = walletBalance[0].creditTotal + walletBalance[0].refferalTotal
 
             return res.json({
                 status: true,
