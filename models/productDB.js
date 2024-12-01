@@ -126,6 +126,5 @@ cron.schedule('* * * * * *', async () => {
 
     )
     
-    // console.log(updatedProducts)
 
 });
