@@ -925,6 +925,42 @@ const editCarousel = asyncHandler(async (req, res) => {
 })
 
 
+// Admin Edit details
+const updateAdminDetails = asyncHandler(async (req, res) => {
+  try {
+    if (!req.session.admin) {
+      return res.json({ status: false, redirected: '/admin/' })
+    }
+    console.log(req.body);
+
+    let {
+      firstName,
+      lastName,
+      mobileNumber,
+      adminID
+    } = req.body
+
+    let admin = await UserData.findById(adminID).lean()
+
+    if (!admin) {
+      req.session.admin = false
+      return res.json({ status: false, redirected: '/admin/' })
+    }
+
+    await UserData.findByIdAndUpdate(adminID, {
+      $set: {
+        firstName,
+        lastName,
+        mobileNumber
+      }
+    })
+
+    return res.json({ status: true, message: `Admin details updated successfully` })
+  } catch (error) {
+    console.log(error)
+  }
+})
+
 // Order Sorting
 const orderSorting = asyncHandler(async (req, res) => {
   try {
@@ -1264,8 +1300,8 @@ const salesChart = asyncHandler(async (req, res, next) => {
 
     // Calculate start date for the current week (Sunday)
     startDate = new Date(now);
-    startDate.setDate(now.getDate() - currentDayOfWeek); 
-    startDate.setHours(0, 0, 0, 0); 
+    startDate.setDate(now.getDate() - currentDayOfWeek);
+    startDate.setHours(0, 0, 0, 0);
 
     // Calculate end date for today
     endingDate = new Date(now);
@@ -1694,6 +1730,7 @@ module.exports = {
   viewOrder,
   updateOrderStatus,
   updateOrderProductStatus,
+  updateAdminDetails,
   orderSorting,
   couponPage,
   addCoupon,

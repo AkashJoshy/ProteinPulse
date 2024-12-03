@@ -17,7 +17,6 @@
   
           const clickedButton = event.submitter.id
   
-          
           // update User Details
           if(clickedButton === 'updateAdminDetails') {
             $.ajax({
@@ -28,8 +27,7 @@
               contentType: false,
               success: response => {
                 if (response.status) {
-                  Swal.fire('User Details Updated')  
-                  window.location.href = response.redirected; 
+                  Swal.fire(response.message).then(() => window.location.reload() )
                 } else {
                   Swal.fire('User Details cannot be updated')
                   window.location.href = response.redirected; 
