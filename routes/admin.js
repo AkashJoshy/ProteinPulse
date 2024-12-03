@@ -55,6 +55,7 @@ router.put("/restore-customer", adminController.restoreCustomer);
 router.put("/orders/update-status", adminController.updateOrderStatus);
 router.put("/orders/update-product-status", adminController.updateOrderProductStatus);
 router.put("/edit-carousel", adminController.editCarousel);
+router.put("/settings/update-admin-details", adminController.updateAdminDetails);
 
 
 // DELETE REQUESTS

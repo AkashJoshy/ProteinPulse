@@ -12,12 +12,7 @@
         event.stopPropagation()
       } else {
         event.preventDefault()
-        
-        // const passwordFormData = new FormData(form)
-
-        const clickedButton = event.submitter.id
-
-        
+        const clickedButton = event.submitter.id 
         // update User Details
         if(clickedButton === 'updateUserDetails') {
           $.ajax({

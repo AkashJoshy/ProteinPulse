@@ -41,7 +41,7 @@
                             Please Upload it!
                         </div>
                         <button type="submit" id="changeProfilePic"
-                            class="btn btn-sm btn-outline-dark mt-md-0 mt-2 profile-pic-btn">Upload</button>
+                            class="btn btn-sm btn-outline-dark profile-pic-btn">Upload</button>
                     </form>
 
                 </div>
@@ -86,7 +86,7 @@
                 <div class="col-md-12 col-lg-12">
                     <label for="mobileNumber" class="form-label">MOBILE</label>
                     <input type="tel" name="mobileNumber" class="form-control" id="mobileNumber" minlength="10"
-                        maxlength="10" value="{{currentAdmin.mobileNumber}}" required>
+                        pattern="[1-9]{1}[0-9]{9}" maxlength="10" value="{{currentAdmin.mobileNumber}}" required>
                     <div class="valid-feedback">
                         Mobile number is valid
                     </div>
@@ -94,17 +94,12 @@
                         Please enter a valid 10-digit mobile number
                     </div>
                 </div>
-                {{!-- <div class="col-md-6 col-lg-6">
-                    <label for="password" class="form-label">PASSWORD</label>
-                    <input type="password" name="password" value="{{currentAdmin.password}}" class="form-control" id="password" required>
-                    <div class="valid-feedback">
-                        Mobile number is valid
-                    </div>
-                    <div class="invalid-feedback">
-                        Please enter a valid 10-digit mobile number
-                    </div>
-                </div> --}}
-                <h6 style="color: rgb(113, 113, 113);">
+
+                <div class="d-none">
+                    <input type="text" class="d-none" value="{{currentAdmin._id}}" name="adminID">
+                </div>
+                
+                <h6 style="color: rgb(113, 113, 113);" class="d-none">
                     change password
                 </h6>
                 <div>
@@ -114,7 +109,6 @@
                                 <i class="fa-solid fa-user-pen"></i>
                             </button>
                         </a> --}}
-
                         <button id="updateAdminDetails" class="btn mt-2 mt-lg-2 mt-xl-4 bg-dark" style="color: #F46F36;"
                             type="submit">Save Changes</button>
                     </div>
