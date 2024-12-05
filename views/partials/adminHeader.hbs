@@ -110,9 +110,11 @@
 {{!-- proteinpulse plaza logo --}}
 <img
   src="/picture/logo/logo.png"
-  class="rounded float-start"
-  style="position: absolute; top: 0%; left: 3%; width: 85px; height: 85px;"
-  alt="admin-page-logo"
+  class="rounded float-start admin-page-logo"
+  style="position: absolute; top: 0%; 
+  left: 3%; width: 85px; height: 85px;
+  cursor: pointer; "
+  alt="admin-logo"
 />
 {{!-- //proteinpulse plaza logo --}}
 
@@ -161,27 +163,8 @@ window.addEventListener('DOMContentLoaded', (e) => {
   }
 })
 
-
-//looping the array of list 
-//sideNavbarHeadings.forEach( li => {
- // li.addEventListener('click', (e) => {
-   // let target = e.target
-   // let href = target.href
-
-    //let newUrl = new URL(href)
-
-    //if(newUrl.pathname ) { 
-     // console.log(newUrl.pathname)
-      
-    //}
-    //sideNavbarHeading.textContent = li.textContent;
-
-    //sideNavbarHeadings.forEach(list => {
-    //  list.classList.remove('active-navbar-li');
-    //});
-
-    //li.classList.add('active-navbar-li');
-  //});
-//});
+document.querySelector('.admin-page-logo').addEventListener('click', e => {
+  window.location.href = `/admin/dashboard`
+})
 
 </script>
