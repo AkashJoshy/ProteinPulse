@@ -24,7 +24,7 @@
     <div class="row">
         <div class="col-md-4">
             <div class="">
-                <div class="p-3 mt-3 shadow-lg rounded-2 d-flex">
+                <div class="p-3 mt-3 mb-4 shadow-lg rounded-2 d-flex">
                     <div class="mx-auto ">
                         <img style="width: 100px; height: 100px; object-fit: cover;"
                             class="p-2 rounded-circle profile-pic" src="/uploads/no-user-image-icon-0.jpg" alt="">
@@ -32,7 +32,7 @@
                         <h5 class="mt-2 text-center rounded-2 p-1" style="background-color : #F46F36;">Admin</h5>
                     </div>
                 </div>
-                <div class="p-3 mt-3 shadow-lg rounded-2 d-flex">
+                <div class="p-3 mt-3 mb-3 shadow-lg rounded-2 d-flex">
                     <form class="needs-validation" enctype="multipart/form-data" novalidate>
                         <input type="file" class="rounded-3 me-2 p-1 profile-pic-selector"
                             style="border: 1px solid rgba(232, 227, 227, 0.754);" accept="image/*" name="file" id=""
@@ -49,7 +49,7 @@
         </div>
         <div class="col-md-8">
             <h5 class="mt-3 px-2">Personal Information</h5>
-            <form class="row g-2 needs-validation p-4 me-lg-5" novalidate>
+            <form class="row g-2 needs-validation p-4 me-lg-5" id="admin-details-form" novalidate>
                 <div class="col-md-6 col-lg-6 ">
                     <label for="firstName" class="form-label">FIRSTNAME</label>
                     <input type="text" name="firstName" class="form-control" id="firstName" value="{{currentAdmin.firstName}}"
@@ -109,7 +109,8 @@
                                 <i class="fa-solid fa-user-pen"></i>
                             </button>
                         </a> --}}
-                        <button id="updateAdminDetails" class="btn mt-2 mt-lg-2 mt-xl-4 bg-dark" style="color: #F46F36;"
+                        <button id="updateAdminDetails" class="btn mt-2 mt-lg-2 mt-xl-4 bg-dark" 
+                        style="color: #F46F36; display: none;"
                             type="submit">Save Changes</button>
                     </div>
                     {{#if loginMessage}}
@@ -127,3 +128,12 @@
 
 
 <script src="/javaScript/adminSettings.js"></script>
+
+<script>
+    const saveBtn = document.querySelector('#updateAdminDetails')
+    document.querySelectorAll('#admin-details-form').forEach(form => {
+        form.addEventListener('input', () => {
+            saveBtn.style.display = 'block'  
+        })
+    })
+</script>
