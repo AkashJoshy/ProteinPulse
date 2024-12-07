@@ -99,7 +99,7 @@
 
             <div class="mt-3 shadow-sm rounded-2">
                 <div class="table-responsive">
-                    <table class="table table-borderless">
+                    <table class="table table-borderless ">
                         <h6 class="p-2 px-3 mt-1 text-uppercase">Transaction Details</h6>
                         <thead class="table-dark">
                             <tr>
@@ -113,11 +113,20 @@
                         <tbody>
                             {{#if walletTransactions}}
                             {{#each walletTransactions}}
+                            {{#if (isCreditedOrNot this.transactionType)}}
+                            <tr class="table-danger">
+                                {{else}}
+                                {{#if (isFailed this.status)}}
+                            <tr class="table-warning">
+                                {{else}}
                             <tr>
+                                {{/if}}
+                                {{/if}}
                                 <th scope="row" class="px-4"> {{this.transactionID}} </th>
                                 <td> {{this.description}} </td>
                                 <td> {{this.createdAt}} </td>
-                                <td> {{#if (isCreditedOrNot this.transactionType)}}
+                                <td>
+                                    {{#if (isCreditedOrNot this.transactionType)}}
                                     <span class="text-danger">-</span>
                                     {{else}}
                                     <span></span>
@@ -145,12 +154,14 @@
                 <ul class="pagination wallet-pagination justify-content-center">
                     {{#if pagination.isPrevious}}
                     <li class="page-item">
-                        <a class="page-link" style="background-color: #F46F36;" href="#"><i class="fa-solid fa-arrow-left"></i></a>
+                        <a class="page-link" style="background-color: #F46F36;" href="#"><i
+                                class="fa-solid fa-arrow-left"></i></a>
                     </li>
                     {{/if}}
 
                     {{#each (paginationNumbers 1 pagination.totalPages)}}
-                    <li class="page-item"><a class="page-link" style="background-color: #000000; color: #F46F36;" href='/dashboard/wallet?page={{this}}'>{{this}}</a></li>
+                    <li class="page-item"><a class="page-link" style="background-color: #000000; color: #F46F36;"
+                            href='/dashboard/wallet?page={{this}}'>{{this}}</a></li>
                     {{/each }}
 
                     {{#if pagination.isNext}}
@@ -177,7 +188,6 @@
         $('.wallet-pagination').on('click', 'a', function (e) {
             e.preventDefault()
             let page = $(this).attr('href').split('=')[1]
-            //    Swal.fire($(this).attr('href').split('=')[1])
             $.ajax({
                 url: `/user/dashboard/wallet/page`,
                 method: 'GET',
@@ -192,12 +202,18 @@
                         walletTransactions.forEach(transaction => {
                             if (transaction) {
                                 transactionsHtml += `
-                                <tr>
+                                ${transaction.transactionType === 'debit'
+                                        ? `<tr class="table-danger">`
+                                        : (transaction.status == 'Failed'
+                                            ? `<tr class="table-warning">`
+                                            : `<tr>`)}
                                     <th scope="row" class="px-4"> ${transaction.transactionID} </th>
                                     <td> ${transaction.description} </td>
                                     <td> ${transaction.createdAt} </td>
                                     <td> 
-                                
+                                        ${transaction.transactionType === 'debit'
+                                        ? `<span class="text-danger" style="font-weight: bold;">-</span>`
+                                        : ``}
                                          <span> ${transaction.amount} </span>
                                     </td>
                                     <td style="color: ${transaction.statusColor};"> ${transaction.status} </td>
@@ -225,7 +241,7 @@
                                     </li>
                                 `
                             }
-                            
+
 
                             for (let i = 1; i <= pagination.totalPages; i++) {
                                 paginationHtml += `

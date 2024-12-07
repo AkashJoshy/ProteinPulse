@@ -52,8 +52,8 @@
             <form class="row g-2 needs-validation p-4 me-lg-5" id="admin-details-form" novalidate>
                 <div class="col-md-6 col-lg-6 ">
                     <label for="firstName" class="form-label">FIRSTNAME</label>
-                    <input type="text" name="firstName" class="form-control" id="firstName" value="{{currentAdmin.firstName}}"
-                        required>
+                    <input type="text" name="firstName" class="form-control" id="firstName"
+                        value="{{currentAdmin.firstName}}" required>
                     <div class="valid-feedback">
                         Looks good!
                     </div>
@@ -61,8 +61,8 @@
 
                 <div class="col-md-6 col-lg-6">
                     <label for="lastName" class="form-label">LASTNAME</label>
-                    <input type="text" name="lastName" class="form-control" id="lastName" value="{{currentAdmin.lastName}}"
-                        required>
+                    <input type="text" name="lastName" class="form-control" id="lastName"
+                        value="{{currentAdmin.lastName}}" required>
                     <div class="valid-feedback">
                         Looks good!
                     </div>
@@ -98,7 +98,7 @@
                 <div class="d-none">
                     <input type="text" class="d-none" value="{{currentAdmin._id}}" name="adminID">
                 </div>
-                
+
                 <h6 style="color: rgb(113, 113, 113);" class="d-none">
                     change password
                 </h6>
@@ -109,9 +109,8 @@
                                 <i class="fa-solid fa-user-pen"></i>
                             </button>
                         </a> --}}
-                        <button id="updateAdminDetails" class="btn mt-2 mt-lg-2 mt-xl-4 bg-dark" 
-                        style="color: #F46F36; display: none;"
-                            type="submit">Save Changes</button>
+                        <button id="updateAdminDetails" class="btn mt-2 mt-lg-2 mt-xl-4 bg-dark"
+                            style="color: #F46F36; display: none;" type="submit">Save Changes</button>
                     </div>
                     {{#if loginMessage}}
                     <p class="text-success py-2 text-center">
@@ -126,14 +125,15 @@
 </div>
 
 
-
 <script src="/javaScript/adminSettings.js"></script>
 
 <script>
+
     const saveBtn = document.querySelector('#updateAdminDetails')
     document.querySelectorAll('#admin-details-form').forEach(form => {
         form.addEventListener('input', () => {
-            saveBtn.style.display = 'block'  
+            saveBtn.style.display = 'block'
         })
     })
+
 </script>

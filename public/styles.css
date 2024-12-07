@@ -406,11 +406,17 @@ ul.slick-dots li.slick-active button:before {
 
 /* // Wallet  */
 
-/* Styling upto 480px */
+/* Styling up to 480px */
 @media (max-width: 425px) {
   .user-product-main {
     height: 400px;
     margin-left: 0px;
+  }
+
+  #searchBtn {
+    margin-left: 110px;
+    margin-top: 10px;
+    width: auto;
   }
 
   .main-image {
@@ -472,6 +478,12 @@ ul.slick-dots li.slick-active button:before {
 @media (min-width: 425px) and (max-width: 768px) {
   .row.align-items-stretch > div {
     height: auto !important;
+  }
+
+  #searchBtn {
+    margin-left: 150px;
+    margin-top: 10px;
+    width: auto;
   }
 
   .user-product-main {

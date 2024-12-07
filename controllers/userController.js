@@ -238,7 +238,7 @@ const doSignup = asyncHandler(async (req, res, next) => {
                 transactionID,
                 transactionType: 'referral',
                 paymentType: 'Referral',
-                description: 'The Refferal amount credited',
+                description: 'Referral amount credited',
                 status: 'Success',
               }
             }
@@ -266,7 +266,7 @@ const doSignup = asyncHandler(async (req, res, next) => {
             amount: walletBalance,
             transactionType: 'referral',
             paymentType: 'Referral',
-            description: 'The Refferal amount credited',
+            description: 'The Referral amount credited',
             status: 'Success',
           }]
         })
@@ -278,7 +278,7 @@ const doSignup = asyncHandler(async (req, res, next) => {
         //     amount: walletBalance,
         //     transactionType: 'referral',
         //     paymentType: 'Referral',
-        //     description: 'The Refferal amount credited',
+        //     description: 'The Referral amount credited',
         //     status: 'Success',
         //   }]
         // })
@@ -593,7 +593,7 @@ const cancelOrder = asyncHandler(async (req, res, next) => {
             amount: ordertotal,
             transactionType: "credit",
             paymentType: 'Wallet',
-            description: 'The amount has been credited for the product cancellation.',
+            description: 'Amount credited for product cancellation',
             status: 'Success',
           }
         }
@@ -703,7 +703,7 @@ const cancelProduct = asyncHandler(async (req, res, next) => {
               amount: walletAmount,
               transactionType: 'credit',
               paymentType: paymentType,
-              description: "The amount has been credited for the product cancellation.",
+              description: "Amount credited for product cancellation",
               status: "Success"
             }
           }
@@ -1350,7 +1350,7 @@ const placeOrder = asyncHandler(async (req, res, next) => {
               amount: totalPrice,
               transactionType: 'debit',
               paymentType: 'Wallet',
-              description: "The amount has been debited for the order.",
+              description: "Amount debited for the order",
               status: "Success"
             }
           }
