@@ -7,9 +7,20 @@
   .list-group-item {
     border: 1px ridge rgba(228, 226, 226, 0.57)
   }
+
+ .user-sub-header li a.active-li {
+  color: white;
+  text-decoration: underline;
+  text-decoration-color: #b1b1b1cc;
+}
+
+  .user-sub-header li a {
+  color: rgb(17, 15, 15);
+  text-decoration: none;
+}
 </style>
 
-<nav class="navbar navbar-expand-lg pt-4" style="background-color: #F46F36;">
+<nav class="navbar navbar-expand-lg pt-4 " style="background-color: #F46F36;">
   <div class="container-fluid">
     <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo03"
       aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,13 +41,13 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/cart">
-            <i class="fa-solid fa-cart-shopping"></i>
+            <i class="fa-solid fa-cart-shopping" style="font-size: 1.1rem;"></i>
           </a>
         </li>
         <li class="nav-item">
 
           <a class="nav-link" id="dashboard-btn" href="/user/dashboard">
-            <i class="fa-solid fa-circle-user"></i>
+            <i class="fa-solid fa-circle-user" style="font-size: 1.2rem;"></i>
           </a>
         </li>
       </ul>
@@ -45,25 +56,26 @@
   </div>
 </nav>
 
-
-<img src="/picture/logo/logoUser.png" class=" float-start"
-  style="position: absolute; top: 5%; left: 3%; width: 80px; height: 80px;" alt="user-page-logo" />
+<a href="/" class="text-decoration-none">
+  <img src="/picture/logo/logoUser.png" class=" float-start"
+    style="position: absolute; top: 5%; left: 3%; width: 80px; height: 80px; z-index: 1;" alt="user-page-logo" />
+</a>
 
 {{!-- --}}
-<div style="background-color: #F06E6E;">
+<div style="background-color: #F06E6E;" class="">
   <ul class="d-flex user-sub-header" style="list-style: none;">
     <li style="margin-left: 110px;">
-      <a href="/" style="text-decoration: none; color: black;">
+      <a href="/">
         Home
       </a>
     </li>
     <li style="margin-left: 20px;">
-      <a href="/user/products" class="" style="text-decoration: none; color: black;">
+      <a href="/user/products">
         Products
       </a>
     </li>
     <li style="margin-left: 20px;">
-      <a href="/brands" class="" style="text-decoration: none; color: black;">
+      <a href="/brands">
         Brands
       </a>
     </li>
@@ -71,7 +83,7 @@
   </ul>
 </div>
 
-{{!-- Signup Model Banner --}}
+{{!-- Sign up Model Banner --}}
 {{#if user}}
 {{else}}
 <div class="sign-up-banner fixed-top"
@@ -100,7 +112,26 @@
   const signUpBanner = document.querySelector('.sign-up-banner')
   if (signUpBanner) closeBtn.addEventListener("click", () => signUpBanner.style.display = 'none')
 
+  document.addEventListener('DOMContentLoaded', (e) => {
+    const subNavbarHeadings = document.querySelectorAll('.user-sub-header li a')
+    //  console.log(subNavbarHeadings)
+    const pageUrl = e.target.location.pathname
+    subNavbarHeadings.forEach(subNav => {
+      subNav.classList.remove('active-li')
+    //  subNav.style.color = "black"
+    })
+      console.log(pageUrl)
+      if (pageUrl === '/') {
+        subNavbarHeadings[0].classList.add('active-li')
+      } else if (pageUrl === '/user/products') {
+        subNavbarHeadings[1].classList.add('active-li')
+      } else if(pageUrl === '/brands') {
+        subNavbarHeadings[2].classList.add('active-li')
+      } else {
 
-  
+      }
+  })
+
+
 
 </script>

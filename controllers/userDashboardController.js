@@ -812,7 +812,7 @@ const addToWallet = asyncHandler(async (req, res, next) => {
                         transactionID: transactionID,
                         transactionType: 'credit',
                         paymentType: 'Razorpay',
-                        description: 'Your wallet has been topped up'
+                        description: 'Wallet topped up'
                     }
                 }
             }, { new: true })
