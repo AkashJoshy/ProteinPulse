@@ -20,304 +20,325 @@
     margin-left: 20px;
   }
 
-.form-check-input.is-valid~.form-check-label, .was-validated .form-check-input:valid~.form-check-label {
+  .form-check-input.is-valid~.form-check-label,
+  .was-validated .form-check-input:valid~.form-check-label {
     color: black;
-}
+  }
 
-.form-check-input.is-valid:checked, .was-validated .form-check-input:valid:checked {
-    background-color:#F46F36;
-}
-.form-check-input.is-valid, .was-validated .form-check-input:valid {
+  .form-check-input.is-valid:checked,
+  .was-validated .form-check-input:valid:checked {
+    background-color: #F46F36;
+  }
+
+  .form-check-input.is-valid,
+  .was-validated .form-check-input:valid {
     border-color: grey;
-}
+  }
 
-.form-check-input:checked {
-  background-color: black;
-  border-color: #040404;
-}
-
+  .form-check-input:checked {
+    background-color: black;
+    border-color: #040404;
+  }
 </style>
 
-  <div class="filtersDiv  p-2 px-3 rounded-1" style="border: 2.5px solid black; color: #ffffff; background: rgb(0,0,0);
+<div class="filtersDiv  p-2 px-3 rounded-1"
+  style="border: 2.5px solid black; color: #ffffff; background: rgb(0,0,0);
 background: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(255,87,0,1) 0%, rgba(11,4,0,1) 0%, rgba(0,0,0,1) 50%, rgba(255,255,255,1) 50%);">
-    <div class="d-flex">
-      <h6>Filters</h6>
-      <i style="color: #040404;" class="fa-solid fa-arrow-down-short-wide ms-auto"></i>
-    </div>
+  <div class="d-flex">
+    <h6>Filters</h6>
+    <i style="color: #040404;" class="fa-solid fa-arrow-down-short-wide ms-auto"></i>
   </div>
+</div>
 <div class="" style="border: 2.5px solid black; border-radius: 4px 4px;">
 
 
-  <form class="needs-validation text-dark"  novalidate>
+  <form class="needs-validation text-dark" novalidate>
 
-  <div class="">
-    <div class="accordion accordion-flush" id="accordionFlushExample">
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-            data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
-            Availability
-          </button>
-        </h2>
-        <div id="flush-collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionFlushExample">
-          <div class="accordion-body ">
-
-            <div class="form-check">
-              <label class="form-check-label" for="flexCheckChecked">
-                Exclude Out Of Stock
-              </label>
-              <input class="form-check-input " name="availability" type="checkbox" value="outOfStock" id="flexCheckChecked" checked>
-            </div>
-
-          </div>
-        </div>
-      </div>
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-            data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
-            Filter By Brands
-          </button>
-        </h2>
-        <div id="flush-collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-          <div class="accordion-body">
-
-            <div class="form-check">
-              <input class="form-check-input" name="brands" type="checkbox" value="BPI Sports" id="flexCheckDefault">
-              <label class="form-check-label" for="flexCheckDefault">
-                BPI Sports
-              </label>
-            </div>
-
-            <div class="form-check">
-              <input class="form-check-input" name="brands" type="checkbox" value="Dragon Pharma" id="dragon-pharma">
-              <label class="form-check-label" for="dragon-pharma">
-                Dragon Pharma
-              </label>
-            </div>
-
-            <div class="form-check">
-              <input class="form-check-input" name="brands" type="checkbox" value="Dymatize" id="dymatize">
-              <label class="form-check-label" for="dymatize">
-                Dymatize
-              </label>
-            </div>
-
-            <div class="form-check">
-              <input class="form-check-input" name="brands" type="checkbox" value="GNC" id="gnc">
-              <label class="form-check-label" for="gnc">
-                GNC
-              </label>
-            </div>
-
-           <div class="form-check">
-              <input class="form-check-input" name="brands" value="Muscleblaze" type="checkbox" id="muscleblaze">
-              <label class="form-check-label" for="muscleblaze">
-                Muscleblaze
-              </label>
-            </div>
-
-            <div class="form-check">
-              <input class="form-check-input" name="brands" value="Muscle Science" type="checkbox" id="muscle-science">
-              <label class="form-check-label" for="muscle-science">
-                Muscle Science
-              </label>
-            </div>
-
-            <div class="form-check">
-              <input class="form-check-input" name="brands" type="checkbox" value="One Science" id="one-science">
-              <label class="form-check-label" for="one-science">
-                One Science
-              </label>
-            </div>
-
-            <div class="form-check">
-              <input class="form-check-input" name="brands" type="checkbox" value="Optimum Nutrition" id="optimum-nutrition">
-              <label class="form-check-label" for="optimum-nutrition">
-                Optimum Nutrition
-              </label>
-            </div>
-
-            <div class="form-check">
-              <input class="form-check-input" name="brands" value="QNT" type="checkbox" id="qnt">
-              <label class="form-check-label" for="qnt">
-                QNT
-              </label>
-            </div>
-
-            <div class="form-check">
-              <input class="form-check-input" name="brands" value="Ritebite" type="checkbox" id="ritebite">
-              <label class="form-check-label" for="ritebite">
-                Ritebite
-              </label>
-            </div>
-
-          </div>
-        </div>
-      </div>
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-            data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
-            Filter By Price
-          </button>
-        </h2>
-        <div id="flush-collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-          <div class="accordion-body">
-            
-            <div class="form-check">
-            <input class="form-check-input radio-btns" value="uptoThousand" type="radio" name="priceRange" id="priceUptoThousand">
-              <label class="form-check-label" for="priceUptoThousand">
-                Rs. 0 - Rs. 999
-              </label>
-            </div>
-            
-            <div class="form-check">
-            <input class="form-check-input radio-btns" value="btwThousandAndTwoThousand" type="radio" name="priceRange" id="priceUptoTwoThousand">
-              <label class="form-check-label" for="priceUptoTwoThousand">
-                Rs. 1000 - Rs. 1999
-              </label>
-            </div>
-            <div class="form-check">
-            <input class="form-check-input radio-btns" value="btwTwoThousandAndThreeThousand" type="radio" name="priceRange" id="priceUptoThreeThousand">
-              <label class="form-check-label" for="priceUptoThreeThousand">
-                Rs. 2000 - Rs. 2999
-              </label>
-            </div>
-            <div class="form-check">
-            <input class="form-check-input radio-btns" value="btwThreeThousandAndFourThousand" type="radio" name="priceRange" id="priceUptoFourThousand">
-              <label class="form-check-label" for="priceUptoFourThousand">
-                Rs. 3000 - Rs. 3999
-              </label>
-            </div>
-            <div class="form-check">
-            <input class="form-check-input radio-btns" value="btwFourThousandAndFiveThousand" type="radio" name="priceRange" id="priceUptoFiveThousand">
-              <label class="form-check-label" for="priceUptoFiveThousand">
-                Rs. 4000 - Rs. 4999
-              </label>
-            </div>
-            <div class="form-check">
-            <input class="form-check-input radio-btns" value="aboveFiveThousand" type="radio" name="priceRange" id="priceAboveFiveThousand">
-              <label class="form-check-label" for="priceAboveFiveThousand">
-                Rs. 5000 & Above
-              </label>
-            </div>
-
-
-            </div>
-        </div>
-      </div>
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-            data-bs-target="#flush-collapseFour" aria-expanded="false" aria-controls="flush-collapseFour">
-            Filter By Flavor
-          </button>
-        </h2>
-        <div id="flush-collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-          <div class="accordion-body">
-           
-            <div class="form-check">
-              <input class="form-check-input" name="flavour" type="checkbox" value="Chocolate" id="chocolate">
-              <label class="form-check-label" for="chocolate">
-                Chocolate
-              </label>
-            </div>
-
-            <div class="form-check">
-              <input class="form-check-input" name="flavour" type="checkbox" value="Chocolate Charge" id="chocolate-charge">
-              <label class="form-check-label" for="chocolate-charge">
-                Chocolate Charge
-              </label>
-            </div>
-
-            <div class="form-check">
-              <input class="form-check-input" name="flavour" type="checkbox" value="Double Rich Chocolate" id="double-rich-chocolate">
-              <label class="form-check-label" for="double-rich-chocolate">
-                Double Rich Chocolate
-              </label>
-            </div>
+    <div class="">
+      <div class="accordion accordion-flush" id="accordionFlushExample">
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+              Availability
+            </button>
+          </h2>
+          <div id="flush-collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body ">
 
               <div class="form-check">
-              <input class="form-check-input" name="flavour" type="checkbox" value="Unflavoured" id="unflavoured">
-              <label class="form-check-label" for="unflavoured">
-                Unflavoured
-              </label>
-            </div>
-
-            <div class="form-check">
-              <input class="form-check-input" name="flavour" type="checkbox" value="Vanilla" id="vanilla">
-              <label class="form-check-label" for="vanilla">
-                Vanilla
-              </label>
-            </div>
+                <label class="form-check-label" for="flexCheckChecked">
+                  Exclude Out Of Stock
+                </label>
+                <input class="form-check-input " name="availability" type="checkbox" value="outOfStock"
+                  id="flexCheckChecked" checked>
+              </div>
 
             </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+              Filter By Brands
+            </button>
+          </h2>
+          <div id="flush-collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body">
+
+              <div class="form-check">
+                <input class="form-check-input" name="brands" type="checkbox" value="BPI Sports" id="flexCheckDefault">
+                <label class="form-check-label" for="flexCheckDefault">
+                  BPI Sports
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input" name="brands" type="checkbox" value="Dragon Pharma" id="dragon-pharma">
+                <label class="form-check-label" for="dragon-pharma">
+                  Dragon Pharma
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input" name="brands" type="checkbox" value="Dymatize" id="dymatize">
+                <label class="form-check-label" for="dymatize">
+                  Dymatize
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input" name="brands" type="checkbox" value="GNC" id="gnc">
+                <label class="form-check-label" for="gnc">
+                  GNC
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input" name="brands" value="Muscleblaze" type="checkbox" id="muscleblaze">
+                <label class="form-check-label" for="muscleblaze">
+                  Muscleblaze
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input" name="brands" value="Muscle Science" type="checkbox"
+                  id="muscle-science">
+                <label class="form-check-label" for="muscle-science">
+                  Muscle Science
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input" name="brands" type="checkbox" value="One Science" id="one-science">
+                <label class="form-check-label" for="one-science">
+                  One Science
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input" name="brands" type="checkbox" value="Optimum Nutrition"
+                  id="optimum-nutrition">
+                <label class="form-check-label" for="optimum-nutrition">
+                  Optimum Nutrition
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input" name="brands" value="QNT" type="checkbox" id="qnt">
+                <label class="form-check-label" for="qnt">
+                  QNT
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input" name="brands" value="Ritebite" type="checkbox" id="ritebite">
+                <label class="form-check-label" for="ritebite">
+                  Ritebite
+                </label>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+              Filter By Price
+            </button>
+          </h2>
+          <div id="flush-collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body">
+
+              <div class="form-check">
+                <input class="form-check-input radio-btns" value="uptoThousand" type="radio" name="priceRange"
+                  id="priceUptoThousand">
+                <label class="form-check-label" for="priceUptoThousand">
+                  Rs. 0 - Rs. 999
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input radio-btns" value="btwThousandAndTwoThousand" type="radio"
+                  name="priceRange" id="priceUptoTwoThousand">
+                <label class="form-check-label" for="priceUptoTwoThousand">
+                  Rs. 1000 - Rs. 1999
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input radio-btns" value="btwTwoThousandAndThreeThousand" type="radio"
+                  name="priceRange" id="priceUptoThreeThousand">
+                <label class="form-check-label" for="priceUptoThreeThousand">
+                  Rs. 2000 - Rs. 2999
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input radio-btns" value="btwThreeThousandAndFourThousand" type="radio"
+                  name="priceRange" id="priceUptoFourThousand">
+                <label class="form-check-label" for="priceUptoFourThousand">
+                  Rs. 3000 - Rs. 3999
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input radio-btns" value="btwFourThousandAndFiveThousand" type="radio"
+                  name="priceRange" id="priceUptoFiveThousand">
+                <label class="form-check-label" for="priceUptoFiveThousand">
+                  Rs. 4000 - Rs. 4999
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input radio-btns" value="aboveFiveThousand" type="radio" name="priceRange"
+                  id="priceAboveFiveThousand">
+                <label class="form-check-label" for="priceAboveFiveThousand">
+                  Rs. 5000 & Above
+                </label>
+              </div>
+
+
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#flush-collapseFour" aria-expanded="false" aria-controls="flush-collapseFour">
+              Filter By Flavor
+            </button>
+          </h2>
+          <div id="flush-collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body">
+
+              <div class="form-check">
+                <input class="form-check-input" name="flavour" type="checkbox" value="Chocolate" id="chocolate">
+                <label class="form-check-label" for="chocolate">
+                  Chocolate
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input" name="flavour" type="checkbox" value="Chocolate Charge"
+                  id="chocolate-charge">
+                <label class="form-check-label" for="chocolate-charge">
+                  Chocolate Charge
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input" name="flavour" type="checkbox" value="Double Rich Chocolate"
+                  id="double-rich-chocolate">
+                <label class="form-check-label" for="double-rich-chocolate">
+                  Double Rich Chocolate
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input" name="flavour" type="checkbox" value="Unflavoured" id="unflavoured">
+                <label class="form-check-label" for="unflavoured">
+                  Unflavoured
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input" name="flavour" type="checkbox" value="Vanilla" id="vanilla">
+                <label class="form-check-label" for="vanilla">
+                  Vanilla
+                </label>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#flush-collapseFive" aria-expanded="false" aria-controls="flush-collapseFive">
+              Filter By Discount
+            </button>
+          </h2>
+          <div id="flush-collapseFive" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body">
+
+
+              <div class="form-check">
+                <input class="form-check-input radio-btns" value="tenPercentageAndBelow" type="radio"
+                  name="discountPercentage" id="tenPercentageAndBelow">
+                <label class="form-check-label" for="tenPercentageAndBelow">
+                  10% And Below
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input radio-btns" value="tenPercentageAndAbove" type="radio"
+                  name="discountPercentage" id="tenPercentageAndAbove">
+                <label class="form-check-label" for="tenPercentageAndAbove">
+                  10% And Above
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input radio-btns" value="twentyPercentageAndAbove" type="radio"
+                  name="discountPercentage" id="twentyPercentageAndAbove">
+                <label class="form-check-label" for="twentyPercentageAndAbove">
+                  20% And Above
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input radio-btns" value="thirtyPercentageAndAbove" type="radio"
+                  name="discountPercentage" id="thirtyPercentageAndAbove">
+                <label class="form-check-label" for="thirtyPercentageAndAbove">
+                  30% And Above
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input radio-btns" value="fourthPercentageAndAbove" type="radio"
+                  name="discountPercentage" id="fourthPercentageAndAbove">
+                <label class="form-check-label" for="fourthPercentageAndAbove">
+                  40% And Above
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input radio-btns" value="fifthPercentageAndAbove" type="radio"
+                  name="discountPercentage" id="fifthPercentageAndAbove">
+                <label class="form-check-label" for="fifthPercentageAndAbove">
+                  50% And Above
+                </label>
+              </div>
+
+            </div>
+          </div>
         </div>
       </div>
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-            data-bs-target="#flush-collapseFive" aria-expanded="false" aria-controls="flush-collapseFive">
-            Filter By Discount
-          </button>
-        </h2>
-        <div id="flush-collapseFive" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-          <div class="accordion-body">
-           
-                      
-            <div class="form-check">
-            <input class="form-check-input radio-btns" value="tenPercentageAndBelow" type="radio" name="discountPercentage" id="tenPercentageAndBelow">
-              <label class="form-check-label" for="tenPercentageAndBelow">
-                10% And Below
-              </label>
-            </div>
-            
-            <div class="form-check">
-            <input class="form-check-input radio-btns" value="tenPercentageAndAbove" type="radio" name="discountPercentage" id="tenPercentageAndAbove">
-              <label class="form-check-label" for="tenPercentageAndAbove">
-                10% And Above
-              </label>
-            </div>
-            <div class="form-check">
-            <input class="form-check-input radio-btns" value="twentyPercentageAndAbove" type="radio" name="discountPercentage" id="twentyPercentageAndAbove">
-              <label class="form-check-label" for="twentyPercentageAndAbove">
-                20% And Above
-              </label>
-            </div>
-            <div class="form-check">
-            <input class="form-check-input radio-btns" value="thirtyPercentageAndAbove" type="radio" name="discountPercentage" id="thirtyPercentageAndAbove">
-              <label class="form-check-label" for="thirtyPercentageAndAbove">
-                30% And Above
-              </label>
-            </div>
-            <div class="form-check">
-            <input class="form-check-input radio-btns" value="fourthPercentageAndAbove" type="radio" name="discountPercentage" id="fourthPercentageAndAbove">
-              <label class="form-check-label" for="fourthPercentageAndAbove">
-                40% And Above
-              </label>
-            </div>
-            <div class="form-check">
-            <input class="form-check-input radio-btns" value="fifthPercentageAndAbove" type="radio" name="discountPercentage" id="fifthPercentageAndAbove">
-              <label class="form-check-label" for="fifthPercentageAndAbove">
-                50% And Above
-              </label>
-            </div>
 
-            </div>
-        </div>
-      </div>
     </div>
-
-  </div>
 
 
 </div>
-  <div class="filtersDiv btn d-flex mx-auto p-2 rounded-2 mt-1" style="border: 2px solid black ">
-    <button type="submit" id="applyFilters"
-     style="border: none; color: #F46F36; font-size: 1.1rem;" class="mx-auto btn fw-bold ">Apply Filter</button>
-  </div>
-  </form>
+<div class="filtersDiv btn d-flex mx-auto p-2 rounded-2 mt-1" style="border: 2px solid black ">
+  <button type="submit" id="applyFilters" style="border: none; color: #F46F36; font-size: 1.1rem;"
+    class="mx-auto btn fw-bold ">Apply Filter</button>
+</div>
+</form>
 
 <script src="/javaScript/productFilter.js"></script>
 
@@ -333,24 +354,24 @@ background: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(255,87,0,1) 0%, rgba(1
 
   })
 
-  
-    let lastSelectedRadio = null;
 
-    document.querySelectorAll('.radio-btns').forEach(radio => {
-        radio.addEventListener('click', (e) => {
-            const clickedRadio = e.target;
-            console.log(`Clicked`)
-            // If the clicked radio button is already selected
-            if (clickedRadio === lastSelectedRadio) {
-                clickedRadio.checked = false;
-                lastSelectedRadio = null;
-            } else {
-                document.querySelectorAll(".radio-btns").forEach(r => r.checked = false);
-                clickedRadio.checked = true;
-                lastSelectedRadio = clickedRadio;
-            }
-        });
+  let lastSelectedRadio = null;
+
+  document.querySelectorAll('.radio-btns').forEach(radio => {
+    radio.addEventListener('click', (e) => {
+      const clickedRadio = e.target;
+      console.log(`Clicked`)
+      // If the clicked radio button is already selected
+      if (clickedRadio === lastSelectedRadio) {
+        clickedRadio.checked = false;
+        lastSelectedRadio = null;
+      } else {
+        document.querySelectorAll(".radio-btns").forEach(r => r.checked = false);
+        clickedRadio.checked = true;
+        lastSelectedRadio = clickedRadio;
+      }
     });
+  });
 
 
 </script>

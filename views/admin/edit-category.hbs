@@ -3,52 +3,53 @@
 </div>
 
 <div class="container shadow-lg p-3 mb-5 mt-4 rounded">
-    {{#if category}}
-  <form action="/admin/edit-category" class="row g-3 needs-validation" method="post" enctype="multipart/form-data" novalidate>
-   <div class="form-group">
-        <label for="categoryName" class="form-label">Category Name</label>
-        <input type="text" class="form-control" value="{{category.name}}" id="categoryName" name="name"
-          required>
-        <div class="invalid-feedback">
-          Please enter a valid name (letters only).
-        </div>
+  {{#if category}}
+  <form action="/admin/edit-category" class="row g-3 needs-validation" method="post" enctype="multipart/form-data"
+    novalidate>
+    <div class="form-group">
+      <label for="categoryName" class="form-label">Category Name</label>
+      <input type="text" class="form-control" value="{{category.name}}" id="categoryName" name="name" required>
+      <div class="invalid-feedback">
+        Please enter a valid name (letters only).
       </div>
-
-  <div class="col-md-12">
-    <label for="categoryDescription" class="form-label">Description</label>
-    <input type="text" class="form-control des" value="{{category.description}}" 
-    name="description" id="categoryDescription"
-    required>
-    <div class="valid-feedback">
-      Looks good!
     </div>
-    <div class="invalid-feedback">
-      Please Enter a Description
+
+    <div class="col-md-12">
+      <label for="categoryDescription" class="form-label">Description</label>
+      <input type="text" class="form-control des" value="{{category.description}}" name="description"
+        id="categoryDescription" required>
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+      <div class="invalid-feedback">
+        Please Enter a Description
+      </div>
     </div>
-  </div>
 
-  <div class="col-md-12 d-flex">
-    <img class="image-display rounded-3 w-25 image-fluid mx-auto mt-3" style="height: auto;" >
-  </div>
-
-  <div class="col-md-12">
-    <label for="categoryImage" class="form-label">Category Image</label>
-    <input type="file" accept="image/*" name="file" class="form-control category-img" aria-label="file example" id="categoryImage" >
-  </div>
-
-  <div class="col-md-12 d-none">
-    <label for="categoryDescription" class="form-label">Catergory ID</label>
-    <input type="text" class="form-control" value="{{category._id}}" name="categoryID" id="categoryDescription" required>
-    <div class="valid-feedback">
-      Looks good!
+    <div class="col-md-12 d-flex">
+      <img class="image-display rounded-3 w-25 image-fluid mx-auto mt-3" style="height: auto;">
     </div>
-  </div>
 
-  <div class="col-12 d-flex">
-    <button class="btn btn-success mx-auto" id="editCategory" type="submit">Save</button>
-  </div>
-</form>
-{{/if}}
+    <div class="col-md-12">
+      <label for="categoryImage" class="form-label">Category Image</label>
+      <input type="file" accept="image/*" name="file" class="form-control category-img" aria-label="file example"
+        id="categoryImage">
+    </div>
+
+    <div class="col-md-12 d-none">
+      <label for="categoryDescription" class="form-label">Catergory ID</label>
+      <input type="text" class="form-control" value="{{category._id}}" name="categoryID" id="categoryDescription"
+        required>
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+
+    <div class="col-12 d-flex">
+      <button class="btn btn-success mx-auto" id="editCategory" type="submit">Save</button>
+    </div>
+  </form>
+  {{/if}}
 </div>
 
 <script src="/javaScript/validation.js"></script>
@@ -58,7 +59,7 @@
   // Image Checking While Uploading
   const image = document.querySelector('.image-display')
   const categoryImage = document.querySelector('.category-img')
-  
+
   categoryImage.addEventListener('change', (e) => {
     image.src = URL.createObjectURL(e.target.files[0])
   })

@@ -9,13 +9,15 @@
             <div class="shadow-lg p-2">
                 <h5 class="text-center ">EDIT ADDRESS</h5>
                 {{#if billing}}
-                <form action="/user/dashboard/address/update-address" method="post" class="row g-3 needs-validation p-2 me-lg-5" novalidate>
+                <form action="/user/dashboard/address/update-address" method="post"
+                    class="row g-3 needs-validation p-2 me-lg-5" novalidate>
                     <div class="row p-2">
                         <div class="col-md-12 mb-3">
                             <label for="address" class="form-label">ADDRESS</label>
                             <div class="input-group has-validation">
-                                <input type="text" name="address" value="{{billing.billingAddress.address}}" class="form-control order-form" id="address"
-                                    aria-describedby="inputGroupPrepend" required>
+                                <input type="text" name="address" value="{{billing.billingAddress.address}}"
+                                    class="form-control order-form" id="address" aria-describedby="inputGroupPrepend"
+                                    required>
                                 <div class="invalid-feedback">
                                     Address should be filled
                                 </div>
@@ -27,7 +29,7 @@
                             <select class="form-select order-form" name="country" id="validationCustom04" required>
                                 <option selected disabled value="{{billing.billingAddress.country}}">
                                     {{billing.billingAddress.country}}
-                                    </option>
+                                </option>
                                 <option>INDIA</option>
                             </select>
                             <div class="invalid-feedback">
@@ -40,7 +42,7 @@
                             <select class="form-select order-form" name="state" id="validationCustom04" required>
                                 <option selected disabled value="{{billing.billingAddress.state}}">
                                     {{billing.billingAddress.state}}
-                                    </option>
+                                </option>
                                 <option>KERALA</option>
                             </select>
                             <div class="invalid-feedback">
@@ -53,7 +55,7 @@
                             <select class="form-select order-form" name="city" id="validationCustom04" required>
                                 <option selected disabled value="{{billing.billingAddress.city}}">
                                     {{billing.billingAddress.city}}
-                                    </option>
+                                </option>
                                 <option>EKM</option>
                             </select>
                             <div class="invalid-feedback">
@@ -63,8 +65,8 @@
 
                         <div class="col-md-3 col-lg-3 mb-3">
                             <label for="zipcode" class="form-label">ZIP CODE</label>
-                            <input type="tel" name="zipcode" value="{{billing.billingAddress.zipcode}}" class="form-control order-form" 
-                            id="zipcode" minlength="0" maxlength="6" required>
+                            <input type="tel" name="zipcode" value="{{billing.billingAddress.zipcode}}"
+                                class="form-control order-form" id="zipcode" minlength="0" maxlength="6" required>
                             <div class="invalid-feedback">
                                 Please enter the pincode
                             </div>
@@ -75,8 +77,8 @@
 
                         <div class="col-md-6 col-lg-6 mb-3">
                             <label for="mobileNumber" class="form-label">MOBILE</label>
-                            <input type="tel" name="mobile" value="{{billing.billingAddress.mobile}}" class="form-control order-form"
-                                id="mobileNumber" minlength="10" required>
+                            <input type="tel" name="mobile" value="{{billing.billingAddress.mobile}}"
+                                class="form-control order-form" id="mobileNumber" minlength="10" required>
                             <div class="valid-feedback">
                                 Mobile number is valid
                             </div>
@@ -105,20 +107,22 @@
                         </div>
 
                     </div>
-                        <div class="d-flex">
-                            <button class="btn mx-auto" style="color: #F46F36; background-color: black;" type="submit" >
-                                SAVE
-                            </button>
-                        </div>
+                    <div class="d-flex">
+                        <button class="btn mx-auto" style="color: #F46F36; background-color: black;" type="submit">
+                            SAVE
+                        </button>
+                    </div>
                 </form>
                 {{else}}
-                <form action="/user/dashboard/address/update-address" method="post" class="row g-3 needs-validation p-2 me-lg-5" novalidate>
+                <form action="/user/dashboard/address/update-address" method="post"
+                    class="row g-3 needs-validation p-2 me-lg-5" novalidate>
                     <div class="row p-2">
                         <div class="col-md-12 mb-3">
                             <label for="address" class="form-label">ADDRESS</label>
                             <div class="input-group has-validation">
-                                <input type="text" name="address" value="{{address.shippingAddress.address}}" class="form-control order-form" id="address"
-                                    aria-describedby="inputGroupPrepend" required>
+                                <input type="text" name="address" value="{{address.shippingAddress.address}}"
+                                    class="form-control order-form" id="address" aria-describedby="inputGroupPrepend"
+                                    required>
                                 <div class="invalid-feedback">
                                     Address should be filled
                                 </div>
@@ -130,7 +134,7 @@
                             <select class="form-select order-form" name="country" id="validationCustom04" required>
                                 <option selected disabled value="{{address.shippingAddress.country}}">
                                     {{address.shippingAddress.country}}
-                                    </option>
+                                </option>
                                 <option>INDIA</option>
                             </select>
                             <div class="invalid-feedback">
@@ -143,7 +147,7 @@
                             <select class="form-select order-form" name="state" id="validationCustom04" required>
                                 <option selected disabled value="{{address.shippingAddress.state}}">
                                     {{address.shippingAddress.state}}
-                                    </option>
+                                </option>
                                 <option>KERALA</option>
                             </select>
                             <div class="invalid-feedback">
@@ -156,7 +160,7 @@
                             <select class="form-select order-form" name="city" id="validationCustom04" required>
                                 <option selected disabled value="{{address.shippingAddress.city}}">
                                     {{address.shippingAddress.city}}
-                                    </option>
+                                </option>
                                 <option>EKM</option>
                             </select>
                             <div class="invalid-feedback">
@@ -166,8 +170,8 @@
 
                         <div class="col-md-3 col-lg-3 mb-3">
                             <label for="zipcode" class="form-label">ZIP CODE</label>
-                            <input type="tel" name="zipcode" value="{{address.shippingAddress.zipcode}}" class="form-control order-form" 
-                            id="zipcode" minlength="0" maxlength="6" required>
+                            <input type="tel" name="zipcode" value="{{address.shippingAddress.zipcode}}"
+                                class="form-control order-form" id="zipcode" minlength="0" maxlength="6" required>
                             <div class="invalid-feedback">
                                 Please enter the pincode
                             </div>
@@ -178,8 +182,8 @@
 
                         <div class="col-md-6 col-lg-6 mb-3">
                             <label for="mobileNumber" class="form-label">MOBILE</label>
-                            <input type="tel" name="mobile" value="{{address.shippingAddress.mobile}}" class="form-control order-form"
-                                id="mobileNumber" minlength="10" required>
+                            <input type="tel" name="mobile" value="{{address.shippingAddress.mobile}}"
+                                class="form-control order-form" id="mobileNumber" minlength="10" required>
                             <div class="valid-feedback">
                                 Mobile number is valid
                             </div>
@@ -208,11 +212,11 @@
                         </div>
 
                     </div>
-                        <div class="d-flex">
-                            <button class="btn mx-auto" style="color: #F46F36; background-color: black;" type="submit" >
-                                SAVE
-                            </button>
-                        </div>
+                    <div class="d-flex">
+                        <button class="btn mx-auto" style="color: #F46F36; background-color: black;" type="submit">
+                            SAVE
+                        </button>
+                    </div>
                 </form>
 
                 {{/if}}
@@ -237,5 +241,5 @@
 
         })
     })
-            
+
 </script>

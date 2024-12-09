@@ -100,7 +100,7 @@
       <tr class="text-center">
         <th scope="col">NO</th>
         <th scope="col">Image</th>
-        <th scope="col" >Name</th>
+        <th scope="col">Name</th>
         <th scope="col" class="text-center">Total Sales</th>
       </tr>
     </thead>
@@ -109,15 +109,16 @@
       {{#each topProducts}}
       <tr class="text-center">
         <th scope="row"> {{increment @index}} </th>
-        <td> <img src="/uploads/{{this.imageUrl.[0]}}" class="text-center" style="height: 120px;" alt="top-selling-product"> </td>
-        <td > {{this.name}} </td>
+        <td> <img src="/uploads/{{this.imageUrl.[0]}}" class="text-center" style="height: 120px;"
+            alt="top-selling-product"> </td>
+        <td> {{this.name}} </td>
         <td class="text-center"> {{this.totalSales}} </td>
       </tr>
       {{/each}}
     </tbody>
-      {{else}}
-      <th colspan="12" class="fw-semibold text-danger fs-4 text-center">No Products Available</th>
-      {{/if}}
+    {{else}}
+    <th colspan="12" class="fw-semibold text-danger fs-4 text-center">No Products Available</th>
+    {{/if}}
   </table>
 </div>
 
@@ -127,7 +128,7 @@
     <thead class="table-dark">
       <tr>
         <th scope="col">NO</th>
-        <th scope="col" >Name</th>
+        <th scope="col">Name</th>
         <th scope="col" class="text-center">Total Sales</th>
       </tr>
     </thead>
@@ -136,14 +137,14 @@
       {{#each topCategories}}
       <tr>
         <th scope="row"> {{increment @index}}</th>
-        <td > {{this._id}} </td>
+        <td> {{this._id}} </td>
         <td class="text-center"> {{this.totalSales}} </td>
       </tr>
       {{/each}}
     </tbody>
-      {{else}}
-      <th colspan="12" class="text-danger fw-semibold fs-4 text-center">No Categories Available</th>
-      {{/if}}
+    {{else}}
+    <th colspan="12" class="text-danger fw-semibold fs-4 text-center">No Categories Available</th>
+    {{/if}}
   </table>
 </div>
 
@@ -153,7 +154,7 @@
     <thead class="table-dark">
       <tr>
         <th scope="col">NO</th>
-        <th scope="col" >Name</th>
+        <th scope="col">Name</th>
         <th scope="col" class="text-center">Total Sales</th>
       </tr>
     </thead>
@@ -162,14 +163,14 @@
       {{#each topBrands}}
       <tr>
         <th scope="row"> {{increment @index}}</th>
-        <td > {{this._id}} </td>
+        <td> {{this._id}} </td>
         <td class="text-center"> {{this.totalSales}} </td>
       </tr>
       {{/each}}
     </tbody>
-      {{else}}
-      <th colspan="12" class="text-danger fw-semibold fs-4 text-center">No Brands Available</th>
-      {{/if}}
+    {{else}}
+    <th colspan="12" class="text-danger fw-semibold fs-4 text-center">No Brands Available</th>
+    {{/if}}
   </table>
 </div>
 

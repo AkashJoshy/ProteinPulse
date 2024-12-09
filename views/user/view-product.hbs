@@ -278,86 +278,32 @@
                 <div class="d-flex mt-3">
                     <h5>All Review</h5>
                     <div class="ms-auto">
+                        {{#if productReviews}}
                         <div class="btn" style="background-color: #c5c4c4;">Latest
                             <i class="fa-solid fa-caret-down"></i>
                         </div>
-                        <div class="btn btn-dark" type="button" data-bs-toggle="modal" data-bs-target="#publishreview">
-                            Write a Review</div>
+                        {{/if}}
                     </div>
                 </div>
                 <div class="row mt-4">
-                    <div class="col-md-6">
+                    {{#if productReviews}}
+                    {{#each productReviews.feedbacks}}
+                    <div class="col-12 col-md-6">
                         <div class="card  mb-3">
                             <div class="card-body p-4">
-                                <h5 class="card-title">Peter Parker</h5>
-                                <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
-                                <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic
-                                    product
-                                    !!
-                                    satisfied</p>
+                                <h5 class="card-title"></h5>
+                                <p class="card-text"></p> <span class="fa fa-star checked">({{this.productRating}})</span>
+                                <p class="card-text text-secondary" style="font-size: .7rem;">
+                                 {{this.productFeedback}}
+                                </p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card  mb-3">
-                            <div class="card-body p-4">
-                                <h5 class="card-title">Peter Parker</h5>
-                                <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
-                                <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic
-                                    product
-                                    !!
-                                    satisfied</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card  mb-3">
-                            <div class="card-body p-4">
-                                <h5 class="card-title">Peter Parker</h5>
-                                <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
-                                <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic
-                                    product
-                                    !!
-                                    satisfied</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card  mb-3">
-                            <div class="card-body p-4">
-                                <h5 class="card-title">Peter Parker</h5>
-                                <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
-                                <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic
-                                    product
-                                    !!
-                                    satisfied</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card  mb-3">
-                            <div class="card-body p-4">
-                                <h5 class="card-title">Peter Parker</h5>
-                                <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
-                                <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic
-                                    product
-                                    !!
-                                    satisfied</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card  mb-3">
-                            <div class="card-body p-4">
-                                <h5 class="card-title">Peter Parker</h5>
-                                <p class="card-text">Fast delivery !! authentic product !! satisfied</p>
-                                <p class="card-text text-secondary" style="font-size: .7rem;">Fast delivery !! authentic
-                                    product
-                                    !!
-                                    satisfied</p>
-                            </div>
-                        </div>
-                    </div>
+                    {{/each}}
+                    {{else}}
+                    <h4 class="text-center">No Reviews for the Product</h4>
+                    {{/if}}
+
                 </div>
             </div>
             <div id="tab3" class="tab-content">
@@ -413,42 +359,7 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="publishreview" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel"> Write a Review </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="/user/product/review" method="post" class="needs-validation" novalidate>
-                <div class="modal-body">
-                    <div>
-                        <div class="review-star">
-                            <span class="fa fa-star star-btn"></span>
-                            <span class="fa fa-star star-btn"></span>
-                            <span class="fa fa-star star-btn"></span>
-                            <span class="fa fa-star star-btn"></span>
-                            <span class="fa fa-star star-btn"></span>
-                        </div>
-                        <div style="display: none;">
-                            <input class="form-control" type="text" name="productID" value="{{product._id}}">
-                        </div>
-                        <div style="display: none;">
-                            <input class="form-control starCount" type="number" name="productRating">
-                        </div>
-                        <p class="text-secondary" style="font-size: .8rem;">If you dont rate it will be 0</p>
-                        <p>Feedback</p>
-                        <textarea class="form-control" name="productFeedback" aria-label="With textarea"
-                            required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" id="productReview" class="btn btn-dark">Public Review</button>
-            </form>
-        </div>
-    </div>
-</div>
+
 </div>
 <!-- // Modal -->
 
@@ -457,8 +368,6 @@
 <script>
 
     const reviewStar = document.querySelector('.review-star')
-    console.log(reviewStar)
-
     const productContainer = document.querySelector('.user-product-main')
 
     // Size selection
@@ -494,45 +403,8 @@
         })
     })
 
-    // Zoom
-
-
-    // Review Star
-    const starBtns = document.querySelectorAll('.star-btn')
-    const starValue = document.querySelector('.starCount')
-
-    document.addEventListener('DOMContentLoaded', () => {
-        starBtns.forEach((starBtn, index) => {
-            starBtn.addEventListener('click', () => {
-                let starLength = index + 1
-                starValue.value = starLength
-                console.log(`Clicked Btn index`)
-                //    console.log(starLength)
-                console.log(`Clicked`)
-
-                function getStarLength() {
-                    return starLength
-                }
-
-                starBtns.forEach((btn, i) => {
-                    if (i <= index) {
-                        btn.classList.add('checked')
-                    } else {
-                        btn.classList.remove('checked')
-                    }
-
-                })
-            })
-        })
-    })
-
-    console.log(starBtns)
-
     // Manage Product Count
-
-
     const productCount = document.querySelector('.product-count')
-
     productCount.innerHTML = 1
 
     function manageProductCount(count) {

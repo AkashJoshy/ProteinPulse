@@ -22,8 +22,7 @@
         </div>
         <div class="col-md-4">
             <label for="user" class="form-label">Customer Name</label>
-            <input type="text" class="form-control" id="user"
-                value="{{order.customer}}"
+            <input type="text" class="form-control" id="user" value="{{order.customer}}"
                 style="cursor: not-allowed; background-color: rgba(227, 223, 223, 0.587);" disabled required>
             <div class="invalid-feedback">Please provide the customer name.</div>
         </div>
@@ -148,7 +147,7 @@
                 <div class="pt-0 pt-md-5" style="color: rgb(4, 120, 244)">
                     {{this.productName}}
                     <span class="text-dark">
-                    x {{this.quantity}}
+                        x {{this.quantity}}
                     </span>
                 </div>
                 <div class="d-flex mt-2">
@@ -158,7 +157,8 @@
 
 
                 <select class="form-select p-1 order-product-status" id="validationCustom04"
-                    style="border-radius: 5px; color: grey ;padding-left: 5px;" data-order-product-ID="{{this.productID}}">
+                    style="border-radius: 5px; color: grey ;padding-left: 5px;"
+                    data-order-product-ID="{{this.productID}}">
                     <option selected>{{this.status}}</option>
 
                     {{#if (isorderStatusPending this.status)}}
@@ -258,7 +258,7 @@
                             window.location.reload()
                         })
                 } else {
-                    if(response.message) {
+                    if (response.message) {
                         Swal.fire(response.message).then(() => window.location.href = response.redirected)
                         return
                     }
@@ -292,8 +292,8 @@
                                 window.location.reload()
                             })
                     } else {
-                        if(response.message) {
-                            Swal.fire(response.message).then( () => window.location.href = response.redirected )
+                        if (response.message) {
+                            Swal.fire(response.message).then(() => window.location.href = response.redirected)
                             return
                         }
                         window.location.href = response.redirected

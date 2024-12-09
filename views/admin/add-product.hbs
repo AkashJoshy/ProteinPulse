@@ -417,10 +417,10 @@
           croppedImageWidth[index].innerHTML = croppedImgValues.width
           croppedImageHeight[index].innerHTML = croppedImgValues.height
           let croppedImageURL = cropper.getCroppedCanvas().toDataURL('image/png')
-        //  console.log(croppedImageURL)
+          //  console.log(croppedImageURL)
           croppedImages[index].src = croppedImageURL
           cropper.destroy()
-        //  images[index].style.display = "none"
+          //  images[index].style.display = "none"
         })
       })
     })

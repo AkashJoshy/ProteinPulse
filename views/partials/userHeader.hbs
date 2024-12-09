@@ -8,16 +8,16 @@
     border: 1px ridge rgba(228, 226, 226, 0.57)
   }
 
- .user-sub-header li a.active-li {
-  color: white;
-  text-decoration: underline;
-  text-decoration-color: #b1b1b1cc;
-}
+  .user-sub-header li a.active-li {
+    color: white;
+    text-decoration: underline;
+    text-decoration-color: #b1b1b1cc;
+  }
 
   .user-sub-header li a {
-  color: rgb(17, 15, 15);
-  text-decoration: none;
-}
+    color: rgb(17, 15, 15);
+    text-decoration: none;
+  }
 </style>
 
 <nav class="navbar navbar-expand-lg pt-4 " style="background-color: #F46F36;">
@@ -118,18 +118,18 @@
     const pageUrl = e.target.location.pathname
     subNavbarHeadings.forEach(subNav => {
       subNav.classList.remove('active-li')
-    //  subNav.style.color = "black"
+      //  subNav.style.color = "black"
     })
-      console.log(pageUrl)
-      if (pageUrl === '/') {
-        subNavbarHeadings[0].classList.add('active-li')
-      } else if (pageUrl === '/user/products') {
-        subNavbarHeadings[1].classList.add('active-li')
-      } else if(pageUrl === '/brands') {
-        subNavbarHeadings[2].classList.add('active-li')
-      } else {
+    console.log(pageUrl)
+    if (pageUrl === '/') {
+      subNavbarHeadings[0].classList.add('active-li')
+    } else if (pageUrl === '/user/products') {
+      subNavbarHeadings[1].classList.add('active-li')
+    } else if (pageUrl === '/brands') {
+      subNavbarHeadings[2].classList.add('active-li')
+    } else {
 
-      }
+    }
   })
 
 

@@ -12,9 +12,7 @@
 <div class="div">
   <ul id="dashboard-lists" class="user-dashboard-ul shadow-lg rounded-3 table-responsive">
     <a href="/user/dashboard">
-      <li id="dashboard" 
-      {{!-- class="d-none d-md-none d-xl-block" --}}
-      >
+      <li id="dashboard" {{!-- class="d-none d-md-none d-xl-block" --}}>
         Dashboard
       </li>
       {{!-- <li id="dashboard" class="d-md-block d-xl-none">
@@ -62,66 +60,31 @@
 
 <script>
 
-  /*
   document.addEventListener('DOMContentLoaded', () => {
     const lists = document.querySelectorAll('.user-dashboard-ul li');
-    const dashboardId = 'dashboard'; // ID of the Dashboard item
-    const activeItemId = localStorage.getItem('activeliID');
-
-    // Check if we're on the dashboard page based on URL path
-    const isDashboardPage = window.location.pathname === '/user/dashboard'; // Replace '/dashboard' with your dashboard path
-
-    // If on dashboard, set the dashboard item as active
-    if (isDashboardPage) {
-      lists.forEach(li => li.classList.remove('active'));
-      const dashboardItem = document.getElementById(dashboardId);
-      if (dashboardItem) {
-        dashboardItem.classList.add('active');
-      }
-    } else if (activeItemId) {
-      // Otherwise, use the last active item from localStorage
-      const activeItem = document.getElementById(activeItemId);
-      if (activeItem) {
-        activeItem.classList.add('active');
-      }
-    }
-
-    // Update active class on click and store the active ID
-    lists.forEach(list => {
-      list.addEventListener('click', (e) => {
-        lists.forEach(li => li.classList.remove('active'));
-        e.target.classList.add('active');
-        localStorage.setItem('activeliID', e.target.id);
-      });
-    });
-  });
-  */
-
-  document.addEventListener('DOMContentLoaded', () => {
-     const lists = document.querySelectorAll('.user-dashboard-ul li');
     //alert(location.pathname)
     const dashboardId = 'dashboard'
     const activeItemId = localStorage.getItem('activeItemId')
     let initialPathName = window.location.pathname == '/user/dashboard'
 
-    if(initialPathName) {
+    if (initialPathName) {
       lists.forEach(list => {
         list.classList.remove('active')
       })
       let dashboard = document.getElementById(dashboardId)
-      if(dashboard) dashboard.classList.add('active')
+      if (dashboard) dashboard.classList.add('active')
     } else {
       let activeItem = document.getElementById(activeItemId)
       activeItem.classList.add('active')
     }
 
-  lists.forEach(list => {
-    list.addEventListener('click', (e) => {
-    lists.forEach(li => li.classList.remove('active'))
-      list.classList.add('active')
-      localStorage.setItem('activeItemId', e.target.id)
+    lists.forEach(list => {
+      list.addEventListener('click', (e) => {
+        lists.forEach(li => li.classList.remove('active'))
+        list.classList.add('active')
+        localStorage.setItem('activeItemId', e.target.id)
+      })
     })
-  })
 
   })
 

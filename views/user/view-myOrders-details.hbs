@@ -21,10 +21,27 @@
                         </h6>
                     </div>
                     <div>
-                        <h6 class="" style="color: rgb(19, 107, 249);">
-                            Leave a Rating
+                        {{#if (isCancelled order.status)}}
+                        {{else}}
+                        {{#if (isorderStatusPending order.status)}}
+                        {{else}}
+                        {{#if (isorderStatusProcessing order.status)}}
+                        {{else}}
+                        {{#if (isorderStatusShipped order.status)}}
+                        {{else}}
+                        {{#if (isorderStatusOutForDelivery order.status)}}
+                        {{else}}
+                        <div class="btn btn-dark" style="color: rgb(19, 107, 249); cursor: pointer;" type="button"
+                            data-bs-toggle="modal" data-bs-target="#publishreview">
+                            Write a Review
                             <i class="fa-solid fa-plus"></i>
-                        </h6>
+                        </div>
+                        {{/if}}
+                        {{/if}}
+                        {{/if}}
+                        {{/if}}
+                        {{/if}}
+
                     </div>
                 </div>
                 {{!-- --}}
@@ -456,18 +473,91 @@
         </div>
 
     </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="publishreview" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel"> Write a Review </h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="/user/products/add-review" method="post" class="needs-validation" novalidate>
+                    <div class="modal-body">
+                        <div>
+                            <div class="rating-star">
+                                <span class="fa fa-star star-btn"></span>
+                                <span class="fa fa-star star-btn"></span>
+                                <span class="fa fa-star star-btn"></span>
+                                <span class="fa fa-star star-btn"></span>
+                                <span class="fa fa-star star-btn"></span>
+                            </div>
+
+                            <div style="display: none;">
+                                <input class="form-control starCount" type="number" name="productRating">
+                            </div>
+
+                            <div style="display: none;">
+                                <input class="form-control" type="text" value="{{order._id}}" name="orderID">
+                            </div>
+                            <p class="text-secondary" style="font-size: .8rem;">If you dont rate it will be 0</p>
+
+                            {{#each order.products}}
+                            <div class="form-check mb-3">
+                                <input type="radio" class="form-check-input" id="{{this.productName}}"
+                                    name="productID" value="{{this.productID}}" required>
+                                <label class="form-check-label" for="{{this.productName}}">
+                                    {{this.productName}}
+                                </label>
+                            </div>
+                            {{/each}}
+                            
+                            <p>Feedback</p>
+                            <textarea class="form-control" name="productFeedback" aria-label="With textarea"
+                                required></textarea>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" id="productReview" class="btn btn-dark">Public Review</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 
+<script src="/javaScript/reviewProduct.js"></script>
 <script>
 
-    /*
-    // Order Detail Page back Button
-    const backBtn = document.querySelector('#orderPageRedirect')
-    backBtn.addEventListener('click', () => {
-        window.location.href = "/dashboard/orders"
+   
+    const reviewStar = document.querySelector('.review-star')
+    // Review Star
+    const starBtns = document.querySelectorAll('.star-btn')
+    const starValue = document.querySelector('.starCount')
+
+    document.addEventListener('DOMContentLoaded', () => {
+        starBtns.forEach((starBtn, index) => {
+            starBtn.addEventListener('click', () => {
+                let starLength = index + 1
+                starValue.value = starLength
+
+                function getStarLength() {
+                    return starLength
+                }
+
+                starBtns.forEach((btn, i) => {
+                    if (i <= index) {
+                        btn.classList.add('checked')
+                    } else {
+                        btn.classList.remove('checked')
+                    }
+
+                })
+            })
+        })
     })
-    */
 
     // Cancel My order
     function myOrderUpdate(orderID, orderUpdate, urlEndpoint) {
@@ -603,7 +693,7 @@
                             </div>
                             </div>
                             `
-                            document.querySelector('.order-status-message').innerHTML = `Order has been Cancelled`
+                                document.querySelector('.order-status-message').innerHTML = `Order has been Cancelled`
                             }
 
                             if (element) {

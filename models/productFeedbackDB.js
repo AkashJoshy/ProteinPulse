@@ -24,7 +24,7 @@ const FeedbackSchema = new Schema({
             }
         }
     ]
-})
+}, { timestamps: true })
 
 
 const ProductFeedback = model('Feedback', FeedbackSchema)

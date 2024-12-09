@@ -319,27 +319,27 @@
     let isClicked = false
     document.querySelector('#copy-referalcode').addEventListener('click', () => {
         const refferalCode = document.querySelector('#refferalCode').value
-    if(!isClicked) {
-        isClicked = true
-        navigator.clipboard.writeText(refferalCode)
-        .then(() => {
-             Toastify({
-                    text: `Refferal Copied`,
-                    duration: 3000,
-                    close: true,
-                    gravity: "bottom",
-                    position: "right",
-                    style: {
-                        background: "linear-gradient(to right, #F46F36, #F36F8F)"
-                    }
-                }).showToast();
-            setTimeout(() => {
-                isClicked = false
-            }, 1100)
-        })
-        .catch(err => console.error(err))
+        if (!isClicked) {
+            isClicked = true
+            navigator.clipboard.writeText(refferalCode)
+                .then(() => {
+                    Toastify({
+                        text: `Refferal Copied`,
+                        duration: 3000,
+                        close: true,
+                        gravity: "bottom",
+                        position: "right",
+                        style: {
+                            background: "linear-gradient(to right, #F46F36, #F36F8F)"
+                        }
+                    }).showToast();
+                    setTimeout(() => {
+                        isClicked = false
+                    }, 1100)
+                })
+                .catch(err => console.error(err))
 
-    }
+        }
     })
 
 </script>

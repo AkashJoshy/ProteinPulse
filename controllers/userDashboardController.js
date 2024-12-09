@@ -179,7 +179,7 @@ const myOrders = asyncHandler(async (req, res, next) => {
             user,
             orders,
             pagination,
-            orderMessage
+            orderMessage,
         });
     } catch (error) {
         const err = new Error("Oops... Something Went Wrong")

@@ -12,10 +12,8 @@ router.get("/search", userProductsController.searchProducts)
 router.get("/search-results", userAuthController.authHandler, userProductsController.searchResults)
 router.get("/:productID", userAuthController.authHandler, userProductsController.product)
 
-
 // POST Requests
-router.post("/review", userAuthController.authHandler, userProductsController.productReview);
-
+router.post("/add-review", userAuthController.authHandler, userProductsController.productReview);
 
 // PATCH
 router.patch("/wishlist/:productID", userProductsController.updateWishlist)

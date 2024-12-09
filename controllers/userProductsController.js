@@ -7,6 +7,7 @@ const { CouponData } = require('../models/CouponDB')
 const { OfferData } = require('../models/OfferDB')
 const { ProductFeedback } = require('../models/productFeedbackDB')
 const productSortAndFilters = require('../utils/productSortAndFiltersHelper')
+const { OrderData } = require('../models/OrderDB')
 
 
 const products = asyncHandler(async (req, res, next) => {
@@ -64,6 +65,9 @@ const product = asyncHandler(async (req, res, next) => {
             return res.status(404).json({ message: 'Product not found!' })
         }
 
+        let productReviews = await ProductFeedback.findOne({ productID }).sort({}).lean()
+        console.log(productReviews)
+
         const isWishlisted = user.wishlist.some(product => productID.toString() === product.productID.toString())
 
         let productName = product.name;
@@ -84,7 +88,8 @@ const product = asyncHandler(async (req, res, next) => {
             realtedProducts,
             user: req.session.user,
             similarProducts,
-            isWishlisted
+            isWishlisted,
+            productReviews
         });
     } catch (error) {
         const err = new Error("Oops... Something Went Wrong")
@@ -154,7 +159,7 @@ const sortProducts = asyncHandler(async (req, res, next) => {
     try {
         const userID = req.session.user._id
         const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
-    
+
         if (!user) {
             req.session.user = null;
             return res.json({
@@ -162,7 +167,7 @@ const sortProducts = asyncHandler(async (req, res, next) => {
                 redirected: "/login",
             })
         }
-    
+
         let sort = req.query.sortType
         let data = JSON.parse(decodeURIComponent(req.query.formData));
         let allFilters = data.reduce((acc, current) => {
@@ -182,14 +187,14 @@ const sortProducts = asyncHandler(async (req, res, next) => {
             return acc
         }, {})
         let { availability, priceRange, brands, flavour, discountPercentage } = allFilters
-    
+
         let { sortOpt, filters } = productSortAndFilters(availability, priceRange, brands, flavour, discountPercentage, sort)
-      
-    
+
+
         let filterProducts = await ProductData.find(filters).sort(sortOpt).lean();
-    
+
         filterProducts = filterProducts = null ? 0 : filterProducts;
-    
+
         return res.json({ status: true, products: filterProducts });
     } catch (error) {
         return res.json({
@@ -293,7 +298,20 @@ const productReview = asyncHandler(async (req, res, next) => {
             const redirectPath = "/login";
             return next({ error: err, redirectPath });
         }
-        let { productID, productRating, productFeedback } = req.body;
+
+        let {
+            productRating,
+            orderID,
+            productID,
+            productFeedback,
+        } = req.body;
+
+        let order = await OrderData.findById(orderID)
+
+        if (!order) {
+            return res.redirect(`/user/dashboard/orders`)
+        }
+
         productRating = productRating === "" ? 0 : Number(productRating);
         const isFeedback = await ProductFeedback.findOne({ productID });
         if (!isFeedback) {
@@ -305,14 +323,14 @@ const productReview = asyncHandler(async (req, res, next) => {
                     productFeedback,
                 },
             });
-            return res.redirect(`/user/product/${productID}`);
+            return res.redirect(`/user/dashboard/orders/edit-orders/${orderID}`);
         }
 
         await ProductFeedback.findByIdAndUpdate(
             { _id: isFeedback._id },
             { $push: { feedbacks: { userID, productRating, productFeedback } } }
         );
-        return res.redirect(`/product/${productID}`);
+        return res.redirect(`/user/dashboard/orders/edit-orders/${orderID}`);
     } catch (error) {
         const err = new Error("Oops... Something Went Wrong")
         return next({ error: err, message: err })
@@ -332,7 +350,7 @@ const updateWishlist = asyncHandler(async (req, res, next) => {
     try {
         const userID = req.session.user._id
         const user = await UserData.findOne({ _id: userID, isBlocked: false }).lean();
-    
+
         if (!user) {
             req.session.user = null;
             return res.json({
@@ -340,12 +358,12 @@ const updateWishlist = asyncHandler(async (req, res, next) => {
                 redirected: "/login",
             })
         }
-    
+
         let productID = req.params.productID;
         let productIndex = user.wishlist.findIndex(
             (product) => product.productID == productID
         );
-    
+
         if (productIndex == -1) {
             if (user.wishlist.length >= 4) {
                 return res.json({
