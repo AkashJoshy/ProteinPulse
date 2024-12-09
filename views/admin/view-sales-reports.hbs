@@ -34,8 +34,8 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-12 col-md-9 table-responsive">
-      <table class="table mt-3">
+    <div class="col-12 col-md-9 mt-3 table-responsive rounded">
+      <table class="table">
         <thead class="table-dark">
           <tr>
             <th scope="col">Order No</th>
@@ -142,7 +142,7 @@
                   tableBody.innerHTML = '';
 
                   if (orders.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="7" style="font-size: 1.3rem;" class="text-center fw-bold fs-4">No Sales Report Found...</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="7" style="font-size: 1.3rem;" class="text-center fs-5">No Sales Report Found...</td></tr>';
                     reportDownload.style.display = "none"
                     totalCouponPrice.innerHTML = 0
                     overallTotal.innerHTML = 0

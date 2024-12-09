@@ -23,18 +23,10 @@
   <h3 class="category-title ms-3 ms-md-5 " style="cursor: pointer;">
     Coupons
   </h3>
-  {{!-- <div>
-    <h5>Sort</h5>
-    <select name="" id=""></select>
-  </div>
-  <div>
-    <h5>Sort</h5>
-    <select name="" id=""></select>
-  </div> --}}
 </div>
 
-<div class="container table-responsive shadow-lg rounded">
-  <table class="table mt-3 ">
+<div class="mx-2 mx-md-5 mt-3 table-responsive shadow-lg rounded">
+  <table class="table">
     <thead class="table-dark">
       <tr>
         <th scope="col">Code</th>
@@ -69,7 +61,11 @@
       </tr>
       {{/each}}
       {{else}}
-
+          <tr>
+        <td colspan="10" class="fw-semibold fs-4 text-center text-danger select-disabled">
+          No Coupons Added
+        </td>
+      </tr>
       {{/if}}
 
     </tbody>
@@ -114,7 +110,7 @@
       style="font-size: 1.2rem; color: rgb(175, 165, 165);"></i></a>
 </h4>
 
-<div class="container shadow rounded" style="border-top: 4px solid #039b36; ">
+<div class="px-1 mx-5 shadow rounded" style="border-top: 4px solid #039b36; ">
   <form action="/admin/add-coupon" class="needs-validation" method="post" novalidate>
     <div class="row p-4">
 

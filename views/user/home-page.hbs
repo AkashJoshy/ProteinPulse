@@ -104,11 +104,13 @@
     {{/each}}
     {{! // products list }}
   </div>
+  {{#if topProducts}}
   <div class="d-flex">
     <a class="btn mt-5 mx-auto px-4 rounded-3" style="background-color: #F46F36;" href="/user/products">
       More
     </a>
   </div>
+  {{/if}}
 </div>
 
 {{#if categories}}

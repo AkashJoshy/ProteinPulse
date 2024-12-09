@@ -12,8 +12,8 @@
     <h3 class="ms-3 ms-md-5">All Orders</h3>
 </div>
 
-<div class="container table-responsive shadow-lg rounded">
-    <table class="table mt-3">
+<div class="mx-2 mx-md-5 mt-3 table-responsive shadow-lg rounded">
+    <table class="table">
         <thead class="table-dark">
             <tr>
                 <th scope="col">NO</th>
@@ -34,57 +34,6 @@
                 <td>{{this.orderNumber}}</td>
                 <td><span>₹</span>{{this.totalSalePrice}} <span>.00</span> </td>
                 <td>{{this.paymentMethod}}</td>
-                {{!-- <td>
-                    <select class="p-1 order-status" style="border-radius: 5px; color: grey ;padding-left: 5px;"
-                        aria-label="Default select example" data-order-ID="{{this._id}}">
-                        <option selected>{{this.status}}</option>
-
-                        {{#if (isorderStatusPending this.status)}}
-                        <option value="Processing">Processing</option>
-                        <option value="Shipped">Shipped</option>
-                        <option value="Out for Delivery">Out for Delivery</option>
-                        <option value="Delivered">Delivered</option>
-                        <option value="Cancelled">Cancelled</option>
-                        <option value="Returned">Returned</option>
-                        <option value="Refunded">Refunded</option>
-                        {{else}}
-                        {{#if (isorderStatusProcessing this.status)}}
-                        <option value="Shipped">Shipped</option>
-                        <option value="Out for Delivery">Out for Delivery</option>
-                        <option value="Delivered">Delivered</option>
-                        <option value="Cancelled">Cancelled</option>
-                        <option value="Returned">Returned</option>
-                        <option value="Refunded">Refunded</option>
-                        {{else}}
-                        {{#if (isorderStatusShipped this.status)}}
-                        <option value="Out for Delivery">Out for Delivery</option>
-                        <option value="Delivered">Delivered</option>
-                        <option value="Cancelled">Cancelled</option>
-                        <option value="Returned">Returned</option>
-                        <option value="Refunded">Refunded</option>
-                        {{else}}
-                        {{#if (isorderStatusOutForDelivery this.status)}}
-                        <option value="Delivered">Delivered</option>
-                        <option value="Cancelled">Cancelled</option>
-                        <option value="Returned">Returned</option>
-                        <option value="Refunded">Refunded</option>
-                        {{else}}
-                        {{#if (isorderStatusDelivery this.status)}}
-                        <option value="Returned">Returned</option>
-                        <option value="Refunded">Refunded</option>
-                        {{else}}
-                        {{#if (isorderStatusCancelled this.status)}}
-                        {{else}} {{#if (isorderStatusReturned
-                        this.status)}} <option value="Refunded">Refunded</option>
-                        {{/if}}
-                        {{/if}}
-                        {{/if}}
-                        {{/if}}
-                        {{/if}}
-                        {{/if}}
-                        {{/if}}
-                    </select>
-                </td> --}}
                 <td>{{this.paymentStatus}}</td>
                 <td>{{this.createdAt}}</td>
                 <td>
@@ -95,13 +44,17 @@
             </tr>
             {{/each}}
             {{else}}
-            <h3 class="text-center">No Orders Till Now...</h3>
+            <tr>
+                <td colspan="10" class="fw-semibold fs-4 text-center text-danger select-disabled">
+                    No Orders Till Now...
+                </td>
+            </tr>
             {{/if}}
         </tbody>
     </table>
 
     <nav aria-label="Page navigation example" class="d-flex fixed-bottom" style="z-index: 2;">
-          
+
         <ul class="pagination mx-auto py-3 admin-pagination">
             {{#if pagination.isPrevious}}
             <li class="page-item">

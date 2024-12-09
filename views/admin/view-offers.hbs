@@ -38,8 +38,8 @@
   <h3 class="ms-3 ms-md-5">Offers</h3>
 </div>
 
-<div class="px-1 mx-4 table-responsive shadow-lg rounded">
-  <table class="table mt-3">
+<div class="mx-2 mx-md-5 mt-3 table-responsive shadow-lg rounded">
+  <table class="table">
     <thead class="table-dark ">
       <tr>
         <th scope="col">Name</th>
@@ -70,7 +70,11 @@
       </tr>
       {{/each}}
       {{else}}
-      <td>No offers Applyed</td>
+      <tr>
+        <td colspan="10" class="fw-semibold fs-4 text-center text-danger select-disabled">
+          No offers Applyed
+        </td>
+      </tr>
       {{/if}}
     </tbody>
   </table>
