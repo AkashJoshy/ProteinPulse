@@ -59,6 +59,7 @@
       </tr>
     </thead>
     <tbody>
+      {{#if categories}}
       {{#each categories}}
       <tr>
         <th scope="row"> {{increment @index}} </th>
@@ -90,8 +91,11 @@
           </a>
         </td>
       </tr>
-      {{/each}}
     </tbody>
+    {{/each}}
+    {{else}}
+    <td colspan="10" class="fw-semibold fs-4 text-center text-danger select-disabled">No categories available</td>
+    {{/if}}
   </table>
   <h3 style="display: none; color: rgb(165, 161, 161);" class="text-center fw-2 error-message"></h3>
 

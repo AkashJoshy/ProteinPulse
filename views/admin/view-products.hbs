@@ -37,9 +37,11 @@
     <input type="search" style="color: rgb(17, 17, 17) ;padding-left: 5px; border: 2px solid rgb(98, 97, 97);"
       placeholder="Search" id="search-bar" class="form-control">
   </div>
+  {{#if products}}
   <div class="btn btn-success me-3 me-md-5 mt-2 mb-2" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
     Add Stock
   </div>
+  {{/if}}
 </div>
 
 
@@ -114,7 +116,7 @@
       </tr>
     </thead>
     <tbody>
-      {{#if (isEmpty products.length)}}
+      {{#if products.length}}
       {{#each products}}
       <tr>
         <th scope="row"> {{increment @index}} </th>
@@ -144,20 +146,21 @@
         </td>
         <td>
           <a class="btn-product-action" onclick="deleteproduct(`{{this._id}}`, 
-        `{{this.name}}`, 
-        `delete-product`, 
-        `Delete`)">
+      `{{this.name}}`, 
+      `delete-product`, 
+      `Delete`)">
             <i class="fa-solid fa-trash mx-auto px-3" style="cursor: pointer; color: red;"></i>
           </a>
         </td>
       </tr>
       {{/each}}
       {{else}}
+      <td colspan="16" class="fw-semibold fs-4 text-center text-danger select-disabled">
+        No products available
+      </td>
+      {{/if}}
+
     </tbody>
-    <tr>
-      <td colspan="16" class="fs-4 fw-semibold text-md-center text-danger">No Products Available</td>
-    </tr>
-    {{/if}}
   </table>
 
   <h4 class="fs-4 text-center text-danger fw-semibold" id="product-message"></h4>

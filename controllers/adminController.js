@@ -23,13 +23,13 @@ const login = asyncHandler(async (req, res) => {
     return res.redirect("/admin/dashboard");
   }
 
-  return res.render("admin/login-page", {
+  res.render("admin/login-page", {
     admin: true,
     loginErr: req.session.errMessage,
     admin1: req.session.admin,
   });
   req.session.errMessage = false;
-
+  return
 });
 
 // Admin Login checking
@@ -327,12 +327,13 @@ const getProducts = asyncHandler(async (req, res) => {
 
     res.render("admin/view-products", {
       admin: true,
-      products,
+      products: data,
       admin1: req.session.admin,
       pagination,
       errMsg: req.session.errMessage,
     })
     req.session.errMessage = false
+    return
   } catch (error) {
     console.error(error);
   }
@@ -625,7 +626,7 @@ const sortProducts = asyncHandler(async (req, res) => {
       let formatedDate = moment(createdAt).format("MMMM Do YYYY HH:mm:ss");
       return { ...product, createdAt: formatedDate };
     });
-    return res.json({ status: true, products, pagination });
+    return res.json({ status: true, products: data, pagination });
   } catch (error) {
     console.error(error);
   }

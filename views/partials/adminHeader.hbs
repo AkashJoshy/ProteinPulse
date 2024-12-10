@@ -26,9 +26,11 @@
             <i class="fa-solid fa-user text-light">
             </i>
             {{#if admin1}}
-            <span class="mx-1 fw-bold text-uppercase text-light">
-              {{admin1.firstName}}
-            </span>
+            <a style="z-index: 1050; cursor: pointer" class="text-decoration-none" href="/admin/settings">
+              <span class="mx-1 fw-bold text-uppercase text-light">
+                {{admin1.firstName}}
+              </span>
+            </a>
             {{/if}}
           </a>
         </li>
@@ -45,7 +47,7 @@
     {{#if admin1}}
     <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="offcanvas"
       data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
+      <span class="navbar-toggler-icon "></span>
     </button>
     {{/if}}
     <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasDarkNavbar"
