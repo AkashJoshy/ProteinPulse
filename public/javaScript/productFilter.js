@@ -73,8 +73,13 @@
                                       ${productFilter.name}
                                   </h6>
                                   <h5 class="card-text text-black">₹${productFilter.salePrice}
-                                      <span
-                                          class="px-2 text-decoration-line-through text-secondary">₹${productFilter.price}</span>
+                                        ${productFilter.salePrice != productFilter.price ?
+                                    `<span
+                                        class="px-2 text-decoration-line-through text-secondary">₹${productFilter.price}
+                                    </span>`
+                                    :
+                                    ``
+                                }
                                   </h5>
                                   <span class="fa fa-star checked"></span>
                                   <span class="fa fa-star checked"></span>

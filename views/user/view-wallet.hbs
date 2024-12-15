@@ -159,10 +159,11 @@
                     </li>
                     {{/if}}
 
-                    {{#each (paginationNumbers 1 pagination.totalPages)}}
+                    {{!-- {{#each (paginationNumbers 1 pagination.totalPages)}} --}}
+                    {{#each (paginationDynamicNumbers pagination.currentPage pagination.totalPages)}}
                     <li class="page-item"><a class="page-link" style="background-color: #000000; color: #F46F36;"
                             href='/dashboard/wallet?page={{this}}'>{{this}}</a></li>
-                    {{/each }}
+                    {{/each}}
 
                     {{#if pagination.isNext}}
                     <li class="page-item">
@@ -242,8 +243,19 @@
                                 `
                             }
 
+                            let current = pagination.currentPage
+                            let pages = pagination.totalPages
+                            let limit = 5
 
-                            for (let i = 1; i <= pagination.totalPages; i++) {
+                            let start = Math.max(1, current - Math.floor(limit / 2))
+                            let end = Math.min(pages, start + limit - 1)
+                            let numbers = []
+
+                            if (end - start + 1 < limit) {
+                                start = Math.max(1, end - limit + 1)
+                            }
+
+                            for (let i = start; i <= end; i++) {
                                 paginationHtml += `
                                 <li class="page-item"><a class="page-link" 
                                 style="background-color: #000000; color: #F46F36;" 

@@ -48,16 +48,17 @@
           {{/if}}
           {{!-- // login Success messages --}}
 
-          <div class="d-flex">
-            <div class="me-auto">
-              <a href="/signup" class="" style="text-decoration: none; color: black;">
-                NEW USER ? CREATE AN ACCOUNT
+          <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
+            <div class="mb-2 mb-md-0">
+              <a href="/signup" class="text-decoration-none text-dark">
+                NEW USER? CREATE AN ACCOUNT
               </a>
             </div>
-            <div>
-              <a href="/forgot-password" class="">FORGOT PASSWORD</a>
-              <button type="submit" class="btn mt-3 d-flex ms-auto" style="background-color: #F46F36;">Submit</button>
-
+            <div class="d-flex flex-column flex-md-row align-items-center">
+              <a href="/forgot-password" class="text-decoration-none me-md-3 mb-2 mb-md-0">
+                FORGOT PASSWORD
+              </a>
+              <button type="submit" class="btn mt-2 mt-md-0 mt-xl-3" style="background-color: #F46F36;">Submit</button>
             </div>
           </div>
 

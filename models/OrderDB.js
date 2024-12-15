@@ -93,11 +93,9 @@ const addressSchema = new Schema({
 const couponsSchema = new Schema({
     code: {
         type: String,
-        required: true
     },
     deductedPrice: {
         type: Number,
-        required: true
     }
 })
 

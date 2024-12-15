@@ -569,46 +569,11 @@ const wallet = asyncHandler(async (req, res, next) => {
         }
 
     
-        let walletBalance = await WalletData.aggregate([
-            {
-                $match: { userID: new mongoose.Types.ObjectId(userID) }
-            },
-            {
-                $unwind: "$transactions"
-            },
-            {
-                $match: { 
-                    "transactions.status": { $eq: "Success" },
-                    "transactions.amount": { $gt: 0 }
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                    creditTotal: {
-                        $sum: { $cond: [{ $eq: ["$transactions.transactionType", "credit"] }, "$transactions.amount", 0] },
-                    },
-                    debitTotal: {
-                        $sum: { $cond: [{ $eq: ["$transactions.transactionType", "debit"] }, "$transactions.amount", 0] },
-                    },
-                    refferalTotal: {
-                        $sum: { $cond: [{ $eq: ["$transactions.transactionType", "referral"] }, "$transactions.amount", 0] }
-                    }
-
-                }
-            }
-        ])
-
-        
-        const totalBalance = walletBalance.length > 0
-    ? walletBalance[0].creditTotal  + walletBalance[0].refferalTotal
-    : 0;
-
         return res.render("user/view-wallet", {
             auth: true,
             user: req.session.user,
             wallet,
-            totalBalance,
+            totalBalance: wallet.balance,
             walletTransactions,
             pagination,
         });
@@ -875,38 +840,12 @@ const verifyWalletTopup = asyncHandler(async (req, res, next) => {
                 { new: true }
             );
 
-            let walletBalance = await WalletData.aggregate([
-                {
-                    $match: { userID: new mongoose.Types.ObjectId(userID) }
-                },
-                {
-                    $unwind: "$transactions"
-                },
-                {
-                    $match: { "transactions.status": { $eq: "Success" } }
-                },
-                {
-                    $group: {
-                        _id: null,
-                        creditTotal: {
-                            $sum: { $cond: [{ $eq: ["$transactions.transactionType", "credit"] }, "$transactions.amount", 0] },
-                        },
-                        debitTotal: {
-                            $sum: { $cond: [{ $eq: ["$transactions.transactionType", "debit"] }, "$transactions.amount", 0] },
-                        },
-                        refferalTotal: {
-                            $sum: { $cond: [{ $eq: ["$transactions.transactionType", "referral"] }, "$transactions.amount", 0] }
-                        },
-                    }
-                }
-            ])
-
-            const totalBalance = walletBalance[0].creditTotal + walletBalance[0].refferalTotal
+            let wallet = await WalletData.findOne({ userID })
 
             return res.json({
                 status: true,
                 success: true,
-                totalBalance,
+                totalBalance: wallet.balance,
                 message: `Top-up successful`
             })
         } else {
@@ -917,6 +856,7 @@ const verifyWalletTopup = asyncHandler(async (req, res, next) => {
             })
         }
     } catch (error) {
+        console.log(error)
         return res.json({
             message: "Oops Something went wrong",
             status: false,

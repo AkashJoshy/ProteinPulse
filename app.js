@@ -109,15 +109,28 @@ app.engine('hbs', engine({
            return acc
         }, 0),
         orderProgress: value => value == 'Pending' ? 15 : (value == 'Processing' ? 34 : (value == 'Shipped' ? 50 : (value == 'Out for Delivery' ? 64 : (value == 'Delivered' ? 100 : 0) ) ) ),
-        paginationNumbers: (start, end) => {
+        paginationNumbers: (start, pages) => {
             let number = []
-            // let limit = 3
-            // start = current <= 2 ? start : start - 2
-            // end = end <= limit ? start : end - 2
-            for(let i = start; i <= end; i++) {
+            for(let i = start; i <= pages; i++) {
                 number.push(i)
             }
             return number
+        },
+        paginationDynamicNumbers: (current, pages) => {
+            let limit = 5
+            let start = Math.max(1, current - Math.floor(limit / 2))
+            let end = Math.min(pages, start + limit - 1)
+            let numbers = []
+
+            if(end - start + 1 < limit) {
+                start = Math.max(1, end - limit + 1)
+            }
+
+            for(let i = start; i<= end; i++) {
+                numbers.push(i)
+            }
+
+            return numbers
         },
         paginationManipulation: (currentPage, inc) => {
             inc = Number(inc)

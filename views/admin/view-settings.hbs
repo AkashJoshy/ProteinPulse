@@ -22,47 +22,34 @@
 <div class="container table-responsive shadow-lg rounded">
 
     <div class="row">
-       <div class="col-md-4">
-  <div class="">
-    <div class="p-3 mt-3 mb-4 shadow-lg rounded-2 text-center">
-      <img 
-        style="width: 100px; height: 100px; object-fit: cover;" 
-        class="p-2 rounded-circle profile-pic" 
-        src="/uploads/no-user-image-icon-0.jpg" 
-        alt="Profile Picture"
-      >
-      <h5 class="mt-2">Bruce Wayne</h5>
-      <h5 class="mt-2 text-center rounded-2 p-1 text-white" style="background-color: #F46F36;">Admin</h5>
-    </div>
-    <div class="p-3 mt-3 mb-3 shadow-lg rounded-2">
-      <form class="needs-validation" enctype="multipart/form-data" novalidate>
-        <div class="row align-items-center">
-          <div class="col-12 col-sm-8 mb-2 mb-sm-0">
-            <input 
-              type="file" 
-              class="form-control form-control-sm rounded-3 profile-pic-selector" 
-              accept="image/*" 
-              name="file" 
-              required
-            >
-            <div class="invalid-feedback">
-              Please upload a file!
+        <div class="col-md-4">
+            <div class="">
+                <div class="p-3 mt-3 mb-4 shadow-lg rounded-2 text-center">
+                    <img style="width: 100px; height: 100px; object-fit: cover;" class="p-2 rounded-circle profile-pic"
+                        src="/uploads/no-user-image-icon-0.jpg" alt="Profile Picture">
+                    <h5 class="mt-2">{{currentAdmin.firstName}} {{currentAdmin.lastName}}</h5>
+                    <h5 class="mt-2 text-center rounded-2 p-1 text-white" style="background-color: #F46F36;">Admin</h5>
+                </div>
+                <div class="p-3 mt-3 mb-3 shadow-lg rounded-2">
+                    <form class="needs-validation" enctype="multipart/form-data" novalidate>
+                        <div class="row align-items-center">
+                            <div class="col-12 col-sm-8 mb-2 mb-sm-0">
+                                <input type="file" class="form-control form-control-sm rounded-3 profile-pic-selector"
+                                    accept="image/*" name="file" required>
+                                <div class="invalid-feedback">
+                                    Please upload a file!
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-4 text-sm-end">
+                                <button type="submit" id="changeProfilePic" class="btn btn-sm btn-outline-dark w-100">
+                                    Upload
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-          </div>
-          <div class="col-12 col-sm-4 text-sm-end">
-            <button 
-              type="submit" 
-              id="changeProfilePic" 
-              class="btn btn-sm btn-outline-dark w-100"
-            >
-              Upload
-            </button>
-          </div>
         </div>
-      </form>
-    </div>
-  </div>
-</div>
 
         <div class="col-md-8">
             <h5 class="mt-3 px-2">Personal Information</h5>

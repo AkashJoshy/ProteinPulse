@@ -64,7 +64,6 @@
                                 }
                             } else {
                                 if (response.redirected) {
-
                                     window.location.href = response.redirected
                                 } else {
                                     Swal.fire(response.message).then(()=> window.location.href = '/cart')

@@ -28,13 +28,13 @@
                 let topUp = response.order
                 const user = response.user
                 var options = {
-                  "key": keyID, // Enter the Key ID generated from the Dashboard
-                  "amount": topUp.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+                  "key": keyID,
+                  "amount": topUp.amount, 
                   "currency": "INR",
-                  "name": "PROTEIN PULZE PLAZA", //your business name
+                  "name": "PROTEIN PULZE PLAZA",
                   "description": "Test Transaction",
                   "image": "/picture/logo/logoUser.png",
-                  "order_id": topUp.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+                  "order_id": topUp.id,
                   "handler": function (response) {
                       verifyWalletPayment(response, topUp)
                   },

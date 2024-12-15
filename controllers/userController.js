@@ -788,7 +788,7 @@ const cancelProduct = asyncHandler(async (req, res, next) => {
     let coupons = await Promise.all(
       order.coupons.map(async (coupon) => {
         isValidCoupon = await CouponData.findOne({ code: coupon.code });
-   
+
         if (isValidCoupon) {
           return originalPrice >= isValidCoupon.minOrderValue
             ? isValidCoupon
@@ -1137,6 +1137,7 @@ const placeOrder = asyncHandler(async (req, res, next) => {
       return res.json({ status: false, message: "No products Found" })
     }
 
+
     let {
       firstName,
       lastName,
@@ -1175,6 +1176,17 @@ const placeOrder = asyncHandler(async (req, res, next) => {
       coupons,
     } = await cartTotalPrice(userID)
 
+    console.log(`coupons`)
+    console.log(coupons)
+    let couponDetails = coupons.map(copn => {
+      return {
+        code: copn.existingCoupon.code,
+        deductedPrice: copn.existingCoupon.maxDiscount
+      }
+    })
+
+    console.log(couponDetails)
+
     const cart = await CartData.findById(cartID).lean()
     if (!cart) {
       return res.json({ status: false, message: "Cart is missing" })
@@ -1188,7 +1200,10 @@ const placeOrder = asyncHandler(async (req, res, next) => {
     }
 
     if (paymentMethod == 'COD' && totalSalePrice >= 1000) {
-      return res.json({ status: false, message: "COD is available only for orders below ₹1000. Please choose another payment method" })
+      return res.json({
+        status: false,
+        message: "COD is available only for orders below ₹1000. Please choose another payment method"
+      })
     }
 
     let products = cart.products.map((product) => {
@@ -1336,6 +1351,7 @@ const placeOrder = asyncHandler(async (req, res, next) => {
     }
 
     if (paymentMethod == 'myWallet') {
+      console.log(`Working`)
       const transactionID = await generateTransactionID(userID)
       let debitingAmount = -Number(totalPrice)
       await WalletData.findOneAndUpdate(
@@ -1361,7 +1377,7 @@ const placeOrder = asyncHandler(async (req, res, next) => {
 
     const couponsID = await Promise.all(
       coupons.map(async (coupn) => {
-        return await CouponData.findOne({ code: coupn.code })
+        return await CouponData.findOne({ code: coupn.existingCoupon.code })
       })
     )
 
@@ -1386,18 +1402,16 @@ const placeOrder = asyncHandler(async (req, res, next) => {
                 $pull: { appliedCoupons: { couponID: coupn._id } },
               }
             )
-
           }
         })
       )
     }
 
     for (const prod of cart.products) {
-      let quantity = -Number(prod.quantity);
+      let quantity = -Number(prod.quantity)
       await ProductData.findByIdAndUpdate(prod.productID, {
-        $inc: { quantities: quantity },
-        $inc: { totalSales: 1 }
-      },);
+        $inc: { quantities: quantity, totalSales: 1 }
+      })
     }
 
     await CartData.findByIdAndDelete({ _id: cartID });

@@ -116,7 +116,7 @@
       </tr>
     </thead>
     <tbody>
-      {{#if products.length}}
+      {{#if (isEmpty products.length)}}
       {{#each products}}
       <tr>
         <th scope="row"> {{increment @index}} </th>
