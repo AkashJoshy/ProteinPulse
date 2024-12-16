@@ -157,7 +157,7 @@ const myOrders = asyncHandler(async (req, res, next) => {
         }
 
         let page = req.query.page || 1
-        let limit = req.query.limit || 9
+        let limit = req.query.limit || 8
         let query = { userID }
         
         let { data, pagination } = await getPaginatedData(OrderData, page, limit, {}, query)
@@ -208,7 +208,7 @@ const myOrdersPages = asyncHandler(async (req, res, next) => {
         }
 
         let page = Number(req.query.page) || 1
-        let limit = Number(req.query.limit) || 9
+        let limit = Number(req.query.limit) || 8
 
         let query = { userID }
         let { data, pagination } = await getPaginatedData(OrderData, page, limit, {}, query)

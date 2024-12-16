@@ -1,3 +1,10 @@
+<style>
+    .page-item .page-link.active {
+        border: 1px ridge #ffffff !important;
+        color: rgb(255, 255, 255) !important;
+    }
+</style>
+
 <div class="container">
     <div class="row">
 
@@ -47,26 +54,27 @@
                 </table>
             </div>
 
+            {{#if (isPagination pagination.totalPages)}}
             <nav aria-label="Page navigation example" class="mt-3 ">
                 {{#if pagination}}
                 <ul class="pagination wallet-pagination justify-content-center">
                     {{#if pagination.isPrevious}}
                     <li class="page-item">
-                        <a class="page-link " style="background-color: #F46F36;" href="#"><i
+                        <a class="page-link page-number" href="/dashboard/orders?page={{paginationManipulation pagination.currentPage -1}}"><i
                                 class="fa-solid fa-arrow-left"></i></a>
                     </li>
                     {{/if}}
 
-                    {{#each (paginationNumbers 1 pagination.totalPages)}}
-                    <li class="page-item"><a class="page-link" style="background-color: #000000; color: #F46F36;"
-                            href='/dashboard/orders?page={{this}}'>
+                    {{#each (paginationDynamicNumbers pagination.currentPage pagination.totalPages)}}
+                    <li class="page-item"><a class="page-link page-number"
+                            style="background-color: #000000; color: #F46F36;" href='/dashboard/orders?page={{this}}'>
                             {{this}}
                         </a></li>
                     {{/each }}
 
                     {{#if pagination.isNext}}
                     <li class="page-item">
-                        <a class="page-link" style="background-color: #F46F36;"
+                        <a class="page-link page-number" style="background-color: #F46F36;"
                             href="/dashboard/orders?page={{paginationManipulation pagination.currentPage 1}}"><i
                                 class="fa-solid fa-arrow-right"></i></a>
                     </li>
@@ -74,6 +82,7 @@
                 </ul>
                 {{/if}}
             </nav>
+            {{/if}}
 
 
         </div>
@@ -86,95 +95,93 @@
 
     $(document).ready(function () {
         $('.wallet-pagination').on('click', 'a', function (e) {
-            e.preventDefault()
-            let page = $(this).attr('href').split('=')[1]
+            e.preventDefault();
+            const page = $(this).attr('href').split('=')[1];
+
             $.ajax({
                 url: `/user/dashboard/orders/page`,
                 method: 'GET',
                 data: { page: page },
                 success: response => {
                     if (response.status) {
-                        const pagination = response.pagination
-                        console.log(pagination)
-                        const orders = response.orders
-                        let ordersHtml = ''
-                        let paginationHtml = ''
-                        orders.forEach(order => {
-                            if (order) {
-                                ordersHtml += `
-                            <tr>
-                                <th scope="row" class="px-3 fs-bw">${order.orderNumber}</th>
-                                <td>${order.status}</td>
-                                <td>${order.createdAt}</td>
-                                <td><span>₹ </span>${order.totalPrice}</td>
-                                <td class="text-center">${order.paymentStatus}</td>
-                                <td>
+                        // Update orders
+                        let ordersHtml = response.orders.map(order => `
+                        <tr>
+                            <th scope="row" class="px-3 fs-bw">${order.orderNumber}</th>
+                            <td>${order.status}</td>
+                            <td>${order.createdAt}</td>
+                            <td><span>₹ </span>${order.totalPrice}</td>
+                            <td class="text-center">${order.paymentStatus}</td>
+                            <td>
                                 <a href="/user/dashboard/orders/edit-orders/${order._id}"
                                     style="text-decoration: none; color: #F46F36;">
                                     View Details <i class="fa-solid fa-arrow-right"></i>
                                 </a>
-                                </td>
-                            </tr>
-                                `
-                            } else {
-                                ordersHtml +=
-                                    `
-                                <tr>
-                                    <td colspan="7" style="font-size: 1.3rem;" class="text-center text-danger">
-                                        No Orders
-                                    </td>
-                                </tr>
-                                `
-                            }
-                        })
+                            </td>
+                        </tr>
+                    `).join('');
+                        document.querySelector('tbody').innerHTML = ordersHtml;
 
-                        document.querySelector('tbody').innerHTML = ordersHtml
-
-                        if (pagination) {
-
-                            if (pagination.isPrevious) {
-                                paginationHtml += `
-                                    <li class="page-item">
-                                        <a class="page-link" style="background-color: #F46F36;" 
-                                        href="/dashboard/orders/page?page=${pagination.currentPage - 1}">
-                                        <i class="fa-solid fa-arrow-left">
-                                        </i></a>
-                                    </li> 
-                                `
-                            }
-
-                            for (let i = 1; i <= pagination.totalPages; i++) {
-                                paginationHtml += `
-                                <li class="page-item">
-                                <a class="page-link" style="background-color: #000000; color: #F46F36;" 
-                                href="/dashboard/orders/page?page=${i}">
-                                    ${i}
+                        // Update pagination
+                        let paginationHtml = '';
+                        if (response.pagination.isPrevious) {
+                            paginationHtml += `
+                            <li class="page-item">
+                                <a class="page-link page-number" style="background-color: #F46F36;"
+                                    href="/dashboard/orders?page=${response.pagination.currentPage - 1}">
+                                    <i class="fa-solid fa-arrow-left"></i>
                                 </a>
-                                </li>
-                                `
-                            }
-
-                            if (pagination.isNext) {
-                                paginationHtml += `
-                                    <li class="page-item">
-                                        <a class="page-link" style="background-color: #F46F36;"
-                                        href="/dashboard/orders/page?page=${pagination.currentPage + 1}"><i
-                                        class="fa-solid fa-arrow-right"></i></a>
-                                    </li>
-                                `
-                            }
-                        } else {
-                            paginationHtml = ``
+                            </li>
+                        `;
                         }
 
-                        document.querySelector('.pagination').innerHTML = paginationHtml
+                        const currentPage = response.pagination.currentPage;
+                        const totalPages = response.pagination.totalPages;
 
+                        for (let i = 1; i <= totalPages; i++) {
+                            paginationHtml += `
+                            <li class="page-item">
+                                <a class="page-link page-number" style="background-color: #000000; color: #F46F36;"
+                                    href="/dashboard/orders?page=${i}">
+                                    ${i}
+                                </a>
+                            </li>
+                        `;
+                        }
+
+                        if (response.pagination.isNext) {
+                            paginationHtml += `
+                            <li class="page-item">
+                                <a class="page-link page-number" style="background-color: #F46F36;"
+                                    href="/dashboard/orders?page=${response.pagination.currentPage + 1}">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </a>
+                            </li>
+                        `;
+                        }
+
+                        document.querySelector('.pagination').innerHTML = paginationHtml;
+
+                        $('.page-number').removeClass('active');
+                        $(`.page-number[href*="page=${currentPage}"]`).addClass('active');
                     } else {
-                        window.location.href = response.redirected
+                        window.location.href = response.redirected;
                     }
                 }
-            })
-        })
-    })
+            });
+        });
+    });
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const pageNumber = document.querySelectorAll('.page-number');
+        const pageUrl = new URL(window.location.href);
+        const currentPage = parseInt(pageUrl.searchParams.get('page')) || 1;
+
+        pageNumber.forEach(number => number.classList.remove('active'));
+
+        pageNumber[currentPage - 1]?.classList.add('active');
+    });
+
 
 </script>

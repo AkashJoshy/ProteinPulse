@@ -88,9 +88,12 @@
     {{!-- Current pge --}}
     <input type="text" class="d-none" id="current-page" value="{{pagination.current}}">
 
-    {{#each (paginationNumbers 1 pagination.totalPages) as |pageNumber|}}
-    <li class="page-item"><a class="page-link page-number" href="/admin/coupon-management?page={{pageNumber}}">
-        {{pageNumber}} </a></li>
+    {{#each (paginationDynamicNumbers pagination.currentPage pagination.totalPages)}}
+    <li class="page-item">
+      <a class="page-link page-number" href="/admin/coupon-management?page={{this}}">
+        {{this}} 
+      </a>
+    </li>
     {{/each}}
 
     {{#if pagination.isNext}}
@@ -308,14 +311,16 @@
   const pages = document.querySelectorAll('.page-item')
   const currentPage = document.querySelector('#current-page')
 
-  pages.forEach(page => {
-    if (page.innerText == currentPage.value) {
-      page.classList.add('active')
-    }
-    page.addEventListener('click', (e) => {
-      pages.forEach(pg => pg.classList.remove('active'))
+    document.addEventListener('DOMContentLoaded', (e) => {
+        const pageNumber = document.querySelectorAll('.page-number')
+        let pageUrl = new URL(e.srcElement.URL)
+        let page = pageUrl.searchParams.get('page') || 1
+        pageNumber.forEach(number => {
+            number.classList.add('active')
+            pageNumber.forEach(numb => numb.classList.remove('active'))
+        })
+        pageNumber[page - 1].classList.add('active')
     })
-  })
 
 
 </script>

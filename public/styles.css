@@ -355,14 +355,16 @@ ul.slick-dots li.slick-active button:before {
 
 /*  Admin pagination  */
 .page-number {
-  background-color: #f46f36;
-  color: black;
-  border-color: rgb(0, 0, 0);
+  background-color: #3d3d3d; 
+  color: #f5a623;          
+  border-color: #f5a623;    
+  border-radius: 4px;      
+  padding: 8px 12px;        
+  font-weight: bold;        
+  transition: all 0.2s ease;
 }
 
-.prev-next-number {
-  color: #f46f36;
-}
+
 
 .admin-pagination a:hover {
   color: #f46f36;

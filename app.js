@@ -136,7 +136,8 @@ app.engine('hbs', engine({
             inc = Number(inc)
             currentPage = Number(currentPage)
             return (currentPage + inc)
-        }
+        },
+        isPagination: pages => pages > 1 ? true : false,
     }
 }))
 

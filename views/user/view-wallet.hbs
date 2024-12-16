@@ -47,6 +47,11 @@
         -webkit-appearance: none;
         margin: 0;
     }
+
+    .page-item .page-link.active {
+        border: 1px ridge #ffffff !important;
+        color: rgb(255, 255, 255) !important;
+    }
 </style>
 
 <div class="container">
@@ -154,20 +159,21 @@
                 <ul class="pagination wallet-pagination justify-content-center">
                     {{#if pagination.isPrevious}}
                     <li class="page-item">
-                        <a class="page-link" style="background-color: #F46F36;" href="#"><i
+                        <a class="page-link page-number" style="background-color: #F46F36;" href="#"><i
                                 class="fa-solid fa-arrow-left"></i></a>
                     </li>
                     {{/if}}
 
                     {{!-- {{#each (paginationNumbers 1 pagination.totalPages)}} --}}
                     {{#each (paginationDynamicNumbers pagination.currentPage pagination.totalPages)}}
-                    <li class="page-item"><a class="page-link" style="background-color: #000000; color: #F46F36;"
+                    <li class="page-item"><a class="page-link page-number"
+                            style="background-color: #000000; color: #F46F36;"
                             href='/dashboard/wallet?page={{this}}'>{{this}}</a></li>
                     {{/each}}
 
                     {{#if pagination.isNext}}
                     <li class="page-item">
-                        <a class="page-link" style="background-color: #F46F36;"
+                        <a class="page-link page-number" style="background-color: #F46F36;"
                             href="/dashboard/wallet?page={{paginationManipulation pagination.currentPage 1}}"><i
                                 class="fa-solid fa-arrow-right"></i></a>
                     </li>
@@ -197,7 +203,7 @@
                     if (response.status) {
                         const pagination = response.pagination
                         const walletTransactions = response.walletTransactions
-                        console.log(response.walletTransactions)
+
                         let transactionsHtml = ''
                         let paginationHtml = ''
                         walletTransactions.forEach(transaction => {
@@ -236,7 +242,7 @@
                             if (pagination.isPrevious) {
                                 paginationHtml += `
                                     <li class="page-item">
-                                        <a class="page-link" style="background-color: #F46F36;" 
+                                        <a class="page-link page-number" style="background-color: #F46F36;" 
                                         href="/user/dashboard/wallet/page?page=${pagination.currentPage - 1}">
                                         <i class="fa-solid fa-arrow-left"></i></a>
                                     </li>
@@ -257,7 +263,7 @@
 
                             for (let i = start; i <= end; i++) {
                                 paginationHtml += `
-                                <li class="page-item"><a class="page-link" 
+                                <li class="page-item"><a class="page-link page-number ${i === current ? 'active' : ''}" 
                                 style="background-color: #000000; color: #F46F36;" 
                                 href="/user/dashboard/wallet/page?page=${i}">
                                 ${i}
@@ -268,7 +274,7 @@
                             if (pagination.isNext) {
                                 paginationHtml += `
                                     <li class="page-item">
-                                        <a class="page-link" style="background-color: #F46F36;"
+                                        <a class="page-link page-number" style="background-color: #F46F36;"
                                         href="/user/dashboard/wallet/page?page=${pagination.currentPage + 1}"><i
                                         class="fa-solid fa-arrow-right"></i></a>
                                     </li>
@@ -278,6 +284,7 @@
 
                         document.querySelector('.pagination').innerHTML = paginationHtml
 
+                     
                     } else {
                         window.location.href = response.redirected
                     }
@@ -285,5 +292,16 @@
             })
         })
     })
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const pageNumber = document.querySelectorAll('.page-number');
+        const pageUrl = new URL(window.location.href);
+        const currentPage = parseInt(pageUrl.searchParams.get('page')) || 1;
+
+        pageNumber.forEach(number => number.classList.remove('active'));
+
+        pageNumber[currentPage - 1]?.classList.add('active');
+    });
+
 
 </script>

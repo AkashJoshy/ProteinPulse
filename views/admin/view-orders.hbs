@@ -20,7 +20,6 @@
                 <th scope="col">Order No</th>
                 <th scope="col">Amount</th>
                 <th scope="col">Payment</th>
-                {{!-- <th scope="col">Order Status</th> --}}
                 <th scope="col">Payment Status</th>
                 <th scope="col">Date</th>
                 <th scope="col">View</th>
@@ -63,10 +62,15 @@
                 </a>
             </li>
             {{/if}}
-            {{#each (paginationNumbers 1 pagination.totalPages) as |pageNumber| }}
-            <li class="page-item"><a class="page-link page-number " href="/admin/orders?page={{pageNumber}}">
-                    {{pageNumber}} </a></li>
+
+            {{#each (paginationDynamicNumbers pagination.currentPage pagination.totalPages)}}
+            <li class="page-item">
+                <a class="page-link page-number" href="/admin/orders?page={{this}}">
+                    {{this}}
+                </a>
+            </li>
             {{/each}}
+
             {{#if pagination.isNext}}
             <li class="page-item">
                 <a class="page-link bg-dark prev-next-number"
@@ -89,7 +93,6 @@
         console.log(elementValue)
         const orderID = element.getAttribute('data-order-id')
         console.log(orderID)
-        // PUT Request for changing order status
         $.ajax({
             url: "/admin/orders/update-status",
             method: 'PUT',
@@ -109,6 +112,17 @@
             }
         })
     }
+
+    document.addEventListener('DOMContentLoaded', (e) => {
+        const pageNumber = document.querySelectorAll('.page-number')
+        let pageUrl = new URL(e.srcElement.URL)
+        let page = pageUrl.searchParams.get('page') || 1
+        pageNumber.forEach(number => {
+            number.classList.add('active')
+            pageNumber.forEach(numb => numb.classList.remove('active'))
+        })
+        pageNumber[page - 1].classList.add('active')
+    })
 
     document.querySelectorAll('.order-status').forEach(select => {
         select.addEventListener('change', changeOrderStatus)

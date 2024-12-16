@@ -5,10 +5,12 @@
     background-color: #f8f9fa;
   }
 
-  .page-item.active .page-link {
+  .active>.page-link,
+  .page-link.active {
     background-color: #F46F36;
-    color: white;
     border-color: black;
+    color: white;
+
   }
 </style>
 
@@ -106,9 +108,12 @@
       <li class="page-item"><a class="page-link bg-dark prev-next-number"
           href="/admin/category?page={{paginationManipulation pagination.currentPage -1}}">Previous</a></li>
       {{/if}}
-      {{#each (paginationNumbers 1 pagination.totalPages)}}
+
+      {{#each (paginationDynamicNumbers pagination.currentPage pagination.totalPages)}}
       <li class="page-item">
-        <a class="page-link page-number" href="/admin/category?page={{this}}">{{this}}</a>
+        <a class="page-link page-number" href="/admin/category?page={{this}}">
+          {{this}}
+        </a>
       <li>
         {{/each }}
 
@@ -184,9 +189,20 @@
     `
     }
 
-    // Page numbers
+    let current = pagination.currentPage
+    let pages = pagination.totalPages
+    let limit = 5
+
+    let start = Math.max(1, current - Math.floor(limit / 2))
+    let end = Math.min(pages, start + limit - 1)
+    let numbers = []
+
+    if (end - start + 1 < limit) {
+      start = Math.max(1, end - limit + 1)
+    }
+
     if (pagination.totalPages) {
-      for (let i = 1; i <= pagination.totalPages; i++) {
+      for (let i = start; i <= 5; i++) {
         html += `
     <li class="page-item">
       <a class="page-link page-number" href="?search=${search}&page=${i}">${i}</a>
@@ -288,12 +304,11 @@
 
   paginationBody.addEventListener('click', e => {
     e.preventDefault()
-    console.log(`Clicked`)
     const url = new URL(e.target.href)
     const search = url.searchParams.get('search') || ''
     const page = url.searchParams.get('page') || ''
     console.log(search)
-    console.log(page)
+    console.log(`Page`, page)
     // Ajax Req
     $.ajax({
       url: `/admin/category/query?search=${search}&page=${page}`,
@@ -360,5 +375,22 @@
       }
     })
   })
+
+  function addActiveFn(currentPage) {
+    document.addEventListener('DOMContentLoaded', (e) => {
+      const pageNumber = document.querySelectorAll('.page-number')
+      let pageUrl = new URL(e.srcElement.URL)
+      let page = currentPage
+      console.log(`Page: ${currentPage}`)
+      pageNumber.forEach(number => {
+        number.classList.add('active')
+        pageNumber.forEach(numb => numb.classList.remove('active'))
+      })
+      pageNumber[page - 1].classList.add('active')
+    })
+    console.log(`Woerking`)
+  }
+
+  addActiveFn(1)
 
 </script>

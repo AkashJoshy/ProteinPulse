@@ -5,11 +5,13 @@
     background-color: #f8f9fa;
   }
 
-  .page-item.active .page-link {
+  .active>.page-link,
+  .page-link.active {
     background-color: #F46F36;
-    color: white;
     border-color: black;
+    color: white;
   }
+  
 </style>
 
 <div class="mt-5 d-flex">
@@ -92,10 +94,11 @@
       </li>
       {{/if}}
 
-      {{#each (paginationNumbers 1 pagination.totalPages) as |pageNumber| }}
+
+      {{#each (paginationDynamicNumbers pagination.currentPage pagination.totalPages)}}
       <li class="page-item">
-        <a class="page-link page-number" data-page="{{pageNumber}}" href="/admin/customers?page={{pageNumber}}">
-          {{pageNumber}}
+        <a class="page-link page-number" data-page="{{this}}" href="/admin/customers?page={{this}}">
+          {{this}}
         </a>
       </li>
       {{/each}}
@@ -171,12 +174,24 @@
     `;
     }
 
-    for (let pageNumber = 1; pageNumber <= pagination.totalPages; pageNumber++) {
+    let current = pagination.currentPage
+    let pages = pagination.totalPages
+    let limit = 5
+
+    let start = Math.max(1, current - Math.floor(limit / 2))
+    let end = Math.min(pages, start + limit - 1)
+    let numbers = []
+
+    if (end - start + 1 < limit) {
+      start = Math.max(1, end - limit + 1)
+    }
+
+    for (let i = start; i <= end; i++) {
       paginationHtml += `
-      <li class="page-item ${pagination.currentPage === pageNumber ? 'active' : ''}">
-        <a class="page-link page-number" data-page="${pageNumber}"
-         href="?search=${search}&page=${pageNumber}">
-          ${pageNumber}
+      <li class="page-item ${pagination.currentPage === i ? 'active' : ''}">
+        <a class="page-link page-number" data-page="${i}"
+         href="?search=${search}&page=${i}">
+          ${i}
         </a>
       </li>
     `;
@@ -256,5 +271,17 @@
       }
     })
   }
+
+
+  document.addEventListener('DOMContentLoaded', (e) => {
+    const pageNumber = document.querySelectorAll('.page-number')
+    let pageUrl = new URL(e.srcElement.URL)
+    let page = pageUrl.searchParams.get('page') || 1
+    pageNumber.forEach(number => {
+      number.classList.add('active')
+      pageNumber.forEach(numb => numb.classList.remove('active'))
+    })
+    pageNumber[page - 1].classList.add('active')
+  })
 
 </script>

@@ -1,3 +1,12 @@
+<style>
+  .active>.page-link,
+  .page-link.active {
+    background-color: #F46F36;
+    border-color: black;
+    color: white;
+  }
+</style>
+
 <div class="mt-5">
   <h3 class="category-title ms-3 ms-md-5 " style="cursor: pointer;">
     Carousels <a href="/admin/add-carousel">
@@ -192,5 +201,15 @@
     })
   }
 
+  document.addEventListener('DOMContentLoaded', (e) => {
+    const pageNumber = document.querySelectorAll('.page-number')
+    let pageUrl = new URL(e.srcElement.URL)
+    let page = pageUrl.searchParams.get('page') || 1
+    pageNumber.forEach(number => {
+      number.classList.add('active')
+      pageNumber.forEach(numb => numb.classList.remove('active'))
+    })
+    pageNumber[page - 1].classList.add('active')
+  })
 
 </script>

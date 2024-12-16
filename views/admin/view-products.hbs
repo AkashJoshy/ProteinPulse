@@ -174,10 +174,10 @@
       </li>
       {{/if}}
 
-      {{#each (paginationNumbers 1 pagination.totalPages) as |pageNumber| }}
+      {{#each (paginationDynamicNumbers pagination.currentPage pagination.totalPages)}}
       <li class="page-item">
-        <a class="page-link page-number" href="/admin/products?page={{pageNumber}}">
-          {{pageNumber}}
+        <a class="page-link page-number" href="/admin/products?page={{this}}">
+          {{this}}
         </a>
       </li>
       {{/each}}
@@ -210,7 +210,6 @@
     let paginationHtml = '';
 
 
-    // Previous Page Link
     if (pagination.previousPage) {
       paginationHtml += `
       <li class="page-item">
@@ -219,12 +218,23 @@
     `;
     }
 
-    // Page Number Links
-    for (let pageNumber = 1; pageNumber <= pagination.totalPages; pageNumber++) {
+    let current = pagination.currentPage
+    let pages = pagination.totalPages
+    let limit = 5
+
+    let start = Math.max(1, current - Math.floor(limit / 2))
+    let end = Math.min(pages, start + limit - 1)
+    let numbers = []
+
+    if (end - start + 1 < limit) {
+      start = Math.max(1, end - limit + 1)
+    }
+
+    for (let i = start; i <= end; i++) {
       paginationHtml += `
-      <li class="page-item ${pagination.currentPage === pageNumber ? 'active' : ''}">
-        <a class="page-link page-number" href="${query == 'search' ? `?search=${search}&page=${pageNumber}` : `?page=${pageNumber}&filter=${searchSort.value}`}">
-          ${pageNumber}
+      <li class="page-item ${pagination.currentPage === i ? 'active' : ''}">
+        <a class="page-link page-number" href="${query == 'search' ? `?search=${search}&page=${i}` : `?page=${i}&filter=${searchSort.value}`}">
+          ${i}
         </a>
       </li>
     `;
