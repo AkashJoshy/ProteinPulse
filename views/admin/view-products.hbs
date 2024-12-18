@@ -165,6 +165,7 @@
 
   <h4 class="fs-4 text-center text-danger fw-semibold" id="product-message"></h4>
 
+
   <nav aria-label="Page navigation example" class="d-flex fixed-bottom" id="pagination" style="z-index: 2;">
     <ul class="pagination mx-auto py-3 admin-pagination">
       {{#if pagination.previousPage}}
@@ -176,7 +177,7 @@
 
       {{#each (paginationDynamicNumbers pagination.currentPage pagination.totalPages)}}
       <li class="page-item">
-        <a class="page-link page-number" href="/admin/products?page={{this}}">
+        <a class="page-link page-number-admin" href="/admin/products?page={{this}}">
           {{this}}
         </a>
       </li>
@@ -233,7 +234,7 @@
     for (let i = start; i <= end; i++) {
       paginationHtml += `
       <li class="page-item ${pagination.currentPage === i ? 'active' : ''}">
-        <a class="page-link page-number" href="${query == 'search' ? `?search=${search}&page=${i}` : `?page=${i}&filter=${searchSort.value}`}">
+        <a class="page-link page-number-admin" href="${query == 'search' ? `?search=${search}&page=${i}` : `?page=${i}&filter=${searchSort.value}`}">
           ${i}
         </a>
       </li>

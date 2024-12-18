@@ -90,8 +90,8 @@
 
     {{#each (paginationDynamicNumbers pagination.currentPage pagination.totalPages)}}
     <li class="page-item">
-      <a class="page-link page-number" href="/admin/coupon-management?page={{this}}">
-        {{this}} 
+      <a class="page-link page-number-admin" href="/admin/coupon-management?page={{this}}">
+        {{this}}
       </a>
     </li>
     {{/each}}
@@ -310,17 +310,19 @@
   // Pagination
   const pages = document.querySelectorAll('.page-item')
   const currentPage = document.querySelector('#current-page')
+  const pageNumber = document.querySelectorAll('.page-number-admin')
 
+  if (pageNumber.length >= 1) {
     document.addEventListener('DOMContentLoaded', (e) => {
-        const pageNumber = document.querySelectorAll('.page-number')
-        let pageUrl = new URL(e.srcElement.URL)
-        let page = pageUrl.searchParams.get('page') || 1
-        pageNumber.forEach(number => {
-            number.classList.add('active')
-            pageNumber.forEach(numb => numb.classList.remove('active'))
-        })
-        pageNumber[page - 1].classList.add('active')
+      let pageUrl = new URL(e.srcElement.URL)
+      let page = pageUrl.searchParams.get('page') || 1
+      pageNumber.forEach(number => {
+        number.classList.add('active')
+        pageNumber.forEach(numb => numb.classList.remove('active'))
+      })
+      pageNumber[page - 1].classList.add('active')
     })
+  }
 
 
 </script>

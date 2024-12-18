@@ -48,7 +48,7 @@
 </div>
 
 
-<div class="mx-2 mx-md-5 table-responsive shadow-lg rounded mt-4">
+<div class="mx-2 mx-md-5 table-responsive shadow-lg rounded mt-4 order-table">
   <table class="table">
     <thead class="table-dark">
       <tr>
@@ -111,7 +111,7 @@
 
       {{#each (paginationDynamicNumbers pagination.currentPage pagination.totalPages)}}
       <li class="page-item">
-        <a class="page-link page-number" href="/admin/category?page={{this}}">
+        <a class="page-link page-number-admin" href="/admin/category?page={{this}}">
           {{this}}
         </a>
       <li>
@@ -202,10 +202,10 @@
     }
 
     if (pagination.totalPages) {
-      for (let i = start; i <= 5; i++) {
+      for (let i = start; i <= end; i++) {
         html += `
     <li class="page-item">
-      <a class="page-link page-number" href="?search=${search}&page=${i}">${i}</a>
+      <a class="page-link page-number-admin" href="?search=${search}&page=${i}">${i}</a>
     </li>
    `
       }
@@ -231,9 +231,7 @@
     const searchBar = document.querySelector('#search-bar')
 
     searchBar.addEventListener('input', (e) => {
-      console.log(e.target.value)
       const search = e.target.value
-      //  console.log(e.target.value.length)
       $.ajax({
         url: `/admin/category/query?search=${search}&page=1`,
         method: 'GET',
@@ -307,8 +305,6 @@
     const url = new URL(e.target.href)
     const search = url.searchParams.get('search') || ''
     const page = url.searchParams.get('page') || ''
-    console.log(search)
-    console.log(`Page`, page)
     // Ajax Req
     $.ajax({
       url: `/admin/category/query?search=${search}&page=${page}`,
@@ -378,17 +374,15 @@
 
   function addActiveFn(currentPage) {
     document.addEventListener('DOMContentLoaded', (e) => {
-      const pageNumber = document.querySelectorAll('.page-number')
+      const pageNumber = document.querySelectorAll('.page-number-admin')
       let pageUrl = new URL(e.srcElement.URL)
       let page = currentPage
-      console.log(`Page: ${currentPage}`)
       pageNumber.forEach(number => {
         number.classList.add('active')
         pageNumber.forEach(numb => numb.classList.remove('active'))
       })
       pageNumber[page - 1].classList.add('active')
     })
-    console.log(`Woerking`)
   }
 
   addActiveFn(1)

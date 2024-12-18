@@ -12,7 +12,7 @@
     <h3 class="ms-3 ms-md-5">All Orders</h3>
 </div>
 
-<div class="mx-2 mx-md-5 mt-3 table-responsive shadow-lg rounded">
+<div class="mx-2 mx-md-5 mt-3 table-responsive shadow-lg rounded order-table" >
     <table class="table">
         <thead class="table-dark">
             <tr>
@@ -65,7 +65,7 @@
 
             {{#each (paginationDynamicNumbers pagination.currentPage pagination.totalPages)}}
             <li class="page-item">
-                <a class="page-link page-number" href="/admin/orders?page={{this}}">
+                <a class="page-link page-number-admin" href="/admin/orders?page={{this}}">
                     {{this}}
                 </a>
             </li>
@@ -114,7 +114,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', (e) => {
-        const pageNumber = document.querySelectorAll('.page-number')
+        const pageNumber = document.querySelectorAll('.page-number-admin')
         let pageUrl = new URL(e.srcElement.URL)
         let page = pageUrl.searchParams.get('page') || 1
         pageNumber.forEach(number => {

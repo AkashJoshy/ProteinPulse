@@ -364,7 +364,15 @@ ul.slick-dots li.slick-active button:before {
   transition: all 0.2s ease;
 }
 
+.page-number-admin {
+  background-color: #f46f36;
+  color: black;
+  border-color: rgb(0, 0, 0);
+}
 
+.prev-next-number {
+  color: #f46f36;
+}
 
 .admin-pagination a:hover {
   color: #f46f36;
@@ -477,6 +485,10 @@ ul.slick-dots li.slick-active button:before {
     /* max-height: 350px;  */
     overflow-y: auto;
   }
+
+  .order-table {
+    max-height: 350px;
+  }
 }
 
 /* Styling btw 481px to 768px */
@@ -511,6 +523,10 @@ ul.slick-dots li.slick-active button:before {
   .table-responsive {
     /* max-height: 350px;  */
     overflow-y: auto;
+  }
+
+  .order-table {
+    max-height: 350px;
   }
 }
 

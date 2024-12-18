@@ -66,7 +66,7 @@
   </h3>
   {{/if}}
 
-  {{#if pagination}}
+  {{#if (isPagination pagination.totalPages)}}
   <nav aria-label="Page navigation example" class="d-flex fixed-bottom " style="z-index: 2;">
     <ul class="pagination mx-auto py-3 admin-pagination" id="pagination-body">
       {{#if pagination.isPrevious}}
@@ -75,7 +75,8 @@
       {{/if}}
       {{#each (paginationNumbers 1 pagination.totalPages)}}
       <li class="page-item">
-        <a class="page-link page-number" data-page="{{this}}" href="/admin/carousel/query?page={{this}}">{{this}}</a>
+        <a class="page-link page-number-admin" data-page="{{this}}"
+          href="/admin/carousel/query?page={{this}}">{{this}}</a>
       <li>
         {{/each }}
 
@@ -92,6 +93,8 @@
 <script>
 
   let paginationBody = document.querySelector('#pagination-body')
+
+  if(paginationBody) {
 
   paginationBody.addEventListener('click', (e) => {
     e.preventDefault()
@@ -148,6 +151,8 @@
     }
   })
 
+  }
+
   const errMsg = document.querySelector('.error-message')
 
   if (errMsg) {
@@ -201,15 +206,18 @@
     })
   }
 
-  document.addEventListener('DOMContentLoaded', (e) => {
-    const pageNumber = document.querySelectorAll('.page-number')
-    let pageUrl = new URL(e.srcElement.URL)
-    let page = pageUrl.searchParams.get('page') || 1
-    pageNumber.forEach(number => {
-      number.classList.add('active')
-      pageNumber.forEach(numb => numb.classList.remove('active'))
+  const pageNumber = document.querySelectorAll('.page-number-admin')
+
+  if (pageNumber.length >= 1) {
+    document.addEventListener('DOMContentLoaded', (e) => {
+      let pageUrl = new URL(e.srcElement.URL)
+      let page = pageUrl.searchParams.get('page') || 1
+      pageNumber.forEach(number => {
+        number.classList.add('active')
+        pageNumber.forEach(numb => numb.classList.remove('active'))
+      })
+      pageNumber[page - 1].classList.add('active')
     })
-    pageNumber[page - 1].classList.add('active')
-  })
+  }
 
 </script>

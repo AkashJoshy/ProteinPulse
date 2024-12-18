@@ -97,7 +97,7 @@
 
       {{#each (paginationDynamicNumbers pagination.currentPage pagination.totalPages)}}
       <li class="page-item">
-        <a class="page-link page-number" data-page="{{this}}" href="/admin/customers?page={{this}}">
+        <a class="page-link page-number-admin" data-page="{{this}}" href="/admin/customers?page={{this}}">
           {{this}}
         </a>
       </li>
@@ -189,7 +189,7 @@
     for (let i = start; i <= end; i++) {
       paginationHtml += `
       <li class="page-item ${pagination.currentPage === i ? 'active' : ''}">
-        <a class="page-link page-number" data-page="${i}"
+        <a class="page-link page-number-admin" data-page="${i}"
          href="?search=${search}&page=${i}">
           ${i}
         </a>
@@ -274,7 +274,7 @@
 
 
   document.addEventListener('DOMContentLoaded', (e) => {
-    const pageNumber = document.querySelectorAll('.page-number')
+    const pageNumber = document.querySelectorAll('.page-number-admin')
     let pageUrl = new URL(e.srcElement.URL)
     let page = pageUrl.searchParams.get('page') || 1
     pageNumber.forEach(number => {

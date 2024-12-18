@@ -193,7 +193,7 @@ const restoreCustomer = asyncHandler(async (req, res) => {
 // Category
 const getCategories = asyncHandler(async (req, res) => {
   const page = Number(req.query.page) || 1;
-  const limit = req.query.limit || 3;
+  const limit = req.query.limit || 8;
   const search = req.query.search || "";
 
   const searchFilter =
@@ -214,15 +214,17 @@ const categoryQuery = asyncHandler(async (req, res, next) => {
   if (!req.session.admin) {
     return res.json({ status: false, redirected: '/admin/' })
   }
+  
   const search = req.query.search || "";
   const page = Number(req.query.page) || 1;
   const limit = 3;
-
+  
   const searchFilter =
-    search !== "" ? { name: { $regex: search, $options: `i` } } : {};
-
-  let { data, pagination } = await getPaginatedData(CategoryData, page, limit, searchFilter)
-
+  search !== "" ? { name: { $regex: search, $options: `i` } } : {};
+  console.log(searchFilter);
+  
+  let { data, pagination } = await getPaginatedData(CategoryData, page, limit, {}, searchFilter)
+  
   return res.json({
     status: true,
     categories: data,
@@ -674,7 +676,7 @@ const searchProducts = asyncHandler(async (req, res) => {
 const getOrders = asyncHandler(async (req, res) => {
   try {
     const page = req.query.page || 1;
-    const limit = 2;
+    const limit = 8;
 
     let { data, pagination } = await getPaginatedData(OrderData, page, limit)
 

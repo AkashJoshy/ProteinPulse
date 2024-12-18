@@ -32,7 +32,7 @@
     cursor: pointer;
   }
 
-    .active>.page-link,
+  .active>.page-link,
   .page-link.active {
     background-color: #F46F36;
     border-color: black;
@@ -88,7 +88,7 @@
   </table>
 
 </div>
-
+{{#if (isPagination pagination.totalPages)}}
 <nav aria-label="Page navigation example" class="d-flex " style="z-index: 2;">
 
   <ul class="pagination mx-auto py-3 admin-pagination">
@@ -105,7 +105,7 @@
 
     {{#each (paginationDynamicNumbers pagination.currentPage pagination.totalPages)}}
     <li class="page-item">
-      <a class="page-link page-number" href="/admin/offer-management?page={{this}}">
+      <a class="page-link page-number-admin" href="/admin/offer-management?page={{this}}">
         {{this}}
       </a>
     </li>
@@ -121,9 +121,9 @@
   </ul>
 
 </nav>
+{{/if}}
 
-
-<div class="mt-2">
+<div class="mt-3">
   <h3 class="ms-3 ms-md-5">Add Offers</h3>
 </div>
 
@@ -255,8 +255,9 @@
     })
   }
 
-    document.addEventListener('DOMContentLoaded', (e) => {
-    const pageNumber = document.querySelectorAll('.page-number')
+  const pageNumber = document.querySelectorAll('.page-number-admin')
+  if(pageNumber.length >= 1) {
+  document.addEventListener('DOMContentLoaded', (e) => {
     let pageUrl = new URL(e.srcElement.URL)
     let page = pageUrl.searchParams.get('page') || 1
     pageNumber.forEach(number => {
@@ -265,6 +266,8 @@
     })
     pageNumber[page - 1].classList.add('active')
   })
+
+  }
 
 
 </script>
